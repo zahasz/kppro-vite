@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\CompanyProfileController;
+use App\Http\Controllers\ContractorController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -17,6 +18,10 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
     Route::patch('/company-profile', [CompanyProfileController::class, 'update'])->name('company-profile.update');
+
+    // Routing dla kontrahentów
+    Route::resource('contractors', ContractorController::class);
+    Route::post('contractors/export-pdf', [ContractorController::class, 'exportPDF'])->name('contractors.export-pdf');
 });
 
 require __DIR__.'/auth.php';

@@ -35,7 +35,7 @@
                                     </span>
                                     <span class="text-sm">Magazyn</span>
                                 </a>
-                                <a href="#" class="flex items-center space-x-2 text-gray-700 hover:text-gray-900 group">
+                                <a href="{{ route('contractors.index') }}" class="flex items-center space-x-2 text-gray-700 hover:text-gray-900 group">
                                     <span class="w-6 h-6 rounded-lg bg-gray-100 bg-opacity-10 group-hover:bg-opacity-20 flex items-center justify-center">
                                         <i class="fas fa-users text-gray-600 text-xs"></i>
                                     </span>
@@ -65,6 +65,40 @@
                                     </span>
                                     <span class="text-sm">Kosztorysy</span>
                                 </a>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Notatki -->
+                    <div class="mt-4">
+                        <div class="bg-white bg-opacity-10 backdrop-blur-sm overflow-hidden shadow-sm sm:rounded-lg">
+                            <div class="p-4">
+                                <h3 class="text-sm font-semibold text-gray-700 mb-3">Notatki</h3>
+                                <div class="space-y-3">
+                                    <div class="flex items-start space-x-3 text-xs">
+                                        <div class="w-6 h-6 rounded-lg bg-yellow-100 bg-opacity-10 flex items-center justify-center mt-0.5">
+                                            <i class="fas fa-sticky-note text-yellow-600 text-xs"></i>
+                                        </div>
+                                        <div class="flex-1">
+                                            <p class="font-medium text-gray-700">Spotkanie z klientem</p>
+                                            <p class="text-gray-500 text-xs">Omówienie projektu - 15:00</p>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-start space-x-3 text-xs">
+                                        <div class="w-6 h-6 rounded-lg bg-blue-100 bg-opacity-10 flex items-center justify-center mt-0.5">
+                                            <i class="fas fa-thumbtack text-blue-600 text-xs"></i>
+                                        </div>
+                                        <div class="flex-1">
+                                            <p class="font-medium text-gray-700">Przygotować raport</p>
+                                            <p class="text-gray-500 text-xs">Do końca tygodnia</p>
+                                        </div>
+                                    </div>
+                                    <button class="w-full flex items-center justify-center space-x-2 text-gray-700 hover:text-gray-900 group mt-2">
+                                        <span class="w-6 h-6 rounded-lg bg-gray-100 bg-opacity-10 group-hover:bg-opacity-20 flex items-center justify-center">
+                                            <i class="fas fa-plus text-gray-600 text-xs"></i>
+                                        </span>
+                                        <span class="text-xs">Dodaj notatkę</span>
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -113,8 +147,12 @@
                     <div class="mb-8">
                         <h3 class="text-sm font-semibold text-gray-700 mb-2">Przychody</h3>
                         <div class="grid grid-cols-1 md:grid-cols-4 gap-2">
-                            <div class="bg-white bg-opacity-10 backdrop-blur-sm overflow-hidden shadow-sm sm:rounded-md">
-                                <div class="p-3">
+                            <div class="bg-white bg-opacity-10 backdrop-blur-sm overflow-hidden shadow-sm sm:rounded-md relative">
+                                <div class="absolute left-0 top-0 bottom-0 w-1 bg-green-500/40"></div>
+                                <div class="absolute right-0 top-0 text-4xl text-green-500/40 transform -translate-x-[20px] translate-y-[20px]">
+                                    <i class="fas fa-chart-line"></i>
+                                </div>
+                                <div class="p-3 relative z-10">
                                     <h4 class="text-xs font-semibold text-gray-700 mb-1.5 whitespace-nowrap">Przychód miesięczny</h4>
                                     <p class="text-xl font-bold text-green-600">12 500 zł</p>
                                     <div class="mt-1.5 h-1 bg-gray-200 rounded-full overflow-hidden">
@@ -123,8 +161,12 @@
                                     <p class="text-[10px] text-gray-500 mt-1">75% celu miesięcznego</p>
                                 </div>
                             </div>
-                            <div class="bg-white bg-opacity-10 backdrop-blur-sm overflow-hidden shadow-sm sm:rounded-md">
-                                <div class="p-3">
+                            <div class="bg-white bg-opacity-10 backdrop-blur-sm overflow-hidden shadow-sm sm:rounded-md relative">
+                                <div class="absolute left-0 top-0 bottom-0 w-1 bg-green-500/40"></div>
+                                <div class="absolute right-0 top-0 text-4xl text-green-500/40 transform -translate-x-[20px] translate-y-[20px]">
+                                    <i class="fas fa-file-invoice-dollar"></i>
+                                </div>
+                                <div class="p-3 relative z-10">
                                     <h4 class="text-xs font-semibold text-gray-700 mb-1.5 whitespace-nowrap">Przychód księgowany</h4>
                                     <p class="text-xl font-bold text-green-600">8 200 zł</p>
                                     <div class="mt-1.5 h-1 bg-gray-200 rounded-full overflow-hidden">
@@ -133,8 +175,12 @@
                                     <p class="text-[10px] text-gray-500 mt-1">65% całości przychodów</p>
                                 </div>
                             </div>
-                            <div class="bg-white bg-opacity-10 backdrop-blur-sm overflow-hidden shadow-sm sm:rounded-md">
-                                <div class="p-3">
+                            <div class="bg-white bg-opacity-10 backdrop-blur-sm overflow-hidden shadow-sm sm:rounded-md relative">
+                                <div class="absolute left-0 top-0 bottom-0 w-1 bg-green-500/40"></div>
+                                <div class="absolute right-0 top-0 text-4xl text-green-500/40 transform -translate-x-[20px] translate-y-[20px]">
+                                    <i class="fas fa-money-bill-wave"></i>
+                                </div>
+                                <div class="p-3 relative z-10">
                                     <h4 class="text-xs font-semibold text-gray-700 mb-1.5 whitespace-nowrap">Przychód nieksięgowany</h4>
                                     <p class="text-xl font-bold text-green-600">4 300 zł</p>
                                     <div class="mt-1.5 h-1 bg-gray-200 rounded-full overflow-hidden">
@@ -143,8 +189,12 @@
                                     <p class="text-[10px] text-gray-500 mt-1">35% całości przychodów</p>
                                 </div>
                             </div>
-                            <div class="bg-white bg-opacity-10 backdrop-blur-sm overflow-hidden shadow-sm sm:rounded-md">
-                                <div class="p-3">
+                            <div class="bg-white bg-opacity-10 backdrop-blur-sm overflow-hidden shadow-sm sm:rounded-md relative">
+                                <div class="absolute left-0 top-0 bottom-0 w-1 bg-amber-500/40"></div>
+                                <div class="absolute right-0 top-0 text-4xl text-amber-500/40 transform -translate-x-[20px] translate-y-[20px]">
+                                    <i class="fas fa-clock"></i>
+                                </div>
+                                <div class="p-3 relative z-10">
                                     <h4 class="text-xs font-semibold text-gray-700 mb-1.5 whitespace-nowrap">Należności</h4>
                                     <p class="text-xl font-bold text-amber-600">3 800 zł</p>
                                     <div class="mt-1.5 h-1 bg-gray-200 rounded-full overflow-hidden">
@@ -160,8 +210,12 @@
                     <div class="mb-8">
                         <h3 class="text-sm font-semibold text-gray-700 mb-2">Koszty</h3>
                         <div class="grid grid-cols-1 md:grid-cols-4 gap-2">
-                            <div class="bg-white bg-opacity-10 backdrop-blur-sm overflow-hidden shadow-sm sm:rounded-md">
-                                <div class="p-3">
+                            <div class="bg-white bg-opacity-10 backdrop-blur-sm overflow-hidden shadow-sm sm:rounded-md relative">
+                                <div class="absolute left-0 top-0 bottom-0 w-1 bg-red-500/40"></div>
+                                <div class="absolute right-0 top-0 text-4xl text-red-500/40 transform -translate-x-[20px] translate-y-[20px]">
+                                    <i class="fas fa-chart-bar"></i>
+                                </div>
+                                <div class="p-3 relative z-10">
                                     <h4 class="text-xs font-semibold text-gray-700 mb-1.5 whitespace-nowrap">Koszt miesięczny</h4>
                                     <p class="text-xl font-bold text-red-600">8 300 zł</p>
                                     <div class="mt-1.5 h-1 bg-gray-200 rounded-full overflow-hidden">
@@ -170,8 +224,12 @@
                                     <p class="text-[10px] text-gray-500 mt-1">45% budżetu miesięcznego</p>
                                 </div>
                             </div>
-                            <div class="bg-white bg-opacity-10 backdrop-blur-sm overflow-hidden shadow-sm sm:rounded-md">
-                                <div class="p-3">
+                            <div class="bg-white bg-opacity-10 backdrop-blur-sm overflow-hidden shadow-sm sm:rounded-md relative">
+                                <div class="absolute left-0 top-0 bottom-0 w-1 bg-red-500/40"></div>
+                                <div class="absolute right-0 top-0 text-4xl text-red-500/40 transform -translate-x-[20px] translate-y-[20px]">
+                                    <i class="fas fa-file-invoice"></i>
+                                </div>
+                                <div class="p-3 relative z-10">
                                     <h4 class="text-xs font-semibold text-gray-700 mb-1.5 whitespace-nowrap">Koszt księgowany</h4>
                                     <p class="text-xl font-bold text-red-600">28 900 zł</p>
                                     <div class="mt-1.5 h-1 bg-gray-200 rounded-full overflow-hidden">
@@ -180,8 +238,12 @@
                                     <p class="text-[10px] text-gray-500 mt-1">55% całości kosztów</p>
                                 </div>
                             </div>
-                            <div class="bg-white bg-opacity-10 backdrop-blur-sm overflow-hidden shadow-sm sm:rounded-md">
-                                <div class="p-3">
+                            <div class="bg-white bg-opacity-10 backdrop-blur-sm overflow-hidden shadow-sm sm:rounded-md relative">
+                                <div class="absolute left-0 top-0 bottom-0 w-1 bg-red-500/40"></div>
+                                <div class="absolute right-0 top-0 text-4xl text-red-500/40 transform -translate-x-[20px] translate-y-[20px]">
+                                    <i class="fas fa-wallet"></i>
+                                </div>
+                                <div class="p-3 relative z-10">
                                     <h4 class="text-xs font-semibold text-gray-700 mb-1.5 whitespace-nowrap">Koszt nieksięgowany</h4>
                                     <p class="text-xl font-bold text-red-600">98 000 zł</p>
                                     <div class="mt-1.5 h-1 bg-gray-200 rounded-full overflow-hidden">
@@ -190,8 +252,12 @@
                                     <p class="text-[10px] text-gray-500 mt-1">40% całości kosztów</p>
                                 </div>
                             </div>
-                            <div class="bg-white bg-opacity-10 backdrop-blur-sm overflow-hidden shadow-sm sm:rounded-md">
-                                <div class="p-3">
+                            <div class="bg-white bg-opacity-10 backdrop-blur-sm overflow-hidden shadow-sm sm:rounded-md relative">
+                                <div class="absolute left-0 top-0 bottom-0 w-1 bg-red-500/40"></div>
+                                <div class="absolute right-0 top-0 text-4xl text-red-500/40 transform -translate-x-[20px] translate-y-[20px]">
+                                    <i class="fas fa-exclamation-circle"></i>
+                                </div>
+                                <div class="p-3 relative z-10">
                                     <h4 class="text-xs font-semibold text-gray-700 mb-1.5 whitespace-nowrap">Zobowiązania</h4>
                                     <p class="text-xl font-bold text-red-600">12 400 zł</p>
                                     <div class="mt-1.5 h-1 bg-gray-200 rounded-full overflow-hidden">
@@ -247,7 +313,7 @@
                                 </div>
                             </div>
                             <!-- Kontrahenci -->
-                            <div class="bg-gradient-to-br from-blue-700/40 to-blue-800/40 overflow-hidden shadow-lg sm:rounded-lg group hover:shadow-xl transition-all duration-200 cursor-pointer transform hover:-translate-y-1 hover:from-blue-700/60 hover:to-blue-800/60">
+                            <a href="{{ route('contractors.index') }}" class="bg-gradient-to-br from-blue-700/40 to-blue-800/40 overflow-hidden shadow-lg sm:rounded-lg group hover:shadow-xl transition-all duration-200 cursor-pointer transform hover:-translate-y-1 hover:from-blue-700/60 hover:to-blue-800/60">
                                 <div class="p-6 flex items-center justify-between relative">
                                     <div class="relative z-10">
                                         <h4 class="text-2xl font-extrabold text-white mb-1 drop-shadow-[0_2px_2px_rgba(0,0,0,0.3)]">Kontrahenci</h4>
@@ -258,7 +324,7 @@
                                     </div>
                                     <div class="absolute top-0 right-0 w-32 h-32 bg-white opacity-5 rounded-full -mr-16 -mt-16 transform rotate-45"></div>
                                 </div>
-                            </div>
+                            </a>
                             <!-- Zadania -->
                             <div class="bg-gradient-to-br from-blue-800/40 to-blue-900/40 overflow-hidden shadow-lg sm:rounded-lg group hover:shadow-xl transition-all duration-200 cursor-pointer transform hover:-translate-y-1 hover:from-blue-800/60 hover:to-blue-900/60">
                                 <div class="p-6 flex items-center justify-between relative">
