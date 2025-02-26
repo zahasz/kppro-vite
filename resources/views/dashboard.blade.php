@@ -22,61 +22,97 @@
     </div>
 
     <!-- Statystyki -->
-    <div class="stats-section">
-        <h3 class="section-title">Statystyki finansowe</h3>
-        
-        <!-- Przychody -->
-        <div class="stats-row">
-            <div class="stat-box income">
-                <div class="stat-label">Przychody (bieżący miesiąc)</div>
-                <div class="stat-value positive">45,250 zł</div>
-                <div class="stat-count">
-                    <i class="fas fa-arrow-up text-success"></i>
-                    12% więcej niż w poprzednim miesiącu
+    <div class="row">
+        <div class="col-12">
+            <div class="stats-section">
+                <h3 class="section-title">Statystyki finansowe</h3>
+                
+                <!-- Przychody -->
+                <div class="row mb-4">
+                    <div class="col-md-3">
+                        <div class="stat-box income">
+                            <div class="stat-label">Przychody księgowane</div>
+                            <div class="stat-value positive">32,150 zł</div>
+                            <div class="stat-count">
+                                <i class="fas fa-arrow-up text-success"></i>
+                                10% więcej niż poprzednio
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-box income">
+                            <div class="stat-label">Przychody nieksiędowane</div>
+                            <div class="stat-value positive">13,100 zł</div>
+                            <div class="stat-count">
+                                <i class="fas fa-arrow-up text-success"></i>
+                                5% więcej niż poprzednio
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-box income">
+                            <div class="stat-label">Przychody (rok)</div>
+                            <div class="stat-value positive">524,800 zł</div>
+                            <div class="stat-count">
+                                <i class="fas fa-arrow-up text-success"></i>
+                                8% więcej niż w poprzednim roku
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-box income">
+                            <div class="stat-label">Należności</div>
+                            <div class="stat-value">15,750 zł</div>
+                            <div class="stat-count">
+                                <i class="fas fa-file-invoice"></i>
+                                8 faktur oczekujących
+                            </div>
+                        </div>
+                    </div>
                 </div>
-            </div>
-            <div class="stat-box income">
-                <div class="stat-label">Przychody (rok)</div>
-                <div class="stat-value positive">524,800 zł</div>
-                <div class="stat-count">
-                    <i class="fas fa-arrow-up text-success"></i>
-                    8% więcej niż w poprzednim roku
-                </div>
-            </div>
-            <div class="stat-box income">
-                <div class="stat-label">Należności</div>
-                <div class="stat-value">15,750 zł</div>
-                <div class="stat-count">
-                    <i class="fas fa-file-invoice"></i>
-                    8 faktur oczekujących
-                </div>
-            </div>
-        </div>
 
-        <!-- Koszty -->
-        <div class="stats-row">
-            <div class="stat-box expenses">
-                <div class="stat-label">Koszty (bieżący miesiąc)</div>
-                <div class="stat-value negative">32,150 zł</div>
-                <div class="stat-count">
-                    <i class="fas fa-arrow-down text-danger"></i>
-                    5% mniej niż w poprzednim miesiącu
-                </div>
-            </div>
-            <div class="stat-box expenses">
-                <div class="stat-label">Koszty (rok)</div>
-                <div class="stat-value negative">385,600 zł</div>
-                <div class="stat-count">
-                    <i class="fas fa-arrow-up text-danger"></i>
-                    3% więcej niż w poprzednim roku
-                </div>
-            </div>
-            <div class="stat-box expenses">
-                <div class="stat-label">Zobowiązania</div>
-                <div class="stat-value">12,350 zł</div>
-                <div class="stat-count">
-                    <i class="fas fa-file-invoice"></i>
-                    5 faktur do zapłaty
+                <!-- Koszty -->
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="stat-box expenses">
+                            <div class="stat-label">Koszty księgowane</div>
+                            <div class="stat-value negative">24,350 zł</div>
+                            <div class="stat-count">
+                                <i class="fas fa-arrow-down text-danger"></i>
+                                3% mniej niż poprzednio
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-box expenses">
+                            <div class="stat-label">Koszty nieksiędowane</div>
+                            <div class="stat-value negative">7,800 zł</div>
+                            <div class="stat-count">
+                                <i class="fas fa-arrow-up text-danger"></i>
+                                2% więcej niż poprzednio
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-box expenses">
+                            <div class="stat-label">Koszty (rok)</div>
+                            <div class="stat-value negative">385,600 zł</div>
+                            <div class="stat-count">
+                                <i class="fas fa-arrow-up text-danger"></i>
+                                3% więcej niż w poprzednim roku
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-box expenses">
+                            <div class="stat-label">Zobowiązania</div>
+                            <div class="stat-value">12,350 zł</div>
+                            <div class="stat-count">
+                                <i class="fas fa-file-invoice"></i>
+                                5 faktur do zapłaty
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
