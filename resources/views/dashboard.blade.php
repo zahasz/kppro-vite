@@ -2,68 +2,68 @@
     <div class="py-6">
         <div class="max-w-[1920px] mx-auto sm:px-4 lg:px-6">
             <div class="mb-6 flex justify-between items-center">
-                <h2 class="font-semibold text-xl text-gray-800">{{ __('Dashboard') }}</h2>
+                <h2 class="font-semibold text-xl text-gray-800">{{ __('KPPRO') }}</h2>
                 <!-- Tu będzie menu logowania -->
             </div>
             <div class="flex flex-col md:flex-row gap-6">
                 <!-- Menu boczne -->
-                <div class="md:w-72 flex-shrink-0">
+                <div class="md:w-56 flex-shrink-0">
                     <div class="bg-white bg-opacity-10 backdrop-blur-sm overflow-hidden shadow-sm sm:rounded-lg">
-                        <div class="p-6">
-                            <div class="space-y-4">
-                                <a href="#" class="flex items-center space-x-3 text-gray-700 hover:text-gray-900 group">
-                                    <span class="w-8 h-8 rounded-lg bg-gray-100 bg-opacity-10 group-hover:bg-opacity-20 flex items-center justify-center">
-                                        <i class="fas fa-home text-gray-600"></i>
+                        <div class="p-4">
+                            <div class="space-y-2">
+                                <a href="#" class="flex items-center space-x-2 text-gray-700 hover:text-gray-900 group">
+                                    <span class="w-6 h-6 rounded-lg bg-gray-100 bg-opacity-10 group-hover:bg-opacity-20 flex items-center justify-center">
+                                        <i class="fas fa-home text-gray-600 text-xs"></i>
                                     </span>
-                                    <span>Dashboard</span>
+                                    <span class="text-sm">Panel Główny</span>
                                 </a>
-                                <a href="#" class="flex items-center space-x-3 text-gray-700 hover:text-gray-900 group">
-                                    <span class="w-8 h-8 rounded-lg bg-gray-100 bg-opacity-10 group-hover:bg-opacity-20 flex items-center justify-center">
-                                        <i class="fas fa-file-invoice-dollar text-gray-600"></i>
+                                <a href="#" class="flex items-center space-x-2 text-gray-700 hover:text-gray-900 group">
+                                    <span class="w-6 h-6 rounded-lg bg-gray-100 bg-opacity-10 group-hover:bg-opacity-20 flex items-center justify-center">
+                                        <i class="fas fa-file-invoice-dollar text-gray-600 text-xs"></i>
                                     </span>
-                                    <span>Finanse</span>
+                                    <span class="text-sm">Finanse</span>
                                 </a>
-                                <a href="#" class="flex items-center space-x-3 text-gray-700 hover:text-gray-900 group">
-                                    <span class="w-8 h-8 rounded-lg bg-gray-100 bg-opacity-10 group-hover:bg-opacity-20 flex items-center justify-center">
-                                        <i class="fas fa-book text-gray-600"></i>
+                                <a href="#" class="flex items-center space-x-2 text-gray-700 hover:text-gray-900 group">
+                                    <span class="w-6 h-6 rounded-lg bg-gray-100 bg-opacity-10 group-hover:bg-opacity-20 flex items-center justify-center">
+                                        <i class="fas fa-book text-gray-600 text-xs"></i>
                                     </span>
-                                    <span>Księgowość</span>
+                                    <span class="text-sm">Księgowość</span>
                                 </a>
-                                <a href="#" class="flex items-center space-x-3 text-gray-700 hover:text-gray-900 group">
-                                    <span class="w-8 h-8 rounded-lg bg-gray-100 bg-opacity-10 group-hover:bg-opacity-20 flex items-center justify-center">
-                                        <i class="fas fa-warehouse text-gray-600"></i>
+                                <a href="#" class="flex items-center space-x-2 text-gray-700 hover:text-gray-900 group">
+                                    <span class="w-6 h-6 rounded-lg bg-gray-100 bg-opacity-10 group-hover:bg-opacity-20 flex items-center justify-center">
+                                        <i class="fas fa-warehouse text-gray-600 text-xs"></i>
                                     </span>
-                                    <span>Magazyn</span>
+                                    <span class="text-sm">Magazyn</span>
                                 </a>
-                                <a href="#" class="flex items-center space-x-3 text-gray-700 hover:text-gray-900 group">
-                                    <span class="w-8 h-8 rounded-lg bg-gray-100 bg-opacity-10 group-hover:bg-opacity-20 flex items-center justify-center">
-                                        <i class="fas fa-users text-gray-600"></i>
+                                <a href="#" class="flex items-center space-x-2 text-gray-700 hover:text-gray-900 group">
+                                    <span class="w-6 h-6 rounded-lg bg-gray-100 bg-opacity-10 group-hover:bg-opacity-20 flex items-center justify-center">
+                                        <i class="fas fa-users text-gray-600 text-xs"></i>
                                     </span>
-                                    <span>Kontrahenci</span>
+                                    <span class="text-sm">Kontrahenci</span>
                                 </a>
-                                <a href="#" class="flex items-center space-x-3 text-gray-700 hover:text-gray-900 group">
-                                    <span class="w-8 h-8 rounded-lg bg-gray-100 bg-opacity-10 group-hover:bg-opacity-20 flex items-center justify-center">
-                                        <i class="fas fa-tasks text-gray-600"></i>
+                                <a href="#" class="flex items-center space-x-2 text-gray-700 hover:text-gray-900 group">
+                                    <span class="w-6 h-6 rounded-lg bg-gray-100 bg-opacity-10 group-hover:bg-opacity-20 flex items-center justify-center">
+                                        <i class="fas fa-tasks text-gray-600 text-xs"></i>
                                     </span>
-                                    <span>Zadania</span>
+                                    <span class="text-sm">Zadania</span>
                                 </a>
-                                <a href="#" class="flex items-center space-x-3 text-gray-700 hover:text-gray-900 group">
-                                    <span class="w-8 h-8 rounded-lg bg-gray-100 bg-opacity-10 group-hover:bg-opacity-20 flex items-center justify-center">
-                                        <i class="fas fa-chart-bar text-gray-600"></i>
+                                <a href="#" class="flex items-center space-x-2 text-gray-700 hover:text-gray-900 group">
+                                    <span class="w-6 h-6 rounded-lg bg-gray-100 bg-opacity-10 group-hover:bg-opacity-20 flex items-center justify-center">
+                                        <i class="fas fa-chart-bar text-gray-600 text-xs"></i>
                                     </span>
-                                    <span>Raporty</span>
+                                    <span class="text-sm">Raporty</span>
                                 </a>
-                                <a href="#" class="flex items-center space-x-3 text-gray-700 hover:text-gray-900 group">
-                                    <span class="w-8 h-8 rounded-lg bg-gray-100 bg-opacity-10 group-hover:bg-opacity-20 flex items-center justify-center">
-                                        <i class="fas fa-file-contract text-gray-600"></i>
+                                <a href="#" class="flex items-center space-x-2 text-gray-700 hover:text-gray-900 group">
+                                    <span class="w-6 h-6 rounded-lg bg-gray-100 bg-opacity-10 group-hover:bg-opacity-20 flex items-center justify-center">
+                                        <i class="fas fa-file-contract text-gray-600 text-xs"></i>
                                     </span>
-                                    <span>Umowy</span>
+                                    <span class="text-sm">Umowy</span>
                                 </a>
-                                <a href="#" class="flex items-center space-x-3 text-gray-700 hover:text-gray-900 group">
-                                    <span class="w-8 h-8 rounded-lg bg-gray-100 bg-opacity-10 group-hover:bg-opacity-20 flex items-center justify-center">
-                                        <i class="fas fa-calculator text-gray-600"></i>
+                                <a href="#" class="flex items-center space-x-2 text-gray-700 hover:text-gray-900 group">
+                                    <span class="w-6 h-6 rounded-lg bg-gray-100 bg-opacity-10 group-hover:bg-opacity-20 flex items-center justify-center">
+                                        <i class="fas fa-calculator text-gray-600 text-xs"></i>
                                     </span>
-                                    <span>Kosztorysy</span>
+                                    <span class="text-sm">Kosztorysy</span>
                                 </a>
                             </div>
                         </div>
@@ -208,141 +208,191 @@
                         <h3 class="text-lg font-semibold text-gray-700 mb-4">Moduły</h3>
                         <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                             <!-- Finanse -->
-                            <div class="bg-blue-50 bg-opacity-5 backdrop-blur-sm overflow-hidden shadow-sm sm:rounded-lg group hover:bg-opacity-10 transition-all duration-200 cursor-pointer">
-                                <div class="p-6 flex items-center justify-between">
-                                    <div>
-                                        <h4 class="text-2xl font-semibold text-blue-700 mb-1">Finanse</h4>
-                                        <p class="text-sm text-blue-600 text-opacity-70">Zarządzanie finansami firmy</p>
+                            <div class="bg-gradient-to-br from-blue-400/40 to-blue-500/40 overflow-hidden shadow-lg sm:rounded-lg group hover:shadow-xl transition-all duration-200 cursor-pointer transform hover:-translate-y-1 hover:from-blue-400/60 hover:to-blue-500/60">
+                                <div class="p-6 flex items-center justify-between relative">
+                                    <div class="relative z-10">
+                                        <h4 class="text-2xl font-extrabold text-white mb-1 drop-shadow-[0_2px_2px_rgba(0,0,0,0.3)]">Finanse</h4>
+                                        <p class="text-sm font-medium text-white drop-shadow-[0_1px_1px_rgba(0,0,0,0.2)]">Zarządzanie finansami firmy</p>
                                     </div>
-                                    <div class="w-16 h-16 rounded-2xl bg-blue-100 bg-opacity-20 group-hover:bg-opacity-30 flex items-center justify-center transition-all duration-200">
-                                        <i class="fas fa-file-invoice-dollar text-blue-600 text-opacity-20 text-3xl"></i>
+                                    <div class="w-20 h-20 rounded-2xl bg-white bg-opacity-10 flex items-center justify-center relative z-10">
+                                        <i class="fas fa-file-invoice-dollar text-white text-4xl"></i>
                                     </div>
+                                    <div class="absolute top-0 right-0 w-32 h-32 bg-white opacity-5 rounded-full -mr-16 -mt-16 transform rotate-45"></div>
                                 </div>
                             </div>
                             <!-- Księgowość -->
-                            <div class="bg-indigo-50 bg-opacity-5 backdrop-blur-sm overflow-hidden shadow-sm sm:rounded-lg group hover:bg-opacity-10 transition-all duration-200 cursor-pointer">
-                                <div class="p-6 flex items-center justify-between">
-                                    <div>
-                                        <h4 class="text-2xl font-semibold text-indigo-700 mb-1">Księgowość</h4>
-                                        <p class="text-sm text-indigo-600 text-opacity-70">Księgowość i dokumentacja</p>
+                            <div class="bg-gradient-to-br from-blue-500/40 to-blue-600/40 overflow-hidden shadow-lg sm:rounded-lg group hover:shadow-xl transition-all duration-200 cursor-pointer transform hover:-translate-y-1 hover:from-blue-500/60 hover:to-blue-600/60">
+                                <div class="p-6 flex items-center justify-between relative">
+                                    <div class="relative z-10">
+                                        <h4 class="text-2xl font-extrabold text-white mb-1 drop-shadow-[0_2px_2px_rgba(0,0,0,0.3)]">Księgowość</h4>
+                                        <p class="text-sm font-medium text-white drop-shadow-[0_1px_1px_rgba(0,0,0,0.2)]">Księgowość i dokumentacja</p>
                                     </div>
-                                    <div class="w-16 h-16 rounded-2xl bg-indigo-100 bg-opacity-20 group-hover:bg-opacity-30 flex items-center justify-center transition-all duration-200">
-                                        <i class="fas fa-book text-indigo-600 text-opacity-20 text-3xl"></i>
+                                    <div class="w-20 h-20 rounded-2xl bg-white bg-opacity-10 flex items-center justify-center relative z-10">
+                                        <i class="fas fa-book text-white text-4xl"></i>
                                     </div>
+                                    <div class="absolute top-0 right-0 w-32 h-32 bg-white opacity-5 rounded-full -mr-16 -mt-16 transform rotate-45"></div>
                                 </div>
                             </div>
                             <!-- Magazyn -->
-                            <div class="bg-orange-50 bg-opacity-5 backdrop-blur-sm overflow-hidden shadow-sm sm:rounded-lg group hover:bg-opacity-10 transition-all duration-200 cursor-pointer">
-                                <div class="p-6 flex items-center justify-between">
-                                    <div>
-                                        <h4 class="text-2xl font-semibold text-orange-700 mb-1">Magazyn</h4>
-                                        <p class="text-sm text-orange-600 text-opacity-70">Zarządzanie magazynem</p>
+                            <div class="bg-gradient-to-br from-blue-600/40 to-blue-700/40 overflow-hidden shadow-lg sm:rounded-lg group hover:shadow-xl transition-all duration-200 cursor-pointer transform hover:-translate-y-1 hover:from-blue-600/60 hover:to-blue-700/60">
+                                <div class="p-6 flex items-center justify-between relative">
+                                    <div class="relative z-10">
+                                        <h4 class="text-2xl font-extrabold text-white mb-1 drop-shadow-[0_2px_2px_rgba(0,0,0,0.3)]">Magazyn</h4>
+                                        <p class="text-sm font-medium text-white drop-shadow-[0_1px_1px_rgba(0,0,0,0.2)]">Zarządzanie magazynem</p>
                                     </div>
-                                    <div class="w-16 h-16 rounded-2xl bg-orange-100 bg-opacity-20 group-hover:bg-opacity-30 flex items-center justify-center transition-all duration-200">
-                                        <i class="fas fa-warehouse text-orange-600 text-opacity-20 text-3xl"></i>
+                                    <div class="w-20 h-20 rounded-2xl bg-white bg-opacity-10 flex items-center justify-center relative z-10">
+                                        <i class="fas fa-warehouse text-white text-4xl"></i>
                                     </div>
+                                    <div class="absolute top-0 right-0 w-32 h-32 bg-white opacity-5 rounded-full -mr-16 -mt-16 transform rotate-45"></div>
                                 </div>
                             </div>
                             <!-- Kontrahenci -->
-                            <div class="bg-yellow-50 bg-opacity-5 backdrop-blur-sm overflow-hidden shadow-sm sm:rounded-lg group hover:bg-opacity-10 transition-all duration-200 cursor-pointer">
-                                <div class="p-6 flex items-center justify-between">
-                                    <div>
-                                        <h4 class="text-2xl font-semibold text-yellow-700 mb-1">Kontrahenci</h4>
-                                        <p class="text-sm text-yellow-600 text-opacity-70">Baza kontrahentów</p>
+                            <div class="bg-gradient-to-br from-blue-700/40 to-blue-800/40 overflow-hidden shadow-lg sm:rounded-lg group hover:shadow-xl transition-all duration-200 cursor-pointer transform hover:-translate-y-1 hover:from-blue-700/60 hover:to-blue-800/60">
+                                <div class="p-6 flex items-center justify-between relative">
+                                    <div class="relative z-10">
+                                        <h4 class="text-2xl font-extrabold text-white mb-1 drop-shadow-[0_2px_2px_rgba(0,0,0,0.3)]">Kontrahenci</h4>
+                                        <p class="text-sm font-medium text-white drop-shadow-[0_1px_1px_rgba(0,0,0,0.2)]">Baza kontrahentów</p>
                                     </div>
-                                    <div class="w-16 h-16 rounded-2xl bg-yellow-100 bg-opacity-20 group-hover:bg-opacity-30 flex items-center justify-center transition-all duration-200">
-                                        <i class="fas fa-users text-yellow-600 text-opacity-20 text-3xl"></i>
+                                    <div class="w-20 h-20 rounded-2xl bg-white bg-opacity-10 flex items-center justify-center relative z-10">
+                                        <i class="fas fa-users text-white text-4xl"></i>
                                     </div>
+                                    <div class="absolute top-0 right-0 w-32 h-32 bg-white opacity-5 rounded-full -mr-16 -mt-16 transform rotate-45"></div>
                                 </div>
                             </div>
                             <!-- Zadania -->
-                            <div class="bg-purple-50 bg-opacity-5 backdrop-blur-sm overflow-hidden shadow-sm sm:rounded-lg group hover:bg-opacity-10 transition-all duration-200 cursor-pointer">
-                                <div class="p-6 flex items-center justify-between">
-                                    <div>
-                                        <h4 class="text-2xl font-semibold text-purple-700 mb-1">Zadania</h4>
-                                        <p class="text-sm text-purple-600 text-opacity-70">Zarządzanie zadaniami</p>
+                            <div class="bg-gradient-to-br from-blue-800/40 to-blue-900/40 overflow-hidden shadow-lg sm:rounded-lg group hover:shadow-xl transition-all duration-200 cursor-pointer transform hover:-translate-y-1 hover:from-blue-800/60 hover:to-blue-900/60">
+                                <div class="p-6 flex items-center justify-between relative">
+                                    <div class="relative z-10">
+                                        <h4 class="text-2xl font-extrabold text-white mb-1 drop-shadow-[0_2px_2px_rgba(0,0,0,0.3)]">Zadania</h4>
+                                        <p class="text-sm font-medium text-white drop-shadow-[0_1px_1px_rgba(0,0,0,0.2)]">Zarządzanie zadaniami</p>
                                     </div>
-                                    <div class="w-16 h-16 rounded-2xl bg-purple-100 bg-opacity-20 group-hover:bg-opacity-30 flex items-center justify-center transition-all duration-200">
-                                        <i class="fas fa-tasks text-purple-600 text-opacity-20 text-3xl"></i>
+                                    <div class="w-20 h-20 rounded-2xl bg-white bg-opacity-10 flex items-center justify-center relative z-10">
+                                        <i class="fas fa-tasks text-white text-4xl"></i>
                                     </div>
+                                    <div class="absolute top-0 right-0 w-32 h-32 bg-white opacity-5 rounded-full -mr-16 -mt-16 transform rotate-45"></div>
                                 </div>
                             </div>
                             <!-- Raporty -->
-                            <div class="bg-cyan-50 bg-opacity-5 backdrop-blur-sm overflow-hidden shadow-sm sm:rounded-lg group hover:bg-opacity-10 transition-all duration-200 cursor-pointer">
-                                <div class="p-6 flex items-center justify-between">
-                                    <div>
-                                        <h4 class="text-2xl font-semibold text-cyan-700 mb-1">Raporty</h4>
-                                        <p class="text-sm text-cyan-600 text-opacity-70">Analizy i raporty</p>
+                            <div class="bg-gradient-to-br from-blue-400/40 to-blue-500/40 overflow-hidden shadow-lg sm:rounded-lg group hover:shadow-xl transition-all duration-200 cursor-pointer transform hover:-translate-y-1 hover:from-blue-400/60 hover:to-blue-500/60">
+                                <div class="p-6 flex items-center justify-between relative">
+                                    <div class="relative z-10">
+                                        <h4 class="text-2xl font-extrabold text-white mb-1 drop-shadow-[0_2px_2px_rgba(0,0,0,0.3)]">Raporty</h4>
+                                        <p class="text-sm font-medium text-white drop-shadow-[0_1px_1px_rgba(0,0,0,0.2)]">Analizy i raporty</p>
                                     </div>
-                                    <div class="w-16 h-16 rounded-2xl bg-cyan-100 bg-opacity-20 group-hover:bg-opacity-30 flex items-center justify-center transition-all duration-200">
-                                        <i class="fas fa-chart-bar text-cyan-600 text-opacity-20 text-3xl"></i>
+                                    <div class="w-20 h-20 rounded-2xl bg-white bg-opacity-10 flex items-center justify-center relative z-10">
+                                        <i class="fas fa-chart-bar text-white text-4xl"></i>
                                     </div>
+                                    <div class="absolute top-0 right-0 w-32 h-32 bg-white opacity-5 rounded-full -mr-16 -mt-16 transform rotate-45"></div>
                                 </div>
                             </div>
                             <!-- Umowy -->
-                            <div class="bg-red-50 bg-opacity-5 backdrop-blur-sm overflow-hidden shadow-sm sm:rounded-lg group hover:bg-opacity-10 transition-all duration-200 cursor-pointer">
-                                <div class="p-6 flex items-center justify-between">
-                                    <div>
-                                        <h4 class="text-2xl font-semibold text-red-700 mb-1">Umowy</h4>
-                                        <p class="text-sm text-red-600 text-opacity-70">Zarządzanie umowami</p>
+                            <div class="bg-gradient-to-br from-blue-500/40 to-blue-600/40 overflow-hidden shadow-lg sm:rounded-lg group hover:shadow-xl transition-all duration-200 cursor-pointer transform hover:-translate-y-1 hover:from-blue-500/60 hover:to-blue-600/60">
+                                <div class="p-6 flex items-center justify-between relative">
+                                    <div class="relative z-10">
+                                        <h4 class="text-2xl font-extrabold text-white mb-1 drop-shadow-[0_2px_2px_rgba(0,0,0,0.3)]">Umowy</h4>
+                                        <p class="text-sm font-medium text-white drop-shadow-[0_1px_1px_rgba(0,0,0,0.2)]">Zarządzanie umowami</p>
                                     </div>
-                                    <div class="w-16 h-16 rounded-2xl bg-red-100 bg-opacity-20 group-hover:bg-opacity-30 flex items-center justify-center transition-all duration-200">
-                                        <i class="fas fa-file-contract text-red-600 text-opacity-20 text-3xl"></i>
+                                    <div class="w-20 h-20 rounded-2xl bg-white bg-opacity-10 flex items-center justify-center relative z-10">
+                                        <i class="fas fa-file-contract text-white text-4xl"></i>
                                     </div>
+                                    <div class="absolute top-0 right-0 w-32 h-32 bg-white opacity-5 rounded-full -mr-16 -mt-16 transform rotate-45"></div>
                                 </div>
                             </div>
                             <!-- Kosztorysy -->
-                            <div class="bg-pink-50 bg-opacity-5 backdrop-blur-sm overflow-hidden shadow-sm sm:rounded-lg group hover:bg-opacity-10 transition-all duration-200 cursor-pointer">
-                                <div class="p-6 flex items-center justify-between">
-                                    <div>
-                                        <h4 class="text-2xl font-semibold text-pink-700 mb-1">Kosztorysy</h4>
-                                        <p class="text-sm text-pink-600 text-opacity-70">Wyceny i kosztorysy</p>
+                            <div class="bg-gradient-to-br from-blue-600/40 to-blue-700/40 overflow-hidden shadow-lg sm:rounded-lg group hover:shadow-xl transition-all duration-200 cursor-pointer transform hover:-translate-y-1 hover:from-blue-600/60 hover:to-blue-700/60">
+                                <div class="p-6 flex items-center justify-between relative">
+                                    <div class="relative z-10">
+                                        <h4 class="text-2xl font-extrabold text-white mb-1 drop-shadow-[0_2px_2px_rgba(0,0,0,0.3)]">Kosztorysy</h4>
+                                        <p class="text-sm font-medium text-white drop-shadow-[0_1px_1px_rgba(0,0,0,0.2)]">Wyceny i kosztorysy</p>
                                     </div>
-                                    <div class="w-16 h-16 rounded-2xl bg-pink-100 bg-opacity-20 group-hover:bg-opacity-30 flex items-center justify-center transition-all duration-200">
-                                        <i class="fas fa-calculator text-pink-600 text-opacity-20 text-3xl"></i>
+                                    <div class="w-20 h-20 rounded-2xl bg-white bg-opacity-10 flex items-center justify-center relative z-10">
+                                        <i class="fas fa-calculator text-white text-4xl"></i>
                                     </div>
+                                    <div class="absolute top-0 right-0 w-32 h-32 bg-white opacity-5 rounded-full -mr-16 -mt-16 transform rotate-45"></div>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Ostatnie aktywności -->
-                    <div class="bg-white bg-opacity-10 backdrop-blur-sm overflow-hidden shadow-sm sm:rounded-lg">
-                        <div class="p-6">
-                            <h3 class="text-lg font-semibold text-gray-700 mb-4">Ostatnie aktywności</h3>
-                            <div class="space-y-4">
-                                <div class="flex items-center space-x-4 text-sm">
-                                    <div class="w-10 h-10 rounded-full bg-blue-100 bg-opacity-10 flex items-center justify-center">
-                                        <i class="fas fa-file-invoice text-blue-600 text-lg"></i>
+                    <!-- Aktywności i powiadomienia -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <!-- Ostatnie aktywności -->
+                        <div class="bg-white bg-opacity-10 backdrop-blur-sm overflow-hidden shadow-sm sm:rounded-lg">
+                            <div class="p-4">
+                                <h3 class="text-sm font-semibold text-gray-700 mb-3">Ostatnie aktywności</h3>
+                                <div class="space-y-3">
+                                    <div class="flex items-center space-x-3 text-xs">
+                                        <div class="w-8 h-8 rounded-full bg-blue-100 bg-opacity-10 flex items-center justify-center">
+                                            <i class="fas fa-file-invoice text-blue-600 text-sm"></i>
+                                        </div>
+                                        <div class="flex-1">
+                                            <p class="font-medium text-gray-900">Nowa oferta została utworzona</p>
+                                            <p class="text-gray-500 text-xs">Oferta #123 - Projekt strony internetowej</p>
+                                            <div class="mt-1 h-1 bg-blue-500 bg-opacity-10 rounded-full" style="width: 60%"></div>
+                                        </div>
+                                        <div class="text-gray-500 text-xs">2h temu</div>
                                     </div>
-                                    <div class="flex-1">
-                                        <p class="font-medium text-gray-900">Nowa oferta została utworzona</p>
-                                        <p class="text-gray-500">Oferta #123 - Projekt strony internetowej</p>
-                                        <div class="mt-1 h-1 bg-blue-500 bg-opacity-10 rounded-full" style="width: 60%"></div>
+                                    <div class="flex items-center space-x-3 text-xs">
+                                        <div class="w-8 h-8 rounded-full bg-green-100 bg-opacity-10 flex items-center justify-center">
+                                            <i class="fas fa-arrow-up text-green-600 text-sm"></i>
+                                        </div>
+                                        <div class="flex-1">
+                                            <p class="font-medium text-gray-900">Zarejestrowano nowy przychód</p>
+                                            <p class="text-gray-500 text-xs">Faktura #456 - 1500 zł</p>
+                                            <div class="mt-1 h-1 bg-green-500 bg-opacity-10 rounded-full" style="width: 100%"></div>
+                                        </div>
+                                        <div class="text-gray-500 text-xs">wczoraj</div>
                                     </div>
-                                    <div class="text-gray-500">2 godziny temu</div>
+                                    <div class="flex items-center space-x-3 text-xs">
+                                        <div class="w-8 h-8 rounded-full bg-purple-100 bg-opacity-10 flex items-center justify-center">
+                                            <i class="fas fa-tasks text-purple-600 text-sm"></i>
+                                        </div>
+                                        <div class="flex-1">
+                                            <p class="font-medium text-gray-900">Nowe zadanie zostało przypisane</p>
+                                            <p class="text-gray-500 text-xs">Przygotowanie prezentacji dla klienta</p>
+                                            <div class="mt-1 h-1 bg-purple-500 bg-opacity-10 rounded-full" style="width: 30%"></div>
+                                        </div>
+                                        <div class="text-gray-500 text-xs">2 dni temu</div>
+                                    </div>
                                 </div>
-                                <div class="flex items-center space-x-4 text-sm">
-                                    <div class="w-10 h-10 rounded-full bg-green-100 bg-opacity-10 flex items-center justify-center">
-                                        <i class="fas fa-arrow-up text-green-600 text-lg"></i>
+                            </div>
+                        </div>
+
+                        <!-- Powiadomienia -->
+                        <div class="bg-white bg-opacity-10 backdrop-blur-sm overflow-hidden shadow-sm sm:rounded-lg">
+                            <div class="p-4">
+                                <h3 class="text-sm font-semibold text-gray-700 mb-3">Powiadomienia</h3>
+                                <div class="space-y-3">
+                                    <div class="flex items-center space-x-3 text-xs">
+                                        <div class="w-8 h-8 rounded-full bg-red-100 bg-opacity-10 flex items-center justify-center">
+                                            <i class="fas fa-exclamation-circle text-red-600 text-sm"></i>
+                                        </div>
+                                        <div class="flex-1">
+                                            <p class="font-medium text-gray-900">Zaległe płatności</p>
+                                            <p class="text-gray-500 text-xs">3 faktury oczekują na płatność</p>
+                                        </div>
+                                        <div class="text-gray-500 text-xs">1h temu</div>
                                     </div>
-                                    <div class="flex-1">
-                                        <p class="font-medium text-gray-900">Zarejestrowano nowy przychód</p>
-                                        <p class="text-gray-500">Faktura #456 - 1500 zł</p>
-                                        <div class="mt-1 h-1 bg-green-500 bg-opacity-10 rounded-full" style="width: 100%"></div>
+                                    <div class="flex items-center space-x-3 text-xs">
+                                        <div class="w-8 h-8 rounded-full bg-yellow-100 bg-opacity-10 flex items-center justify-center">
+                                            <i class="fas fa-clock text-yellow-600 text-sm"></i>
+                                        </div>
+                                        <div class="flex-1">
+                                            <p class="font-medium text-gray-900">Zbliżający się termin</p>
+                                            <p class="text-gray-500 text-xs">Projekt XYZ - pozostało 2 dni</p>
+                                        </div>
+                                        <div class="text-gray-500 text-xs">4h temu</div>
                                     </div>
-                                    <div class="text-gray-500">wczoraj</div>
-                                </div>
-                                <div class="flex items-center space-x-4 text-sm">
-                                    <div class="w-10 h-10 rounded-full bg-purple-100 bg-opacity-10 flex items-center justify-center">
-                                        <i class="fas fa-tasks text-purple-600 text-lg"></i>
+                                    <div class="flex items-center space-x-3 text-xs">
+                                        <div class="w-8 h-8 rounded-full bg-green-100 bg-opacity-10 flex items-center justify-center">
+                                            <i class="fas fa-check-circle text-green-600 text-sm"></i>
+                                        </div>
+                                        <div class="flex-1">
+                                            <p class="font-medium text-gray-900">Zadanie zakończone</p>
+                                            <p class="text-gray-500 text-xs">Raport miesięczny został zatwierdzony</p>
+                                        </div>
+                                        <div class="text-gray-500 text-xs">wczoraj</div>
                                     </div>
-                                    <div class="flex-1">
-                                        <p class="font-medium text-gray-900">Nowe zadanie zostało przypisane</p>
-                                        <p class="text-gray-500">Przygotowanie prezentacji dla klienta</p>
-                                        <div class="mt-1 h-1 bg-purple-500 bg-opacity-10 rounded-full" style="width: 30%"></div>
-                                    </div>
-                                    <div class="text-gray-500">2 dni temu</div>
                                 </div>
                             </div>
                         </div>
