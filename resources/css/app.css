@@ -1,0 +1,217 @@
+@import 'tailwindcss';
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source '../../storage/framework/views/*.php';
+@source "../**/*.blade.php";
+@source "../**/*.js";
+@source "../**/*.vue";
+
+@theme {
+    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
+        'Segoe UI Symbol', 'Noto Color Emoji';
+}
+
+.content-wrapper {
+    background-color: #f4f6f9;
+    min-height: 100vh;
+    padding: 20px;
+}
+
+.info-box {
+    background: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 0 1px rgba(0,0,0,.125), 0 1px 3px rgba(0,0,0,.2);
+    padding: 1.5rem;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.info-box h3 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #2d3748;
+    margin-bottom: 1rem;
+    padding-right: 80px;
+}
+
+.info-box-status {
+    position: absolute;
+    top: 1.5rem;
+    right: 1.5rem;
+    background: rgba(72, 187, 120, 0.1);
+    color: #48bb78;
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.info-box-description {
+    color: #718096;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    flex-grow: 1;
+}
+
+.info-box-button {
+    margin-top: 1rem;
+    padding: 0.5rem 1rem;
+    background: #48bb78;
+    color: white;
+    border-radius: 6px;
+    text-align: center;
+    font-weight: 500;
+    transition: background-color 0.2s;
+}
+
+.info-box-button:hover {
+    background: #38a169;
+    color: white;
+    text-decoration: none;
+}
+
+.bg-finances {
+    border-left: 4px solid #4299e1;
+}
+
+.bg-accounting {
+    border-left: 4px solid #ed64a6;
+}
+
+.bg-offers {
+    border-left: 4px solid #48bb78;
+}
+
+.quick-actions {
+    background: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 0 1px rgba(0,0,0,.125), 0 1px 3px rgba(0,0,0,.2);
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+}
+
+.quick-actions .section-title {
+    font-size: 1.1rem;
+    font-weight: 500;
+    margin-bottom: 1rem;
+}
+
+.quick-actions .btn {
+    margin-right: 0.5rem;
+    margin-bottom: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: #48bb78;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 0.9rem;
+}
+
+.quick-actions .btn:hover {
+    background: #38a169;
+}
+
+.stats-section {
+    background: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 0 1px rgba(0,0,0,.125), 0 1px 3px rgba(0,0,0,.2);
+    margin-bottom: 1rem;
+}
+
+.stats-section .section-title {
+    padding: 1rem;
+    border-bottom: 1px solid #dee2e6;
+    font-size: 1.1rem;
+    margin: 0;
+    font-weight: 500;
+}
+
+.stats-section .stat-box {
+    padding: 20px;
+    border-radius: 0;
+    border: none;
+    border-right: 1px solid #f4f6f9;
+}
+
+.stats-section .stat-value {
+    font-size: 1.8rem;
+    font-weight: 600;
+    color: #2d3748;
+    margin-bottom: 0.5rem;
+}
+
+.stats-section .stat-label {
+    color: #718096;
+    font-size: 0.9rem;
+    margin-bottom: 0.25rem;
+}
+
+.stats-section .stat-count {
+    color: #a0aec0;
+    font-size: 0.8rem;
+}
+
+.recent-activities {
+    background: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 0 1px rgba(0,0,0,.125), 0 1px 3px rgba(0,0,0,.2);
+}
+
+.activity-list {
+    padding: 0;
+}
+
+.activity-item {
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid #f4f6f9;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.activity-item:last-child {
+    border-bottom: none;
+}
+
+.activity-text {
+    color: #4a5568;
+    font-size: 0.9rem;
+}
+
+.activity-time {
+    color: #a0aec0;
+    font-size: 0.8rem;
+}
+
+.alerts-section {
+    background: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 0 1px rgba(0,0,0,.125), 0 1px 3px rgba(0,0,0,.2);
+    padding: 1.5rem;
+}
+
+.alerts-section .section-title {
+    font-size: 1.1rem;
+    font-weight: 500;
+    margin-bottom: 1rem;
+}
+
+.alerts-section .alert {
+    padding: 0.75rem 1rem;
+    margin-bottom: 0.5rem;
+    border: none;
+    border-radius: 6px;
+    font-size: 0.9rem;
+}
+
+.alerts-section .alert:last-child {
+    margin-bottom: 0;
+}
+
+.alerts-section .alert i {
+    margin-right: 0.5rem;
+}
