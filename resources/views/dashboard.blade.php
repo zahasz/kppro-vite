@@ -1,305 +1,354 @@
-@extends('layouts.app')
+<x-app-layout>
+    <div class="py-6">
+        <div class="max-w-[1920px] mx-auto sm:px-4 lg:px-6">
+            <div class="mb-6 flex justify-between items-center">
+                <h2 class="font-semibold text-xl text-gray-800">{{ __('Dashboard') }}</h2>
+                <!-- Tu będzie menu logowania -->
+            </div>
+            <div class="flex flex-col md:flex-row gap-6">
+                <!-- Menu boczne -->
+                <div class="md:w-72 flex-shrink-0">
+                    <div class="bg-white bg-opacity-10 backdrop-blur-sm overflow-hidden shadow-sm sm:rounded-lg">
+                        <div class="p-6">
+                            <div class="space-y-4">
+                                <a href="#" class="flex items-center space-x-3 text-gray-700 hover:text-gray-900 group">
+                                    <span class="w-8 h-8 rounded-lg bg-gray-100 bg-opacity-10 group-hover:bg-opacity-20 flex items-center justify-center">
+                                        <i class="fas fa-home text-gray-600"></i>
+                                    </span>
+                                    <span>Dashboard</span>
+                                </a>
+                                <a href="#" class="flex items-center space-x-3 text-gray-700 hover:text-gray-900 group">
+                                    <span class="w-8 h-8 rounded-lg bg-gray-100 bg-opacity-10 group-hover:bg-opacity-20 flex items-center justify-center">
+                                        <i class="fas fa-file-invoice-dollar text-gray-600"></i>
+                                    </span>
+                                    <span>Finanse</span>
+                                </a>
+                                <a href="#" class="flex items-center space-x-3 text-gray-700 hover:text-gray-900 group">
+                                    <span class="w-8 h-8 rounded-lg bg-gray-100 bg-opacity-10 group-hover:bg-opacity-20 flex items-center justify-center">
+                                        <i class="fas fa-book text-gray-600"></i>
+                                    </span>
+                                    <span>Księgowość</span>
+                                </a>
+                                <a href="#" class="flex items-center space-x-3 text-gray-700 hover:text-gray-900 group">
+                                    <span class="w-8 h-8 rounded-lg bg-gray-100 bg-opacity-10 group-hover:bg-opacity-20 flex items-center justify-center">
+                                        <i class="fas fa-warehouse text-gray-600"></i>
+                                    </span>
+                                    <span>Magazyn</span>
+                                </a>
+                                <a href="#" class="flex items-center space-x-3 text-gray-700 hover:text-gray-900 group">
+                                    <span class="w-8 h-8 rounded-lg bg-gray-100 bg-opacity-10 group-hover:bg-opacity-20 flex items-center justify-center">
+                                        <i class="fas fa-users text-gray-600"></i>
+                                    </span>
+                                    <span>Kontrahenci</span>
+                                </a>
+                                <a href="#" class="flex items-center space-x-3 text-gray-700 hover:text-gray-900 group">
+                                    <span class="w-8 h-8 rounded-lg bg-gray-100 bg-opacity-10 group-hover:bg-opacity-20 flex items-center justify-center">
+                                        <i class="fas fa-tasks text-gray-600"></i>
+                                    </span>
+                                    <span>Zadania</span>
+                                </a>
+                                <a href="#" class="flex items-center space-x-3 text-gray-700 hover:text-gray-900 group">
+                                    <span class="w-8 h-8 rounded-lg bg-gray-100 bg-opacity-10 group-hover:bg-opacity-20 flex items-center justify-center">
+                                        <i class="fas fa-chart-bar text-gray-600"></i>
+                                    </span>
+                                    <span>Raporty</span>
+                                </a>
+                                <a href="#" class="flex items-center space-x-3 text-gray-700 hover:text-gray-900 group">
+                                    <span class="w-8 h-8 rounded-lg bg-gray-100 bg-opacity-10 group-hover:bg-opacity-20 flex items-center justify-center">
+                                        <i class="fas fa-file-contract text-gray-600"></i>
+                                    </span>
+                                    <span>Umowy</span>
+                                </a>
+                                <a href="#" class="flex items-center space-x-3 text-gray-700 hover:text-gray-900 group">
+                                    <span class="w-8 h-8 rounded-lg bg-gray-100 bg-opacity-10 group-hover:bg-opacity-20 flex items-center justify-center">
+                                        <i class="fas fa-calculator text-gray-600"></i>
+                                    </span>
+                                    <span>Kosztorysy</span>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
-@section('title', 'Dashboard')
-@section('header', 'Dashboard')
+                <!-- Główna zawartość -->
+                <div class="flex-1">
+                    <!-- Szybkie akcje -->
+                    <div class="bg-white bg-opacity-10 backdrop-blur-sm overflow-hidden shadow-sm sm:rounded-lg mb-12">
+                        <div class="p-2">
+                            <h3 class="text-sm font-semibold text-gray-700 mb-2">Szybkie akcje</h3>
+                            <div class="flex flex-wrap gap-2">
+                                <button class="btn flex items-center justify-center space-x-1.5 bg-blue-50 bg-opacity-10 hover:bg-opacity-20 text-blue-700 font-medium py-1.5 px-2 rounded-md transition-all duration-200 text-xs">
+                                    <i class="fas fa-file-invoice text-base"></i>
+                                    <span>Nowa oferta</span>
+                                </button>
+                                <button class="btn flex items-center justify-center space-x-1.5 bg-blue-50 bg-opacity-10 hover:bg-opacity-20 text-blue-700 font-medium py-1.5 px-2 rounded-md transition-all duration-200 text-xs">
+                                    <i class="fas fa-arrow-up text-base"></i>
+                                    <span>Nowy przychód</span>
+                                </button>
+                                <button class="btn flex items-center justify-center space-x-1.5 bg-blue-50 bg-opacity-10 hover:bg-opacity-20 text-blue-700 font-medium py-1.5 px-2 rounded-md transition-all duration-200 text-xs">
+                                    <i class="fas fa-arrow-down text-base"></i>
+                                    <span>Nowy koszt</span>
+                                </button>
+                                <button class="btn flex items-center justify-center space-x-1.5 bg-blue-50 bg-opacity-10 hover:bg-opacity-20 text-blue-700 font-medium py-1.5 px-2 rounded-md transition-all duration-200 text-xs">
+                                    <i class="fas fa-tasks text-base"></i>
+                                    <span>Nowe zadanie</span>
+                                </button>
+                                <button class="btn flex items-center justify-center space-x-1.5 bg-blue-50 bg-opacity-10 hover:bg-opacity-20 text-blue-700 font-medium py-1.5 px-2 rounded-md transition-all duration-200 text-xs">
+                                    <i class="fas fa-calculator text-base"></i>
+                                    <span>Nowy kosztorys</span>
+                                </button>
+                                <button class="btn flex items-center justify-center space-x-1.5 bg-blue-50 bg-opacity-10 hover:bg-opacity-20 text-blue-700 font-medium py-1.5 px-2 rounded-md transition-all duration-200 text-xs">
+                                    <i class="fas fa-file-invoice-dollar text-base"></i>
+                                    <span>Nowa faktura</span>
+                                </button>
+                                <button class="btn flex items-center justify-center space-x-1.5 bg-blue-50 bg-opacity-10 hover:bg-opacity-20 text-blue-700 font-medium py-1.5 px-2 rounded-md transition-all duration-200 text-xs">
+                                    <i class="fas fa-box text-base"></i>
+                                    <span>Wydanie magazynowe</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
 
-@section('content')
-    <!-- Szybkie akcje -->
-    <div class="quick-actions mb-4">
-        <h3 class="section-title">Szybkie akcje</h3>
-        <button class="btn">
-            <i class="fas fa-plus-circle"></i> Nowa faktura
-        </button>
-        <button class="btn">
-            <i class="fas fa-file-invoice"></i> Nowa oferta
-        </button>
-        <button class="btn">
-            <i class="fas fa-user-plus"></i> Nowy pracownik
-        </button>
-        <button class="btn">
-            <i class="fas fa-building"></i> Nowy kontrahent
-        </button>
+                    <!-- Statystyki - Przychody -->
+                    <div class="mb-8">
+                        <h3 class="text-sm font-semibold text-gray-700 mb-2">Przychody</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-2">
+                            <div class="bg-white bg-opacity-10 backdrop-blur-sm overflow-hidden shadow-sm sm:rounded-md">
+                                <div class="p-3">
+                                    <h4 class="text-xs font-semibold text-gray-700 mb-1.5 whitespace-nowrap">Przychód miesięczny</h4>
+                                    <p class="text-xl font-bold text-green-600">12 500 zł</p>
+                                    <div class="mt-1.5 h-1 bg-gray-200 rounded-full overflow-hidden">
+                                        <div class="h-full bg-green-500 bg-opacity-10" style="width: 75%"></div>
+                                    </div>
+                                    <p class="text-[10px] text-gray-500 mt-1">75% celu miesięcznego</p>
+                                </div>
+                            </div>
+                            <div class="bg-white bg-opacity-10 backdrop-blur-sm overflow-hidden shadow-sm sm:rounded-md">
+                                <div class="p-3">
+                                    <h4 class="text-xs font-semibold text-gray-700 mb-1.5 whitespace-nowrap">Przychód księgowany</h4>
+                                    <p class="text-xl font-bold text-green-600">8 200 zł</p>
+                                    <div class="mt-1.5 h-1 bg-gray-200 rounded-full overflow-hidden">
+                                        <div class="h-full bg-green-500 bg-opacity-10" style="width: 65%"></div>
+                                    </div>
+                                    <p class="text-[10px] text-gray-500 mt-1">65% całości przychodów</p>
+                                </div>
+                            </div>
+                            <div class="bg-white bg-opacity-10 backdrop-blur-sm overflow-hidden shadow-sm sm:rounded-md">
+                                <div class="p-3">
+                                    <h4 class="text-xs font-semibold text-gray-700 mb-1.5 whitespace-nowrap">Przychód nieksięgowany</h4>
+                                    <p class="text-xl font-bold text-green-600">4 300 zł</p>
+                                    <div class="mt-1.5 h-1 bg-gray-200 rounded-full overflow-hidden">
+                                        <div class="h-full bg-green-500 bg-opacity-10" style="width: 35%"></div>
+                                    </div>
+                                    <p class="text-[10px] text-gray-500 mt-1">35% całości przychodów</p>
+                                </div>
+                            </div>
+                            <div class="bg-white bg-opacity-10 backdrop-blur-sm overflow-hidden shadow-sm sm:rounded-md">
+                                <div class="p-3">
+                                    <h4 class="text-xs font-semibold text-gray-700 mb-1.5 whitespace-nowrap">Należności</h4>
+                                    <p class="text-xl font-bold text-amber-600">3 800 zł</p>
+                                    <div class="mt-1.5 h-1 bg-gray-200 rounded-full overflow-hidden">
+                                        <div class="h-full bg-amber-500 bg-opacity-10" style="width: 30%"></div>
+                                    </div>
+                                    <p class="text-[10px] text-gray-500 mt-1">30% przychodów do rozliczenia</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Statystyki - Koszty -->
+                    <div class="mb-8">
+                        <h3 class="text-sm font-semibold text-gray-700 mb-2">Koszty</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-2">
+                            <div class="bg-white bg-opacity-10 backdrop-blur-sm overflow-hidden shadow-sm sm:rounded-md">
+                                <div class="p-3">
+                                    <h4 class="text-xs font-semibold text-gray-700 mb-1.5 whitespace-nowrap">Koszt miesięczny</h4>
+                                    <p class="text-xl font-bold text-red-600">8 300 zł</p>
+                                    <div class="mt-1.5 h-1 bg-gray-200 rounded-full overflow-hidden">
+                                        <div class="h-full bg-red-500 bg-opacity-10" style="width: 45%"></div>
+                                    </div>
+                                    <p class="text-[10px] text-gray-500 mt-1">45% budżetu miesięcznego</p>
+                                </div>
+                            </div>
+                            <div class="bg-white bg-opacity-10 backdrop-blur-sm overflow-hidden shadow-sm sm:rounded-md">
+                                <div class="p-3">
+                                    <h4 class="text-xs font-semibold text-gray-700 mb-1.5 whitespace-nowrap">Koszt księgowany</h4>
+                                    <p class="text-xl font-bold text-red-600">28 900 zł</p>
+                                    <div class="mt-1.5 h-1 bg-gray-200 rounded-full overflow-hidden">
+                                        <div class="h-full bg-red-500 bg-opacity-10" style="width: 55%"></div>
+                                    </div>
+                                    <p class="text-[10px] text-gray-500 mt-1">55% całości kosztów</p>
+                                </div>
+                            </div>
+                            <div class="bg-white bg-opacity-10 backdrop-blur-sm overflow-hidden shadow-sm sm:rounded-md">
+                                <div class="p-3">
+                                    <h4 class="text-xs font-semibold text-gray-700 mb-1.5 whitespace-nowrap">Koszt nieksięgowany</h4>
+                                    <p class="text-xl font-bold text-red-600">98 000 zł</p>
+                                    <div class="mt-1.5 h-1 bg-gray-200 rounded-full overflow-hidden">
+                                        <div class="h-full bg-red-500 bg-opacity-10" style="width: 40%"></div>
+                                    </div>
+                                    <p class="text-[10px] text-gray-500 mt-1">40% całości kosztów</p>
+                                </div>
+                            </div>
+                            <div class="bg-white bg-opacity-10 backdrop-blur-sm overflow-hidden shadow-sm sm:rounded-md">
+                                <div class="p-3">
+                                    <h4 class="text-xs font-semibold text-gray-700 mb-1.5 whitespace-nowrap">Zobowiązania</h4>
+                                    <p class="text-xl font-bold text-red-600">12 400 zł</p>
+                                    <div class="mt-1.5 h-1 bg-gray-200 rounded-full overflow-hidden">
+                                        <div class="h-full bg-red-500 bg-opacity-10" style="width: 25%"></div>
+                                    </div>
+                                    <p class="text-[10px] text-gray-500 mt-1">25% kosztów do rozliczenia</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Moduły -->
+                    <div class="mb-8">
+                        <h3 class="text-lg font-semibold text-gray-700 mb-4">Moduły</h3>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                            <!-- Finanse -->
+                            <div class="bg-blue-50 bg-opacity-5 backdrop-blur-sm overflow-hidden shadow-sm sm:rounded-lg group hover:bg-opacity-10 transition-all duration-200 cursor-pointer">
+                                <div class="p-6 flex items-center justify-between">
+                                    <div>
+                                        <h4 class="text-2xl font-semibold text-blue-700 mb-1">Finanse</h4>
+                                        <p class="text-sm text-blue-600 text-opacity-70">Zarządzanie finansami firmy</p>
+                                    </div>
+                                    <div class="w-16 h-16 rounded-2xl bg-blue-100 bg-opacity-20 group-hover:bg-opacity-30 flex items-center justify-center transition-all duration-200">
+                                        <i class="fas fa-file-invoice-dollar text-blue-600 text-opacity-20 text-3xl"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Księgowość -->
+                            <div class="bg-indigo-50 bg-opacity-5 backdrop-blur-sm overflow-hidden shadow-sm sm:rounded-lg group hover:bg-opacity-10 transition-all duration-200 cursor-pointer">
+                                <div class="p-6 flex items-center justify-between">
+                                    <div>
+                                        <h4 class="text-2xl font-semibold text-indigo-700 mb-1">Księgowość</h4>
+                                        <p class="text-sm text-indigo-600 text-opacity-70">Księgowość i dokumentacja</p>
+                                    </div>
+                                    <div class="w-16 h-16 rounded-2xl bg-indigo-100 bg-opacity-20 group-hover:bg-opacity-30 flex items-center justify-center transition-all duration-200">
+                                        <i class="fas fa-book text-indigo-600 text-opacity-20 text-3xl"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Magazyn -->
+                            <div class="bg-orange-50 bg-opacity-5 backdrop-blur-sm overflow-hidden shadow-sm sm:rounded-lg group hover:bg-opacity-10 transition-all duration-200 cursor-pointer">
+                                <div class="p-6 flex items-center justify-between">
+                                    <div>
+                                        <h4 class="text-2xl font-semibold text-orange-700 mb-1">Magazyn</h4>
+                                        <p class="text-sm text-orange-600 text-opacity-70">Zarządzanie magazynem</p>
+                                    </div>
+                                    <div class="w-16 h-16 rounded-2xl bg-orange-100 bg-opacity-20 group-hover:bg-opacity-30 flex items-center justify-center transition-all duration-200">
+                                        <i class="fas fa-warehouse text-orange-600 text-opacity-20 text-3xl"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Kontrahenci -->
+                            <div class="bg-yellow-50 bg-opacity-5 backdrop-blur-sm overflow-hidden shadow-sm sm:rounded-lg group hover:bg-opacity-10 transition-all duration-200 cursor-pointer">
+                                <div class="p-6 flex items-center justify-between">
+                                    <div>
+                                        <h4 class="text-2xl font-semibold text-yellow-700 mb-1">Kontrahenci</h4>
+                                        <p class="text-sm text-yellow-600 text-opacity-70">Baza kontrahentów</p>
+                                    </div>
+                                    <div class="w-16 h-16 rounded-2xl bg-yellow-100 bg-opacity-20 group-hover:bg-opacity-30 flex items-center justify-center transition-all duration-200">
+                                        <i class="fas fa-users text-yellow-600 text-opacity-20 text-3xl"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Zadania -->
+                            <div class="bg-purple-50 bg-opacity-5 backdrop-blur-sm overflow-hidden shadow-sm sm:rounded-lg group hover:bg-opacity-10 transition-all duration-200 cursor-pointer">
+                                <div class="p-6 flex items-center justify-between">
+                                    <div>
+                                        <h4 class="text-2xl font-semibold text-purple-700 mb-1">Zadania</h4>
+                                        <p class="text-sm text-purple-600 text-opacity-70">Zarządzanie zadaniami</p>
+                                    </div>
+                                    <div class="w-16 h-16 rounded-2xl bg-purple-100 bg-opacity-20 group-hover:bg-opacity-30 flex items-center justify-center transition-all duration-200">
+                                        <i class="fas fa-tasks text-purple-600 text-opacity-20 text-3xl"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Raporty -->
+                            <div class="bg-cyan-50 bg-opacity-5 backdrop-blur-sm overflow-hidden shadow-sm sm:rounded-lg group hover:bg-opacity-10 transition-all duration-200 cursor-pointer">
+                                <div class="p-6 flex items-center justify-between">
+                                    <div>
+                                        <h4 class="text-2xl font-semibold text-cyan-700 mb-1">Raporty</h4>
+                                        <p class="text-sm text-cyan-600 text-opacity-70">Analizy i raporty</p>
+                                    </div>
+                                    <div class="w-16 h-16 rounded-2xl bg-cyan-100 bg-opacity-20 group-hover:bg-opacity-30 flex items-center justify-center transition-all duration-200">
+                                        <i class="fas fa-chart-bar text-cyan-600 text-opacity-20 text-3xl"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Umowy -->
+                            <div class="bg-red-50 bg-opacity-5 backdrop-blur-sm overflow-hidden shadow-sm sm:rounded-lg group hover:bg-opacity-10 transition-all duration-200 cursor-pointer">
+                                <div class="p-6 flex items-center justify-between">
+                                    <div>
+                                        <h4 class="text-2xl font-semibold text-red-700 mb-1">Umowy</h4>
+                                        <p class="text-sm text-red-600 text-opacity-70">Zarządzanie umowami</p>
+                                    </div>
+                                    <div class="w-16 h-16 rounded-2xl bg-red-100 bg-opacity-20 group-hover:bg-opacity-30 flex items-center justify-center transition-all duration-200">
+                                        <i class="fas fa-file-contract text-red-600 text-opacity-20 text-3xl"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Kosztorysy -->
+                            <div class="bg-pink-50 bg-opacity-5 backdrop-blur-sm overflow-hidden shadow-sm sm:rounded-lg group hover:bg-opacity-10 transition-all duration-200 cursor-pointer">
+                                <div class="p-6 flex items-center justify-between">
+                                    <div>
+                                        <h4 class="text-2xl font-semibold text-pink-700 mb-1">Kosztorysy</h4>
+                                        <p class="text-sm text-pink-600 text-opacity-70">Wyceny i kosztorysy</p>
+                                    </div>
+                                    <div class="w-16 h-16 rounded-2xl bg-pink-100 bg-opacity-20 group-hover:bg-opacity-30 flex items-center justify-center transition-all duration-200">
+                                        <i class="fas fa-calculator text-pink-600 text-opacity-20 text-3xl"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Ostatnie aktywności -->
+                    <div class="bg-white bg-opacity-10 backdrop-blur-sm overflow-hidden shadow-sm sm:rounded-lg">
+                        <div class="p-6">
+                            <h3 class="text-lg font-semibold text-gray-700 mb-4">Ostatnie aktywności</h3>
+                            <div class="space-y-4">
+                                <div class="flex items-center space-x-4 text-sm">
+                                    <div class="w-10 h-10 rounded-full bg-blue-100 bg-opacity-10 flex items-center justify-center">
+                                        <i class="fas fa-file-invoice text-blue-600 text-lg"></i>
+                                    </div>
+                                    <div class="flex-1">
+                                        <p class="font-medium text-gray-900">Nowa oferta została utworzona</p>
+                                        <p class="text-gray-500">Oferta #123 - Projekt strony internetowej</p>
+                                        <div class="mt-1 h-1 bg-blue-500 bg-opacity-10 rounded-full" style="width: 60%"></div>
+                                    </div>
+                                    <div class="text-gray-500">2 godziny temu</div>
+                                </div>
+                                <div class="flex items-center space-x-4 text-sm">
+                                    <div class="w-10 h-10 rounded-full bg-green-100 bg-opacity-10 flex items-center justify-center">
+                                        <i class="fas fa-arrow-up text-green-600 text-lg"></i>
+                                    </div>
+                                    <div class="flex-1">
+                                        <p class="font-medium text-gray-900">Zarejestrowano nowy przychód</p>
+                                        <p class="text-gray-500">Faktura #456 - 1500 zł</p>
+                                        <div class="mt-1 h-1 bg-green-500 bg-opacity-10 rounded-full" style="width: 100%"></div>
+                                    </div>
+                                    <div class="text-gray-500">wczoraj</div>
+                                </div>
+                                <div class="flex items-center space-x-4 text-sm">
+                                    <div class="w-10 h-10 rounded-full bg-purple-100 bg-opacity-10 flex items-center justify-center">
+                                        <i class="fas fa-tasks text-purple-600 text-lg"></i>
+                                    </div>
+                                    <div class="flex-1">
+                                        <p class="font-medium text-gray-900">Nowe zadanie zostało przypisane</p>
+                                        <p class="text-gray-500">Przygotowanie prezentacji dla klienta</p>
+                                        <div class="mt-1 h-1 bg-purple-500 bg-opacity-10 rounded-full" style="width: 30%"></div>
+                                    </div>
+                                    <div class="text-gray-500">2 dni temu</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
-
-    <!-- Statystyki -->
-    <div class="row">
-        <div class="col-12">
-            <div class="stats-section">
-                <h3 class="section-title">Statystyki finansowe</h3>
-                
-                <!-- Przychody -->
-                <div class="row mb-4">
-                    <div class="col-md-3">
-                        <div class="stat-box income">
-                            <div class="stat-label">Przychody księgowane</div>
-                            <div class="stat-value positive">32,150 zł</div>
-                            <div class="stat-count">
-                                <i class="fas fa-arrow-up text-success"></i>
-                                10% więcej niż poprzednio
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="stat-box income">
-                            <div class="stat-label">Przychody nieksiędowane</div>
-                            <div class="stat-value positive">13,100 zł</div>
-                            <div class="stat-count">
-                                <i class="fas fa-arrow-up text-success"></i>
-                                5% więcej niż poprzednio
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="stat-box income">
-                            <div class="stat-label">Przychody (rok)</div>
-                            <div class="stat-value positive">524,800 zł</div>
-                            <div class="stat-count">
-                                <i class="fas fa-arrow-up text-success"></i>
-                                8% więcej niż w poprzednim roku
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="stat-box income">
-                            <div class="stat-label">Należności</div>
-                            <div class="stat-value">15,750 zł</div>
-                            <div class="stat-count">
-                                <i class="fas fa-file-invoice"></i>
-                                8 faktur oczekujących
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Koszty -->
-                <div class="row">
-                    <div class="col-md-3">
-                        <div class="stat-box expenses">
-                            <div class="stat-label">Koszty księgowane</div>
-                            <div class="stat-value negative">24,350 zł</div>
-                            <div class="stat-count">
-                                <i class="fas fa-arrow-down text-danger"></i>
-                                3% mniej niż poprzednio
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="stat-box expenses">
-                            <div class="stat-label">Koszty nieksiędowane</div>
-                            <div class="stat-value negative">7,800 zł</div>
-                            <div class="stat-count">
-                                <i class="fas fa-arrow-up text-danger"></i>
-                                2% więcej niż poprzednio
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="stat-box expenses">
-                            <div class="stat-label">Koszty (rok)</div>
-                            <div class="stat-value negative">385,600 zł</div>
-                            <div class="stat-count">
-                                <i class="fas fa-arrow-up text-danger"></i>
-                                3% więcej niż w poprzednim roku
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="stat-box expenses">
-                            <div class="stat-label">Zobowiązania</div>
-                            <div class="stat-value">12,350 zł</div>
-                            <div class="stat-count">
-                                <i class="fas fa-file-invoice"></i>
-                                5 faktur do zapłaty
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Moduły systemu -->
-    <div class="row">
-        <div class="col-md-4">
-            <div class="info-box bg-finances">
-                <h3>
-                    <i class="fas fa-money-bill-wave mr-2"></i>
-                    Finanse
-                </h3>
-                <div class="info-box-status">Aktywny</div>
-                <div class="info-box-description">
-                    Zarządzaj finansami firmy, śledź przychody i wydatki, generuj raporty finansowe.
-                </div>
-                <a href="#" class="info-box-button">
-                    <i class="fas fa-arrow-right"></i>
-                    Przejdź do modułu
-                </a>
-            </div>
-        </div>
-
-        <div class="col-md-4">
-            <div class="info-box bg-accounting">
-                <h3>
-                    <i class="fas fa-book-open mr-2"></i>
-                    Księgowość
-                </h3>
-                <div class="info-box-status">Aktywny</div>
-                <div class="info-box-description">
-                    Prowadź księgowość, zarządzaj fakturami i dokumentami księgowymi.
-                </div>
-                <a href="#" class="info-box-button">
-                    <i class="fas fa-arrow-right"></i>
-                    Przejdź do modułu
-                </a>
-            </div>
-        </div>
-
-        <div class="col-md-4">
-            <div class="info-box bg-offers">
-                <h3>
-                    <i class="fas fa-handshake mr-2"></i>
-                    Oferty
-                </h3>
-                <div class="info-box-status">Aktywny</div>
-                <div class="info-box-description">
-                    Twórz i zarządzaj ofertami dla klientów, śledź status negocjacji.
-                </div>
-                <a href="#" class="info-box-button">
-                    <i class="fas fa-arrow-right"></i>
-                    Przejdź do modułu
-                </a>
-            </div>
-        </div>
-
-        <div class="col-md-4">
-            <div class="info-box bg-employees">
-                <h3>
-                    <i class="fas fa-users mr-2"></i>
-                    Pracownicy
-                </h3>
-                <div class="info-box-status">Aktywny</div>
-                <div class="info-box-description">
-                    Zarządzaj pracownikami, urlopami, czasem pracy i wynagrodzeniami.
-                </div>
-                <a href="#" class="info-box-button">
-                    <i class="fas fa-arrow-right"></i>
-                    Przejdź do modułu
-                </a>
-            </div>
-        </div>
-
-        <div class="col-md-4">
-            <div class="info-box bg-warehouse">
-                <h3>
-                    <i class="fas fa-warehouse mr-2"></i>
-                    Magazyn
-                </h3>
-                <div class="info-box-status">Aktywny</div>
-                <div class="info-box-description">
-                    Kontroluj stany magazynowe, zarządzaj dostawami i inwentaryzacją.
-                </div>
-                <a href="#" class="info-box-button">
-                    <i class="fas fa-arrow-right"></i>
-                    Przejdź do modułu
-                </a>
-            </div>
-        </div>
-
-        <div class="col-md-4">
-            <div class="info-box bg-estimates">
-                <h3>
-                    <i class="fas fa-calculator mr-2"></i>
-                    Kosztorysy
-                </h3>
-                <div class="info-box-status">Aktywny</div>
-                <div class="info-box-description">
-                    Twórz i zarządzaj kosztorysami, kalkuluj koszty projektów.
-                </div>
-                <a href="#" class="info-box-button">
-                    <i class="fas fa-arrow-right"></i>
-                    Przejdź do modułu
-                </a>
-            </div>
-        </div>
-
-        <div class="col-md-4">
-            <div class="info-box bg-contractors">
-                <h3>
-                    <i class="fas fa-building mr-2"></i>
-                    Kontrahenci
-                </h3>
-                <div class="info-box-status">Aktywny</div>
-                <div class="info-box-description">
-                    Zarządzaj bazą kontrahentów, historią współpracy i umowami.
-                </div>
-                <a href="#" class="info-box-button">
-                    <i class="fas fa-arrow-right"></i>
-                    Przejdź do modułu
-                </a>
-            </div>
-        </div>
-    </div>
-
-    <!-- Ostatnie aktywności i alerty -->
-    <div class="row mt-4">
-        <div class="col-md-8">
-            <div class="recent-activities">
-                <h3 class="section-title p-3 border-bottom">
-                    <i class="fas fa-history mr-2"></i>
-                    Ostatnie aktywności
-                </h3>
-                <div class="activity-list">
-                    <div class="activity-item">
-                        <span class="activity-text">
-                            <i class="fas fa-file-invoice text-blue-500"></i>
-                            Utworzono nową fakturę #123
-                        </span>
-                        <span class="activity-time">2 godziny temu</span>
-                    </div>
-                    <div class="activity-item">
-                        <span class="activity-text">
-                            <i class="fas fa-user-plus text-green-500"></i>
-                            Dodano nowego kontrahenta: ABC Sp. z o.o.
-                        </span>
-                        <span class="activity-time">wczoraj</span>
-                    </div>
-                    <div class="activity-item">
-                        <span class="activity-text">
-                            <i class="fas fa-edit text-yellow-500"></i>
-                            Zaktualizowano ofertę #45
-                        </span>
-                        <span class="activity-time">2 dni temu</span>
-                    </div>
-                    <div class="activity-item">
-                        <span class="activity-text">
-                            <i class="fas fa-money-bill-wave text-green-500"></i>
-                            Zaksięgowano płatność od XYZ Sp. z o.o.
-                        </span>
-                        <span class="activity-time">3 dni temu</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-4">
-            <div class="alerts-section">
-                <h3 class="section-title">
-                    <i class="fas fa-bell mr-2"></i>
-                    Alerty i powiadomienia
-                </h3>
-                <div class="alert alert-warning">
-                    <i class="fas fa-exclamation-triangle"></i>
-                    3 faktury oczekują na płatność
-                </div>
-                <div class="alert alert-info">
-                    <i class="fas fa-info-circle"></i>
-                    Nowa aktualizacja systemu dostępna
-                </div>
-                <div class="alert alert-success">
-                    <i class="fas fa-check-circle"></i>
-                    Backup danych wykonany pomyślnie
-                </div>
-            </div>
-        </div>
-    </div>
-@endsection 
+</x-app-layout>
