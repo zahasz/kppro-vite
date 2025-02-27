@@ -8,6 +8,8 @@ use App\Http\Controllers\WarehouseController;
 use App\Http\Controllers\TaskController;
 use App\Http\Controllers\ContractController;
 use App\Http\Controllers\EstimateController;
+use App\Http\Controllers\InvoiceController;
+use App\Http\Controllers\BudgetController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -33,7 +35,11 @@ Route::middleware('auth')->group(function () {
         Route::get('/', [FinanceController::class, 'index'])->name('index');
         Route::get('/incomes', [FinanceController::class, 'incomes'])->name('incomes');
         Route::get('/expenses', [FinanceController::class, 'expenses'])->name('expenses');
-        Route::get('/accounting', [FinanceController::class, 'accounting'])->name('accounting');
+        Route::get('/budget', [BudgetController::class, 'index'])->name('budget.index');
+        Route::post('/budget', [BudgetController::class, 'store'])->name('budget.store');
+        Route::put('/budget/{category}', [BudgetController::class, 'update'])->name('budget.update');
+        Route::delete('/budget/{category}', [BudgetController::class, 'destroy'])->name('budget.destroy');
+        Route::get('/invoices', [FinanceController::class, 'invoices'])->name('invoices');
         Route::get('/reports', [FinanceController::class, 'reports'])->name('reports');
         
         // Faktury

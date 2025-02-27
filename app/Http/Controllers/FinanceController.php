@@ -29,11 +29,6 @@ class FinanceController extends Controller
         return view('finances.expenses');
     }
 
-    public function accounting()
-    {
-        return view('finances.accounting');
-    }
-
     public function reports()
     {
         return view('finances.reports');
@@ -51,7 +46,7 @@ class FinanceController extends Controller
 
     public function invoices()
     {
-        return view('finances.invoices');
+        return view('finances.invoices.index');
     }
 
     public function store(Request $request)
