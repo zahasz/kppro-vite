@@ -3,42 +3,15 @@
 @section('content')
 <div class="py-6">
     <div class="max-w-[1920px] mx-auto sm:px-4 lg:px-6">
+        <div class="mb-6 flex justify-between items-center">
+            <h2 class="font-semibold text-xl text-gray-800">{{ __('Skaner dokumentów') }}</h2>
+        </div>
         <div class="flex flex-col md:flex-row gap-6">
             <!-- Menu boczne -->
-            <div class="md:w-56 flex-shrink-0">
-                <div class="bg-white bg-opacity-10 backdrop-blur-sm overflow-hidden shadow-sm sm:rounded-lg">
-                    <div class="p-4">
-                        <div class="space-y-2">
-                            <a href="{{ route('dashboard') }}" class="flex items-center space-x-2 text-gray-700 hover:text-gray-900 group">
-                                <span class="w-6 h-6 rounded-lg bg-gray-100 bg-opacity-10 group-hover:bg-opacity-20 flex items-center justify-center">
-                                    <i class="fas fa-home text-gray-600 text-xs"></i>
-                                </span>
-                                <span class="text-sm">Panel Główny</span>
-                            </a>
-                            <a href="{{ route('finances.index') }}" class="flex items-center space-x-2 text-gray-700 hover:text-gray-900 group">
-                                <span class="w-6 h-6 rounded-lg bg-gray-100 bg-opacity-10 group-hover:bg-opacity-20 flex items-center justify-center">
-                                    <i class="fas fa-file-invoice-dollar text-gray-600 text-xs"></i>
-                                </span>
-                                <span class="text-sm">Finanse</span>
-                            </a>
-                            <a href="{{ route('finances.scanner') }}" class="flex items-center space-x-2 text-blue-600 group">
-                                <span class="w-6 h-6 rounded-lg bg-blue-100 bg-opacity-10 group-hover:bg-opacity-20 flex items-center justify-center">
-                                    <i class="fas fa-scanner text-blue-600 text-xs"></i>
-                                </span>
-                                <span class="text-sm">Skaner dokumentów</span>
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            @include('layouts.sidebar')
 
             <!-- Główna zawartość -->
             <div class="flex-1">
-                <div class="mb-6">
-                    <h1 class="text-2xl font-semibold text-gray-800">Skaner dokumentów</h1>
-                    <p class="text-sm text-gray-600">Skanuj i zarządzaj dokumentami</p>
-                </div>
-
                 <!-- Obszar skanowania -->
                 <div class="bg-white bg-opacity-10 backdrop-blur-sm overflow-hidden shadow-sm sm:rounded-lg p-6">
                     <div class="text-center">

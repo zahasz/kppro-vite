@@ -276,7 +276,7 @@
                     <h3 class="text-lg font-semibold text-gray-700 mb-4">Moduły</h3>
                     <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                         <!-- Finanse -->
-                        <div class="bg-gradient-to-br from-blue-400/40 to-blue-500/40 overflow-hidden shadow-lg sm:rounded-lg group hover:shadow-xl transition-all duration-200 cursor-pointer transform hover:-translate-y-1 hover:from-blue-400/60 hover:to-blue-500/60">
+                        <a href="{{ route('finances.index') }}" class="bg-gradient-to-br from-blue-400/40 to-blue-500/40 overflow-hidden shadow-lg sm:rounded-lg group hover:shadow-xl transition-all duration-200 cursor-pointer transform hover:-translate-y-1 hover:from-blue-400/60 hover:to-blue-500/60">
                             <div class="p-6 flex items-center justify-between relative">
                                 <div class="relative z-10">
                                     <h4 class="text-2xl font-extrabold text-white mb-1 drop-shadow-[0_2px_2px_rgba(0,0,0,0.3)]">Finanse</h4>
@@ -287,7 +287,7 @@
                                 </div>
                                 <div class="absolute top-0 right-0 w-32 h-32 bg-white opacity-5 rounded-full -mr-16 -mt-16 transform rotate-45"></div>
                             </div>
-                        </div>
+                        </a>
                         <!-- Księgowość -->
                         <div class="bg-gradient-to-br from-blue-500/40 to-blue-600/40 overflow-hidden shadow-lg sm:rounded-lg group hover:shadow-xl transition-all duration-200 cursor-pointer transform hover:-translate-y-1 hover:from-blue-500/60 hover:to-blue-600/60">
                             <div class="p-6 flex items-center justify-between relative">
