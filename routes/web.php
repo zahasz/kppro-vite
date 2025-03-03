@@ -39,6 +39,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/budget', [BudgetController::class, 'store'])->name('budget.store');
         Route::put('/budget/{category}', [BudgetController::class, 'update'])->name('budget.update');
         Route::delete('/budget/{category}', [BudgetController::class, 'destroy'])->name('budget.destroy');
+        Route::get('/budget/history', [BudgetController::class, 'history'])->name('budget.history');
         Route::get('/invoices', [FinanceController::class, 'invoices'])->name('invoices');
         Route::get('/reports', [FinanceController::class, 'reports'])->name('reports');
         

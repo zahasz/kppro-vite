@@ -12,15 +12,22 @@ class BudgetController extends Controller
         $categories = BudgetCategory::all()->groupBy('type');
         
         $totals = [
-            'total_amount' => BudgetCategory::sum('amount'),
-            'total_planned' => BudgetCategory::sum('planned_amount'),
-            'total_cash' => BudgetCategory::where('type', 'cash')->sum('amount'),
-            'total_bank' => BudgetCategory::whereIn('type', ['company_bank', 'private_bank'])->sum('amount'),
-            'total_loans' => BudgetCategory::whereIn('type', ['loans_taken', 'loans_given'])->sum('amount'),
-            'total_investments' => BudgetCategory::whereIn('type', ['investments', 'leasing'])->sum('amount'),
+            'totalAssets' => BudgetCategory::sum('amount'),
+            'cash' => BudgetCategory::where('type', 'cash')->sum('amount'),
+            'bankAccounts' => BudgetCategory::whereIn('type', ['company_bank', 'private_bank'])->sum('amount'),
+            'accountsCount' => BudgetCategory::whereIn('type', ['company_bank', 'private_bank'])->count(),
+            'investments' => BudgetCategory::whereIn('type', ['investments', 'leasing'])->sum('amount'),
+            'income' => BudgetCategory::where('type', 'income')->sum('amount'),
+            'expenses' => BudgetCategory::where('type', 'expenses')->sum('amount'),
+            'monthlyIncome' => BudgetCategory::where('type', 'income')
+                ->whereMonth('created_at', now()->month)
+                ->sum('amount'),
+            'monthlyExpenses' => BudgetCategory::where('type', 'expenses')
+                ->whereMonth('created_at', now()->month)
+                ->sum('amount'),
         ];
 
-        return view('finances.budget.index', compact('categories', 'totals'));
+        return view('finances.budget.index', $totals);
     }
 
     public function store(Request $request)
@@ -35,7 +42,7 @@ class BudgetController extends Controller
 
         BudgetCategory::create($validated);
 
-        return back()->with('success', 'Kategoria budżetu została dodana.');
+        return redirect()->route('finances.budget.index')->with('success', 'Pozycja została dodana pomyślnie.');
     }
 
     public function update(Request $request, BudgetCategory $category)
@@ -57,5 +64,25 @@ class BudgetController extends Controller
     {
         $category->delete();
         return back()->with('success', 'Kategoria budżetu została usunięta.');
+    }
+
+    public function history()
+    {
+        $entries = BudgetCategory::orderBy('created_at', 'desc')
+            ->take(10)
+            ->get()
+            ->map(function ($entry) {
+                return [
+                    'name' => $entry->name,
+                    'amount' => number_format($entry->amount, 2, ',', ' '),
+                    'type' => $entry->type,
+                    'created_at' => $entry->created_at->format('d.m.Y, H:i')
+                ];
+            });
+
+        return response()->json([
+            'success' => true,
+            'entries' => $entries
+        ]);
     }
 } 
