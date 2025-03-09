@@ -24,6 +24,7 @@ class DatabaseSeeder extends Seeder
             RolesAndPermissionsSeeder::class,
             ContractorSeeder::class,
             BudgetCategoriesSeeder::class,
+            UserSeeder::class,
         ]);
     }
 }

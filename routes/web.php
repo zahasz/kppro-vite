@@ -36,10 +36,18 @@ Route::middleware('auth')->group(function () {
         Route::get('/', [FinanceController::class, 'index'])->name('index');
         Route::get('/incomes', [FinanceController::class, 'incomes'])->name('incomes');
         Route::get('/expenses', [FinanceController::class, 'expenses'])->name('expenses');
-        Route::get('/budget', [BudgetController::class, 'index'])->name('budget.index');
-        Route::post('/budget', [BudgetController::class, 'store'])->name('budget.store');
-        Route::put('/budget/{category}', [BudgetController::class, 'update'])->name('budget.update');
-        Route::delete('/budget/{category}', [BudgetController::class, 'destroy'])->name('budget.destroy');
+        
+        // Budżet
+        Route::prefix('budget')->name('budget.')->group(function () {
+            Route::get('/', [BudgetController::class, 'index'])->name('index');
+            Route::post('/', [BudgetController::class, 'store'])->name('store');
+            Route::get('/{category}', [BudgetController::class, 'get'])->name('get');
+            Route::put('/{category}', [BudgetController::class, 'update'])->name('update');
+            Route::delete('/{category}', [BudgetController::class, 'destroy'])->name('destroy');
+            Route::get('/history', [BudgetController::class, 'history'])->name('history');
+            Route::get('/details/{type}', [BudgetController::class, 'details'])->name('details');
+        });
+
         Route::get('/invoices', [FinanceController::class, 'invoices'])->name('invoices');
         Route::get('/reports', [FinanceController::class, 'reports'])->name('reports');
         

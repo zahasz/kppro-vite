@@ -27,6 +27,8 @@ class BudgetCategory extends Model
         'private_bank' => 'Konto prywatne',
         'investments' => 'Inwestycje',
         'leasing' => 'Leasing',
+        'income' => 'Przychody',
+        'expenses' => 'Wydatki',
         'loans_taken' => 'Pożyczki zaciągnięte',
         'loans_given' => 'Pożyczki udzielone',
         'invoices_to_pay' => 'Faktury do opłacenia',
