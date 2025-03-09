@@ -1,15 +1,10 @@
-@extends('layouts.app')
-
-@section('content')
-<div class="py-6">
-    <div class="max-w-[1920px] mx-auto sm:px-4 lg:px-6">
-        <div class="mb-6 flex justify-between items-center">
-            <h2 class="font-semibold text-xl text-gray-800">{{ __('Finanse') }}</h2>
-        </div>
-        <div class="flex flex-col md:flex-row gap-6">
-            <!-- Menu boczne -->
-            @include('layouts.sidebar')
-
+<x-app-layout>
+    <div class="py-6">
+        <div class="max-w-[1920px] mx-auto sm:px-4 lg:px-6">
+            <div class="mb-6 flex justify-between items-center">
+                <h2 class="font-semibold text-xl text-gray-800">{{ __('Finanse') }}</h2>
+            </div>
+            
             <!-- Główna zawartość -->
             <div class="flex-1">
                 <!-- Statystyki -->
@@ -257,5 +252,4 @@
             </div>
         </div>
     </div>
-</div>
-@endsection 
+</x-app-layout> 

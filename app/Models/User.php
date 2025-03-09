@@ -10,11 +10,52 @@ use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Spatie\Permission\Traits\HasRoles;
+use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\Request;
 
+/**
+ * @property int $id
+ * @property string $name
+ * @property string $email
+ * @property string $password
+ * @property bool $is_active
+ * @property string|null $language
+ * @property string|null $timezone
+ * @property array|null $preferences
+ * @property bool $two_factor_enabled
+ * @property string|null $two_factor_secret
+ * @property \Carbon\Carbon|null $email_verified_at
+ * @property \Carbon\Carbon|null $last_login_at
+ * @property string|null $last_login_ip
+ * @property int $failed_login_attempts
+ * @property \Carbon\Carbon|null $locked_until
+ * @property \Carbon\Carbon|null $created_at
+ * @property \Carbon\Carbon|null $updated_at
+ * @property \Carbon\Carbon|null $deleted_at
+ * 
+ * @method static \Database\Factories\UserFactory factory()
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\User newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\User newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\User query()
+ * @method \Laravel\Sanctum\PersonalAccessToken[] tokens()
+ * @method \Illuminate\Database\Eloquent\Collection roles()
+ * @method \Illuminate\Database\Eloquent\Collection permissions()
+ * @method bool hasRole($roles, $guard = null)
+ * @method bool hasPermissionTo($permission, $guard = null)
+ * 
+ * @mixin \Illuminate\Database\Eloquent\Builder
+ * @mixin \Illuminate\Database\Eloquent\Model
+ * @mixin \Laravel\Sanctum\HasApiTokens
+ * @mixin \Illuminate\Database\Eloquent\Factories\HasFactory
+ * @mixin \Illuminate\Notifications\Notifiable
+ * @mixin \Illuminate\Database\Eloquent\SoftDeletes
+ * @mixin \Spatie\Permission\Traits\HasRoles
+ */
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasApiTokens, HasFactory, Notifiable, SoftDeletes;
+    use HasApiTokens, HasFactory, Notifiable, SoftDeletes, HasRoles;
 
     /**
      * The attributes that are mass assignable.
@@ -25,8 +66,6 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
-        'role',
-        'permissions',
         'is_active',
         'language',
         'timezone',
@@ -56,7 +95,6 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
-            'permissions' => 'array',
             'preferences' => 'array',
             'is_active' => 'boolean',
             'two_factor_enabled' => 'boolean',
@@ -70,51 +108,11 @@ class User extends Authenticatable
         return $this->hasOne(Profile::class);
     }
 
-    public function roles()
-    {
-        return $this->belongsToMany(Role::class)
-            ->withPivot('assigned_at', 'assigned_by')
-            ->withTimestamps();
-    }
-
-    public function hasRole($role)
-    {
-        if (is_string($role)) {
-            return $this->roles->contains('name', $role);
-        }
-        return $role->intersect($this->roles)->isNotEmpty();
-    }
-
-    public function hasPermission($permission)
-    {
-        if (is_array($this->permissions) && in_array($permission, $this->permissions)) {
-            return true;
-        }
-
-        foreach ($this->roles as $role) {
-            if ($role->hasPermission($permission)) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    public function hasAnyPermission(array $permissions)
-    {
-        foreach ($permissions as $permission) {
-            if ($this->hasPermission($permission)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
     public function incrementFailedLoginAttempts()
     {
         $this->failed_login_attempts++;
         if ($this->failed_login_attempts >= 5) {
-            $this->locked_until = now()->addMinutes(30);
+            $this->locked_until = Carbon::now()->addMinutes(30);
         }
         $this->save();
     }
@@ -133,8 +131,8 @@ class User extends Authenticatable
 
     public function recordSuccessfulLogin()
     {
-        $this->last_login_at = now();
-        $this->last_login_ip = request()->ip();
+        $this->last_login_at = Carbon::now();
+        $this->last_login_ip = Request::ip();
         $this->failed_login_attempts = 0;
         $this->locked_until = null;
         $this->save();
@@ -161,7 +159,7 @@ class User extends Authenticatable
 
     public function getLocalizedAttribute($value, $attribute)
     {
-        if ($this->language && $this->language !== config('app.locale')) {
+        if ($this->language && $this->language !== Config::get('app.locale')) {
             return $value;
         }
         return $value;

@@ -12,16 +12,24 @@ class CompanyProfileController extends Controller
     {
         $validated = $request->validate([
             'company_name' => 'required|string|max:255',
-            'tax_number' => 'nullable|string|max:255',
+            'legal_form' => 'nullable|string|in:sole_proprietorship,partnership,limited_partnership,limited_liability,joint_stock',
+            'tax_number' => 'required|string|max:255',
             'regon' => 'nullable|string|max:255',
-            'street' => 'nullable|string|max:255',
-            'city' => 'nullable|string|max:255',
-            'postal_code' => 'nullable|string|max:255',
-            'phone' => 'nullable|string|max:255',
-            'email' => 'nullable|email|max:255',
+            'krs' => 'nullable|string|max:255',
+            'street' => 'required|string|max:255',
+            'city' => 'required|string|max:255',
+            'state' => 'nullable|string|max:255',
+            'country' => 'required|string|max:255',
+            'postal_code' => 'required|string|max:255',
+            'phone' => 'required|string|max:255',
+            'phone_additional' => 'nullable|string|max:255',
+            'email' => 'required|email|max:255',
+            'email_additional' => 'nullable|email|max:255',
             'website' => 'nullable|url|max:255',
-            'bank_name' => 'nullable|string|max:255',
-            'bank_account' => 'nullable|string|max:255',
+            'bank_name' => 'required|string|max:255',
+            'bank_account' => 'required|string|max:255',
+            'swift' => 'nullable|string|max:255',
+            'notes' => 'nullable|string|max:1000',
             'logo' => 'nullable|image|max:1024',
         ]);
 
@@ -40,6 +48,6 @@ class CompanyProfileController extends Controller
         $companyProfile->fill($validated);
         $user->companyProfile()->save($companyProfile);
 
-        return back()->with('status', 'Profil firmy został zaktualizowany.');
+        return back()->with('status', 'company-profile-updated');
     }
 }

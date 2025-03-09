@@ -12,17 +12,25 @@ class CompanyProfile extends Model
 
     protected $fillable = [
         'company_name',
+        'legal_form',
         'tax_number',
         'regon',
+        'krs',
         'street',
         'city',
+        'state',
+        'country',
         'postal_code',
         'phone',
+        'phone_additional',
         'email',
+        'email_additional',
         'website',
         'bank_name',
         'bank_account',
+        'swift',
         'logo_path',
+        'notes',
     ];
 
     public function user(): BelongsTo

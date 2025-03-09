@@ -10,6 +10,7 @@ use App\Http\Controllers\ContractController;
 use App\Http\Controllers\EstimateController;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\BudgetController;
+use App\Http\Controllers\Admin\AdminPanelController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -69,6 +70,16 @@ Route::middleware('auth')->group(function () {
     Route::prefix('estimates')->name('estimates.')->group(function () {
         Route::get('/', [EstimateController::class, 'index'])->name('index');
     });
+});
+
+Route::middleware(['auth', 'verified', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
+    Route::get('/', [AdminPanelController::class, 'index'])->name('dashboard');
+    Route::get('/users', [AdminPanelController::class, 'users'])->name('users');
+    Route::get('/roles', [AdminPanelController::class, 'roles'])->name('roles');
+    Route::get('/permissions', [AdminPanelController::class, 'permissions'])->name('permissions');
+    
+    Route::put('/users/{user}/roles', [AdminPanelController::class, 'updateUserRoles'])->name('users.update-roles');
+    Route::put('/roles/{role}/permissions', [AdminPanelController::class, 'updateRolePermissions'])->name('roles.update-permissions');
 });
 
 require __DIR__.'/auth.php';

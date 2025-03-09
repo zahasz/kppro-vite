@@ -1,156 +1,92 @@
 <!-- Menu boczne -->
-<aside class="md:w-64 flex-shrink-0">
-    <div class="bg-white bg-opacity-10 backdrop-blur-sm overflow-hidden shadow-sm sm:rounded-lg">
-        <div class="p-4">
-            <div class="space-y-2">
-                <!-- Dashboard -->
-                <a href="{{ route('dashboard') }}" class="flex items-center space-x-2 text-gray-700 hover:text-gray-900 group">
-                    <span class="w-6 h-6 rounded-lg bg-gray-100 bg-opacity-10 group-hover:bg-opacity-20 flex items-center justify-center">
-                        <i class="fas fa-home text-gray-600 text-xs"></i>
-                    </span>
-                    <span class="text-sm">Panel Główny</span>
-                </a>
+<div class="md:w-56 flex-shrink-0">
+    <div class="bg-white bg-opacity-10 backdrop-blur-sm overflow-hidden shadow-lg rounded-lg p-4">
+        <div class="space-y-2">
+            <a href="{{ route('dashboard') }}" 
+               class="flex items-center space-x-2 {{ request()->routeIs('dashboard') ? 'text-blue-500' : 'text-gray-600 hover:text-gray-900' }} group">
+                <span class="w-6 h-6 rounded-lg {{ request()->routeIs('dashboard') ? 'bg-blue-100' : 'bg-gray-100' }} group-hover:bg-opacity-75 flex items-center justify-center">
+                    <i class="fas fa-home {{ request()->routeIs('dashboard') ? 'text-blue-600' : 'text-gray-700' }} text-xs"></i>
+                </span>
+                <span class="text-sm font-medium">Panel Główny</span>
+            </a>
 
-                <!-- Finanse z podmenu -->
-                <div class="space-y-2">
-                    <a href="{{ route('finances.index') }}" class="flex items-center space-x-2 {{ request()->routeIs('finances.*') ? 'text-blue-600' : 'text-gray-700 hover:text-gray-900' }} group">
-                        <span class="w-6 h-6 rounded-lg bg-blue-100 bg-opacity-10 group-hover:bg-opacity-20 flex items-center justify-center">
-                            <i class="fas fa-file-invoice-dollar text-blue-600 text-xs"></i>
-                        </span>
-                        <span class="text-sm">Finanse</span>
-                    </a>
+            <a href="{{ route('finances.index') }}" 
+               class="flex items-center space-x-2 {{ request()->routeIs('finances.*') ? 'text-blue-500' : 'text-gray-600 hover:text-gray-900' }} group">
+                <span class="w-6 h-6 rounded-lg {{ request()->routeIs('finances.*') ? 'bg-blue-100' : 'bg-gray-100' }} group-hover:bg-opacity-75 flex items-center justify-center">
+                    <i class="fas fa-file-invoice-dollar {{ request()->routeIs('finances.*') ? 'text-blue-600' : 'text-gray-700' }} text-xs"></i>
+                </span>
+                <span class="text-sm font-medium">Finanse</span>
+            </a>
 
-                    @if(request()->routeIs('finances.*'))
-                    <div class="pl-8 space-y-2">
-                        <a href="{{ route('finances.incomes') }}" class="flex items-center space-x-2 text-gray-600 hover:text-gray-900 group">
-                            <span class="w-5 h-5 rounded-lg bg-green-100 bg-opacity-10 group-hover:bg-opacity-20 flex items-center justify-center">
-                                <i class="fas fa-plus text-green-600 text-xs"></i>
-                            </span>
-                            <span class="text-sm">Przychody</span>
-                        </a>
-                        
-                        <a href="{{ route('finances.expenses') }}" class="flex items-center space-x-2 text-gray-600 hover:text-gray-900 group">
-                            <span class="w-5 h-5 rounded-lg bg-red-100 bg-opacity-10 group-hover:bg-opacity-20 flex items-center justify-center">
-                                <i class="fas fa-minus text-red-600 text-xs"></i>
-                            </span>
-                            <span class="text-sm">Koszta</span>
-                        </a>
-                        
-                        <a href="{{ route('finances.invoices.index') }}" class="flex items-center space-x-2 text-gray-600 hover:text-gray-900 group">
-                            <span class="w-5 h-5 rounded-lg bg-blue-100 bg-opacity-10 group-hover:bg-opacity-20 flex items-center justify-center">
-                                <i class="fas fa-file-invoice text-blue-600 text-xs"></i>
-                            </span>
-                            <span class="text-sm">Faktury</span>
-                        </a>
+            <a href="{{ route('warehouse.index') }}" 
+               class="flex items-center space-x-2 {{ request()->routeIs('warehouse.*') ? 'text-blue-500' : 'text-gray-600 hover:text-gray-900' }} group">
+                <span class="w-6 h-6 rounded-lg {{ request()->routeIs('warehouse.*') ? 'bg-blue-100' : 'bg-gray-100' }} group-hover:bg-opacity-75 flex items-center justify-center">
+                    <i class="fas fa-warehouse {{ request()->routeIs('warehouse.*') ? 'text-blue-600' : 'text-gray-700' }} text-xs"></i>
+                </span>
+                <span class="text-sm font-medium">Magazyn</span>
+            </a>
 
-                        <a href="{{ route('finances.budget.index') }}" class="flex items-center space-x-2 text-gray-600 hover:text-gray-900 group">
-                            <span class="w-5 h-5 rounded-lg bg-purple-100 bg-opacity-10 group-hover:bg-opacity-20 flex items-center justify-center">
-                                <i class="fas fa-wallet text-purple-600 text-xs"></i>
-                            </span>
-                            <span class="text-sm">Budżet</span>
-                        </a>
-                        
-                        <a href="{{ route('finances.reports') }}" class="flex items-center space-x-2 text-gray-600 hover:text-gray-900 group">
-                            <span class="w-5 h-5 rounded-lg bg-indigo-100 bg-opacity-10 group-hover:bg-opacity-20 flex items-center justify-center">
-                                <i class="fas fa-chart-pie text-indigo-600 text-xs"></i>
-                            </span>
-                            <span class="text-sm">Raporty</span>
-                        </a>
-                    </div>
-                    @endif
-                </div>
+            <a href="{{ route('contractors.index') }}" 
+               class="flex items-center space-x-2 {{ request()->routeIs('contractors.*') ? 'text-blue-500' : 'text-gray-600 hover:text-gray-900' }} group">
+                <span class="w-6 h-6 rounded-lg {{ request()->routeIs('contractors.*') ? 'bg-blue-100' : 'bg-gray-100' }} group-hover:bg-opacity-75 flex items-center justify-center">
+                    <i class="fas fa-users {{ request()->routeIs('contractors.*') ? 'text-blue-600' : 'text-gray-700' }} text-xs"></i>
+                </span>
+                <span class="text-sm font-medium">Kontrahenci</span>
+            </a>
 
-                <!-- Księgowość -->
-                <a href="#" class="flex items-center space-x-2 text-gray-700 hover:text-gray-900 group">
-                    <span class="w-6 h-6 rounded-lg bg-gray-100 bg-opacity-10 group-hover:bg-opacity-20 flex items-center justify-center">
-                        <i class="fas fa-book text-gray-600 text-xs"></i>
-                    </span>
-                    <span class="text-sm">Księgowość</span>
-                </a>
+            <a href="{{ route('tasks.index') }}" 
+               class="flex items-center space-x-2 {{ request()->routeIs('tasks.*') ? 'text-blue-500' : 'text-gray-600 hover:text-gray-900' }} group">
+                <span class="w-6 h-6 rounded-lg {{ request()->routeIs('tasks.*') ? 'bg-blue-100' : 'bg-gray-100' }} group-hover:bg-opacity-75 flex items-center justify-center">
+                    <i class="fas fa-tasks {{ request()->routeIs('tasks.*') ? 'text-blue-600' : 'text-gray-700' }} text-xs"></i>
+                </span>
+                <span class="text-sm font-medium">Zadania</span>
+            </a>
 
-                <!-- Magazyn -->
-                <a href="#" class="flex items-center space-x-2 text-gray-700 hover:text-gray-900 group">
-                    <span class="w-6 h-6 rounded-lg bg-gray-100 bg-opacity-10 group-hover:bg-opacity-20 flex items-center justify-center">
-                        <i class="fas fa-warehouse text-gray-600 text-xs"></i>
-                    </span>
-                    <span class="text-sm">Magazyn</span>
-                </a>
+            <a href="{{ route('contracts.index') }}" 
+               class="flex items-center space-x-2 {{ request()->routeIs('contracts.*') ? 'text-blue-500' : 'text-gray-600 hover:text-gray-900' }} group">
+                <span class="w-6 h-6 rounded-lg {{ request()->routeIs('contracts.*') ? 'bg-blue-100' : 'bg-gray-100' }} group-hover:bg-opacity-75 flex items-center justify-center">
+                    <i class="fas fa-file-contract {{ request()->routeIs('contracts.*') ? 'text-blue-600' : 'text-gray-700' }} text-xs"></i>
+                </span>
+                <span class="text-sm font-medium">Umowy</span>
+            </a>
 
-                <!-- Kontrahenci -->
-                <a href="{{ route('contractors.index') }}" class="flex items-center space-x-2 text-gray-700 hover:text-gray-900 group">
-                    <span class="w-6 h-6 rounded-lg bg-gray-100 bg-opacity-10 group-hover:bg-opacity-20 flex items-center justify-center">
-                        <i class="fas fa-users text-gray-600 text-xs"></i>
-                    </span>
-                    <span class="text-sm">Kontrahenci</span>
-                </a>
+            <a href="{{ route('estimates.index') }}" 
+               class="flex items-center space-x-2 {{ request()->routeIs('estimates.*') ? 'text-blue-500' : 'text-gray-600 hover:text-gray-900' }} group">
+                <span class="w-6 h-6 rounded-lg {{ request()->routeIs('estimates.*') ? 'bg-blue-100' : 'bg-gray-100' }} group-hover:bg-opacity-75 flex items-center justify-center">
+                    <i class="fas fa-calculator {{ request()->routeIs('estimates.*') ? 'text-blue-600' : 'text-gray-700' }} text-xs"></i>
+                </span>
+                <span class="text-sm font-medium">Kosztorysy</span>
+            </a>
 
-                <!-- Zadania -->
-                <a href="#" class="flex items-center space-x-2 text-gray-700 hover:text-gray-900 group">
-                    <span class="w-6 h-6 rounded-lg bg-gray-100 bg-opacity-10 group-hover:bg-opacity-20 flex items-center justify-center">
-                        <i class="fas fa-tasks text-gray-600 text-xs"></i>
-                    </span>
-                    <span class="text-sm">Zadania</span>
-                </a>
-
-                <!-- Raporty -->
-                <a href="#" class="flex items-center space-x-2 text-gray-700 hover:text-gray-900 group">
-                    <span class="w-6 h-6 rounded-lg bg-gray-100 bg-opacity-10 group-hover:bg-opacity-20 flex items-center justify-center">
-                        <i class="fas fa-chart-bar text-gray-600 text-xs"></i>
-                    </span>
-                    <span class="text-sm">Raporty</span>
-                </a>
-
-                <!-- Umowy -->
-                <a href="#" class="flex items-center space-x-2 text-gray-700 hover:text-gray-900 group">
-                    <span class="w-6 h-6 rounded-lg bg-gray-100 bg-opacity-10 group-hover:bg-opacity-20 flex items-center justify-center">
-                        <i class="fas fa-file-contract text-gray-600 text-xs"></i>
-                    </span>
-                    <span class="text-sm">Umowy</span>
-                </a>
-
-                <!-- Kosztorysy -->
-                <a href="#" class="flex items-center space-x-2 text-gray-700 hover:text-gray-900 group">
-                    <span class="w-6 h-6 rounded-lg bg-gray-100 bg-opacity-10 group-hover:bg-opacity-20 flex items-center justify-center">
-                        <i class="fas fa-calculator text-gray-600 text-xs"></i>
-                    </span>
-                    <span class="text-sm">Kosztorysy</span>
-                </a>
-            </div>
+            @can('admin')
+            <a href="{{ route('admin.dashboard') }}" 
+               class="flex items-center space-x-2 {{ request()->routeIs('admin.*') ? 'text-blue-500' : 'text-gray-600 hover:text-gray-900' }} group">
+                <span class="w-6 h-6 rounded-lg {{ request()->routeIs('admin.*') ? 'bg-blue-100' : 'bg-gray-100' }} group-hover:bg-opacity-75 flex items-center justify-center">
+                    <i class="fas fa-user-shield {{ request()->routeIs('admin.*') ? 'text-blue-600' : 'text-gray-700' }} text-xs"></i>
+                </span>
+                <span class="text-sm font-medium">Panel Admina</span>
+            </a>
+            @endcan
         </div>
-    </div>
 
-    <!-- Notatki -->
-    <div class="mt-4">
-        <div class="bg-white bg-opacity-10 backdrop-blur-sm overflow-hidden shadow-sm sm:rounded-lg">
-            <div class="p-4">
-                <h3 class="text-sm font-semibold text-gray-700 mb-3">Notatki</h3>
-                <div class="space-y-3">
-                    <div class="flex items-start space-x-3 text-xs">
-                        <div class="w-6 h-6 rounded-lg bg-yellow-100 bg-opacity-10 flex items-center justify-center mt-0.5">
-                            <i class="fas fa-sticky-note text-yellow-600 text-xs"></i>
-                        </div>
-                        <div class="flex-1">
-                            <p class="font-medium text-gray-700">Spotkanie z klientem</p>
-                            <p class="text-gray-500 text-xs">Omówienie projektu - 15:00</p>
-                        </div>
-                    </div>
-                    <div class="flex items-start space-x-3 text-xs">
-                        <div class="w-6 h-6 rounded-lg bg-blue-100 bg-opacity-10 flex items-center justify-center mt-0.5">
-                            <i class="fas fa-thumbtack text-blue-600 text-xs"></i>
-                        </div>
-                        <div class="flex-1">
-                            <p class="font-medium text-gray-700">Przygotować raport</p>
-                            <p class="text-gray-500 text-xs">Do końca tygodnia</p>
-                        </div>
-                    </div>
-                    <button class="w-full flex items-center justify-center space-x-2 text-gray-700 hover:text-gray-900 group mt-2">
-                        <span class="w-6 h-6 rounded-lg bg-gray-100 bg-opacity-10 group-hover:bg-opacity-20 flex items-center justify-center">
-                            <i class="fas fa-plus text-gray-600 text-xs"></i>
-                        </span>
-                        <span class="text-xs">Dodaj notatkę</span>
-                    </button>
+        <!-- Separator i Notatki -->
+        <div class="mt-6 pt-6 border-t border-gray-200 border-opacity-50">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-sm font-semibold text-gray-700">Notatki</h3>
+                <button class="text-xs text-blue-500 hover:text-blue-600 transition-colors duration-200">
+                    <i class="fas fa-plus"></i>
+                </button>
+            </div>
+            <div class="space-y-3">
+                <div class="group">
+                    <p class="text-xs text-gray-600 py-1">Spotkanie z klientem - 15:00</p>
+                    <div class="h-px bg-gray-100"></div>
+                </div>
+                <div class="group">
+                    <p class="text-xs text-gray-600 py-1">Deadline projektu - 20.03</p>
+                    <div class="h-px bg-gray-100"></div>
                 </div>
             </div>
         </div>
     </div>
-</aside> 
+</div> 
