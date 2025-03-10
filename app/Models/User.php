@@ -13,6 +13,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 use Spatie\Permission\Traits\HasRoles;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Request;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 
 /**
  * @property int $id
@@ -90,17 +91,29 @@ class User extends Authenticatable
      *
      * @return array<string, string>
      */
-    protected function casts(): array
+    protected $casts = [
+        'email_verified_at' => 'datetime',
+        'password' => 'hashed',
+        'preferences' => 'array',
+        'is_active' => 'boolean',
+        'two_factor_enabled' => 'boolean',
+        'last_login_at' => 'datetime',
+        'locked_until' => 'datetime',
+    ];
+
+    public function getUserRolesAttribute()
     {
-        return [
-            'email_verified_at' => 'datetime',
-            'password' => 'hashed',
-            'preferences' => 'array',
-            'is_active' => 'boolean',
-            'two_factor_enabled' => 'boolean',
-            'last_login_at' => 'datetime',
-            'locked_until' => 'datetime',
-        ];
+        return $this->getRoleNames();
+    }
+
+    public function getUserPermissionsAttribute()
+    {
+        return $this->getAllPermissions()->pluck('name');
+    }
+
+    public function hasAdminAccess(): bool
+    {
+        return $this->hasRole('admin') || $this->hasPermissionTo('access admin panel');
     }
 
     public function profile()

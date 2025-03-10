@@ -3,73 +3,31 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Spatie\Permission\Models\Role as SpatieRole;
+use Spatie\Permission\Contracts\Role as RoleContract;
 
-class Role extends Model
+class Role extends SpatieRole implements RoleContract
 {
     use HasFactory, SoftDeletes;
 
     protected $fillable = [
         'name',
+        'guard_name',
         'display_name',
         'description',
-        'permissions',
         'is_system'
     ];
 
     protected $casts = [
-        'permissions' => 'array',
         'is_system' => 'boolean'
     ];
 
-    // Relacje
-    public function users()
+    public function __construct(array $attributes = [])
     {
-        return $this->belongsToMany(User::class)
-            ->withPivot('assigned_at', 'assigned_by')
-            ->withTimestamps();
+        parent::__construct($attributes);
+        
+        $this->guarded = [];
+        $this->guard_name = $this->guard_name ?: config('auth.defaults.guard');
     }
-
-    // Metody pomocnicze
-    public function hasPermission($permission)
-    {
-        return in_array($permission, $this->permissions ?? []);
-    }
-
-    public function hasAnyPermission(array $permissions)
-    {
-        return !empty(array_intersect($permissions, $this->permissions ?? []));
-    }
-
-    public function hasAllPermissions(array $permissions)
-    {
-        return empty(array_diff($permissions, $this->permissions ?? []));
-    }
-
-    public function addPermission($permission)
-    {
-        $permissions = $this->permissions ?? [];
-        if (!in_array($permission, $permissions)) {
-            $permissions[] = $permission;
-            $this->permissions = $permissions;
-            $this->save();
-        }
-    }
-
-    public function removePermission($permission)
-    {
-        $permissions = $this->permissions ?? [];
-        if (($key = array_search($permission, $permissions)) !== false) {
-            unset($permissions[$key]);
-            $this->permissions = array_values($permissions);
-            $this->save();
-        }
-    }
-
-    public function syncPermissions(array $permissions)
-    {
-        $this->permissions = $permissions;
-        $this->save();
-    }
-}
+} 

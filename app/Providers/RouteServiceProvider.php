@@ -7,6 +7,7 @@ use Illuminate\Foundation\Support\Providers\RouteServiceProvider as ServiceProvi
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Route;
+use Spatie\Permission\Models\Role;
 
 class RouteServiceProvider extends ServiceProvider
 {
@@ -24,6 +25,10 @@ class RouteServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        Route::bind('role', function ($value) {
+            return Role::findOrFail($value);
+        });
+
         $this->configureRateLimiting();
 
         $this->routes(function () {

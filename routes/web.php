@@ -11,6 +11,10 @@ use App\Http\Controllers\EstimateController;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\BudgetController;
 use App\Http\Controllers\Admin\AdminPanelController;
+use App\Http\Controllers\WarehouseMaterialsController;
+use App\Http\Controllers\WarehouseEquipmentController;
+use App\Http\Controllers\WarehouseToolsController;
+use App\Http\Controllers\WarehouseGarageController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -62,6 +66,38 @@ Route::middleware('auth')->group(function () {
     // Routing dla magazynu
     Route::prefix('warehouse')->name('warehouse.')->group(function () {
         Route::get('/', [WarehouseController::class, 'index'])->name('index');
+        
+        // Magazyn materiałów
+        Route::get('/materials', [WarehouseMaterialsController::class, 'index'])->name('materials.index');
+        Route::post('/materials', [WarehouseMaterialsController::class, 'store'])->name('materials.store');
+        Route::get('/materials/create', [WarehouseMaterialsController::class, 'create'])->name('materials.create');
+        Route::get('/materials/{material}', [WarehouseMaterialsController::class, 'show'])->name('materials.show');
+        Route::put('/materials/{material}', [WarehouseMaterialsController::class, 'update'])->name('materials.update');
+        Route::delete('/materials/{material}', [WarehouseMaterialsController::class, 'destroy'])->name('materials.destroy');
+
+        // Magazyn sprzętu
+        Route::get('/equipment', [WarehouseEquipmentController::class, 'index'])->name('equipment.index');
+        Route::post('/equipment', [WarehouseEquipmentController::class, 'store'])->name('equipment.store');
+        Route::get('/equipment/create', [WarehouseEquipmentController::class, 'create'])->name('equipment.create');
+        Route::get('/equipment/{equipment}', [WarehouseEquipmentController::class, 'show'])->name('equipment.show');
+        Route::put('/equipment/{equipment}', [WarehouseEquipmentController::class, 'update'])->name('equipment.update');
+        Route::delete('/equipment/{equipment}', [WarehouseEquipmentController::class, 'destroy'])->name('equipment.destroy');
+
+        // Magazyn narzędzi
+        Route::get('/tools', [WarehouseToolsController::class, 'index'])->name('tools.index');
+        Route::post('/tools', [WarehouseToolsController::class, 'store'])->name('tools.store');
+        Route::get('/tools/create', [WarehouseToolsController::class, 'create'])->name('tools.create');
+        Route::get('/tools/{tool}', [WarehouseToolsController::class, 'show'])->name('tools.show');
+        Route::put('/tools/{tool}', [WarehouseToolsController::class, 'update'])->name('tools.update');
+        Route::delete('/tools/{tool}', [WarehouseToolsController::class, 'destroy'])->name('tools.destroy');
+
+        // Garaż
+        Route::get('/garage', [WarehouseGarageController::class, 'index'])->name('garage.index');
+        Route::post('/garage', [WarehouseGarageController::class, 'store'])->name('garage.store');
+        Route::get('/garage/create', [WarehouseGarageController::class, 'create'])->name('garage.create');
+        Route::get('/garage/{vehicle}', [WarehouseGarageController::class, 'show'])->name('garage.show');
+        Route::put('/garage/{vehicle}', [WarehouseGarageController::class, 'update'])->name('garage.update');
+        Route::delete('/garage/{vehicle}', [WarehouseGarageController::class, 'destroy'])->name('garage.destroy');
     });
 
     // Routing dla zadań
@@ -78,16 +114,28 @@ Route::middleware('auth')->group(function () {
     Route::prefix('estimates')->name('estimates.')->group(function () {
         Route::get('/', [EstimateController::class, 'index'])->name('index');
     });
-});
 
-Route::middleware(['auth', 'verified', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
-    Route::get('/', [AdminPanelController::class, 'index'])->name('dashboard');
-    Route::get('/users', [AdminPanelController::class, 'users'])->name('users');
-    Route::get('/roles', [AdminPanelController::class, 'roles'])->name('roles');
-    Route::get('/permissions', [AdminPanelController::class, 'permissions'])->name('permissions');
-    
-    Route::put('/users/{user}/roles', [AdminPanelController::class, 'updateUserRoles'])->name('users.update-roles');
-    Route::put('/roles/{role}/permissions', [AdminPanelController::class, 'updateRolePermissions'])->name('roles.update-permissions');
+    // Panel administratora
+    Route::prefix('admin')
+        ->name('admin.')
+        ->middleware(['auth', 'verified'])
+        ->group(function () {
+            Route::get('/', [AdminPanelController::class, 'index'])->name('index');
+            // Alias dla admin.index jako admin.dashboard
+            Route::get('/dashboard', [AdminPanelController::class, 'index'])->name('dashboard');
+            
+            // Zarządzanie rolami
+            Route::get('/roles', [AdminPanelController::class, 'roles'])->name('roles');
+            Route::post('/roles', [AdminPanelController::class, 'storeRole'])->name('roles.store');
+            Route::put('/roles/{role}', [AdminPanelController::class, 'updateRole'])->name('roles.update');
+            Route::delete('/roles/{role}', [AdminPanelController::class, 'destroyRole'])->name('roles.destroy');
+            
+            // Zarządzanie użytkownikami
+            Route::get('/users', [AdminPanelController::class, 'users'])->name('users');
+            
+            // Zarządzanie uprawnieniami
+            Route::get('/permissions', [AdminPanelController::class, 'permissions'])->name('permissions');
+        });
 });
 
 require __DIR__.'/auth.php';

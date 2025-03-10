@@ -15,6 +15,13 @@
         <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
 
         <!-- Scripts -->
+        <script>
+            window.routes = {
+                'admin.roles.store': '{{ route('admin.roles.store') }}',
+                'admin.roles.update': '{{ url('/admin/roles/{role}') }}',
+                'admin.roles.destroy': '{{ url('/admin/roles/{role}') }}'
+            };
+        </script>
         @vite(['resources/css/app.css', 'resources/js/app.js'])
         
         @yield('head')
@@ -42,6 +49,12 @@
 
                                 <x-slot name="content">
                                     @auth
+                                        @role('admin')
+                                            <x-dropdown-link :href="route('admin.index')">
+                                                {{ __('Panel administratora') }}
+                                            </x-dropdown-link>
+                                        @endrole
+
                                         <x-dropdown-link :href="route('profile.edit')">
                                             {{ __('Profile') }}
                                         </x-dropdown-link>
