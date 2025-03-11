@@ -2,8 +2,9 @@
 
 namespace Database\Seeders;
 
-use App\Models\Contractor;
 use Illuminate\Database\Seeder;
+use App\Models\Contractor;
+use App\Models\User;
 
 class ContractorSeeder extends Seeder
 {
@@ -12,14 +13,22 @@ class ContractorSeeder extends Seeder
      */
     public function run(): void
     {
+        $admin = User::where('email', 'admin@kppro.pl')->first();
+
+        if (!$admin) {
+            return;
+        }
+
+        Contractor::create([
+            'user_id' => $admin->id,
+            'company_name' => 'Firma Budowlana "Budex" Sp. z o.o.',
+            'nip' => '1234567890',
+            'email' => 'kontakt@budex.pl',
+            'phone' => '+48 123 456 789',
+            'status' => 'active'
+        ]);
+
         $contractors = [
-            [
-                'company_name' => 'Firma Budowlana "Budex" Sp. z o.o.',
-                'nip' => '1234567890',
-                'email' => 'kontakt@budex.pl',
-                'phone' => '+48 123 456 789',
-                'status' => 'active'
-            ],
             [
                 'company_name' => 'IT Solutions Pro Sp. z o.o.',
                 'nip' => '9876543210',
@@ -51,6 +60,7 @@ class ContractorSeeder extends Seeder
         ];
 
         foreach ($contractors as $contractor) {
+            $contractor['user_id'] = $admin->id;
             Contractor::create($contractor);
         }
     }

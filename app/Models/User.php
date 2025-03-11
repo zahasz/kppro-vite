@@ -18,7 +18,13 @@ use Illuminate\Database\Eloquent\Casts\Attribute;
 /**
  * @property int $id
  * @property string $name
+ * @property string $username
+ * @property string $first_name
+ * @property string $last_name
  * @property string $email
+ * @property string $phone
+ * @property string $position
+ * @property string $avatar
  * @property string $password
  * @property bool $is_active
  * @property string|null $language
@@ -65,12 +71,19 @@ class User extends Authenticatable
      */
     protected $fillable = [
         'name',
+        'username',
+        'first_name',
+        'last_name',
         'email',
         'password',
-        'is_active',
+        'phone',
+        'position',
+        'avatar',
+        'company_id',
         'language',
         'timezone',
         'preferences',
+        'is_active',
         'two_factor_enabled',
         'two_factor_secret'
     ];
@@ -83,7 +96,6 @@ class User extends Authenticatable
     protected $hidden = [
         'password',
         'remember_token',
-        'two_factor_secret',
     ];
 
     /**
@@ -181,5 +193,18 @@ class User extends Authenticatable
     public function companyProfile(): HasOne
     {
         return $this->hasOne(CompanyProfile::class);
+    }
+
+    public function company()
+    {
+        return $this->belongsTo(Company::class);
+    }
+
+    public function getAvatarUrlAttribute()
+    {
+        if ($this->avatar) {
+            return asset('storage/' . $this->avatar);
+        }
+        return 'https://ui-avatars.com/api/?name=' . urlencode($this->name) . '&background=6366f1&color=fff';
     }
 }

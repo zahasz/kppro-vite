@@ -27,81 +27,75 @@
         @yield('head')
     </head>
     <body class="font-sans antialiased">
-        <div class="min-h-screen bg-gray-100">
-            <!-- Górna sekcja z logowaniem -->
-            <div class="bg-white shadow mb-6">
-                <div class="max-w-[1920px] mx-auto sm:px-4 lg:px-6 py-3">
-                    <div class="flex justify-between items-center">
-                        <h2 class="font-semibold text-xl text-gray-800">{{ config('app.name', 'KPPRO') }}</h2>
+        <div class="min-h-screen bg-gray-50">
+            @include('layouts.sidebar')
+
+            <!-- Główna zawartość -->
+            <div class="ml-[250px] min-h-screen">
+                <!-- Górny pasek -->
+                <div class="bg-white shadow-sm border-b">
+                    <div class="px-6 py-4 flex justify-between items-center">
+                        <div class="flex items-center space-x-4">
+                            <!-- Przycisk menu dla urządzeń mobilnych -->
+                            <button class="menu-button md:hidden text-gray-600 hover:text-gray-700 focus:outline-none">
+                                <i class="fas fa-bars text-xl"></i>
+                            </button>
+                            <h2 class="text-xl font-semibold text-gray-800">@yield('title', config('app.name'))</h2>
+                        </div>
+                        
                         <!-- Menu użytkownika -->
-                        <div class="hidden sm:flex sm:items-center">
-                            <x-dropdown align="right" width="48">
-                                <x-slot name="trigger">
-                                    <button class="flex items-center text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300 focus:outline-none focus:text-gray-700 focus:border-gray-300 transition duration-150 ease-in-out">
-                                        <div>{{ Auth::user()->name ?? 'Gość' }}</div>
-                                        <div class="ml-1">
-                                            <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
-                                                <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
-                                            </svg>
-                                        </div>
-                                    </button>
-                                </x-slot>
+                        <div class="flex items-center space-x-4">
+                            <div class="relative" x-data="{ open: false }">
+                                <button @click="open = !open" class="flex items-center space-x-3 text-gray-700 hover:text-gray-900 focus:outline-none">
+                                    <span class="text-sm font-medium">{{ Auth::user()->name ?? 'Gość' }}</span>
+                                    <img src="{{ Auth::user()->avatar_url }}" 
+                                         alt="{{ Auth::user()->name }}" 
+                                         class="w-8 h-8 rounded-full">
+                                </button>
 
-                                <x-slot name="content">
-                                    @auth
-                                        @role('admin')
-                                            <x-dropdown-link :href="route('admin.index')">
-                                                {{ __('Panel administratora') }}
-                                            </x-dropdown-link>
-                                        @endrole
+                                <!-- Menu rozwijane -->
+                                <div x-show="open" 
+                                     @click.away="open = false"
+                                     x-transition:enter="transition ease-out duration-100"
+                                     x-transition:enter-start="transform opacity-0 scale-95"
+                                     x-transition:enter-end="transform opacity-100 scale-100"
+                                     x-transition:leave="transition ease-in duration-75"
+                                     x-transition:leave-start="transform opacity-100 scale-100"
+                                     x-transition:leave-end="transform opacity-0 scale-95"
+                                     class="absolute right-0 mt-2 w-48 py-1 bg-white rounded-md shadow-lg">
+                                    
+                                    <a href="{{ route('profile.edit') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                        Edytuj profil
+                                    </a>
 
-                                        <x-dropdown-link :href="route('profile.edit')">
-                                            {{ __('Profile') }}
-                                        </x-dropdown-link>
-
-                                        <!-- Authentication -->
-                                        <form method="POST" action="{{ route('logout') }}">
-                                            @csrf
-                                            <x-dropdown-link :href="route('logout')"
-                                                    onclick="event.preventDefault();
-                                                        this.closest('form').submit();">
-                                                {{ __('Log Out') }}
-                                            </x-dropdown-link>
-                                        </form>
-                                    @else
-                                        <x-dropdown-link :href="route('login')">
-                                            {{ __('Log in') }}
-                                        </x-dropdown-link>
-                                    @endauth
-                                </x-slot>
-                            </x-dropdown>
+                                    <form method="POST" action="{{ route('logout') }}">
+                                        @csrf
+                                        <button type="submit" class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                            Wyloguj się
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- Główna zawartość -->
-            <div class="max-w-[1920px] mx-auto sm:px-4 lg:px-6">
-                <div class="flex flex-col md:flex-row gap-6">
-                    @include('layouts.sidebar')
+                <!-- Zawartość strony -->
+                <div class="p-6">
+                    @if (session('success'))
+                        <div class="mb-4 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative" role="alert">
+                            {{ session('success') }}
+                        </div>
+                    @endif
 
-                    <!-- Główna zawartość -->
-                    <div class="flex-1">
-                        @if (session('success'))
-                            <div class="mb-4 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative" role="alert">
-                                {{ session('success') }}
-                            </div>
-                        @endif
+                    @if (session('error'))
+                        <div class="mb-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
+                            {{ session('error') }}
+                        </div>
+                    @endif
 
-                        @if (session('error'))
-                            <div class="mb-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
-                                {{ session('error') }}
-                            </div>
-                        @endif
-
-                        @yield('content')
-                        {{ $slot ?? '' }}
-                    </div>
+                    @yield('content')
+                    {{ $slot ?? '' }}
                 </div>
             </div>
         </div>

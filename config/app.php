@@ -168,4 +168,18 @@ return [
         App\Providers\RouteServiceProvider::class,
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Company Information
+    |--------------------------------------------------------------------------
+    |
+    | This configuration contains the company information that will be used
+    | in various parts of the application, such as invoices and reports.
+    |
+    */
+
+    'company_name' => env('COMPANY_NAME', 'Nazwa Firmy'),
+    'company_address' => env('COMPANY_ADDRESS', 'Adres Firmy'),
+    'company_nip' => env('COMPANY_NIP', '0000000000'),
+
 ];

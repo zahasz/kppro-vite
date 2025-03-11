@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Contractor;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Response;
 
 class ContractorController extends Controller
@@ -14,7 +15,7 @@ class ContractorController extends Controller
     public function index()
     {
         $contractors = Contractor::latest()->paginate(10);
-        return view('contractors', compact('contractors'));
+        return view('contractors.index', compact('contractors'));
     }
 
     /**
@@ -32,15 +33,34 @@ class ContractorController extends Controller
     {
         $validated = $request->validate([
             'company_name' => 'required|string|max:255',
-            'nip' => 'required|string|max:20',
-            'email' => 'required|email|max:255',
-            'phone' => 'required|string|max:20',
-            'status' => 'required|in:active,inactive,blocked'
+            'nip' => 'nullable|string|max:20',
+            'regon' => 'nullable|string|max:14',
+            'email' => 'nullable|email|max:255',
+            'phone' => 'nullable|string|max:20',
+            'street' => 'nullable|string|max:255',
+            'postal_code' => 'nullable|string|max:10',
+            'city' => 'nullable|string|max:255',
+            'country' => 'nullable|string|max:255',
+            'bank_name' => 'nullable|string|max:255',
+            'bank_account_number' => 'nullable|string|max:50',
+            'swift_code' => 'nullable|string|max:11',
+            'notes' => 'nullable|string',
         ]);
+
+        $validated['user_id'] = Auth::id();
+        $validated['status'] = 'active';
 
         $contractor = Contractor::create($validated);
 
-        return response()->json($contractor, 201);
+        if ($request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'contractor' => $contractor
+            ]);
+        }
+
+        return redirect()->route('contractors.index')
+            ->with('success', 'Kontrahent został dodany pomyślnie.');
     }
 
     /**
@@ -56,7 +76,7 @@ class ContractorController extends Controller
      */
     public function edit(Contractor $contractor)
     {
-        return response()->json($contractor);
+        return view('contractors.edit', compact('contractor'));
     }
 
     /**
@@ -66,15 +86,32 @@ class ContractorController extends Controller
     {
         $validated = $request->validate([
             'company_name' => 'required|string|max:255',
-            'nip' => 'required|string|max:20',
-            'email' => 'required|email|max:255',
-            'phone' => 'required|string|max:20',
+            'nip' => 'nullable|string|max:20',
+            'regon' => 'nullable|string|max:14',
+            'email' => 'nullable|email|max:255',
+            'phone' => 'nullable|string|max:20',
+            'street' => 'nullable|string|max:255',
+            'postal_code' => 'nullable|string|max:10',
+            'city' => 'nullable|string|max:255',
+            'country' => 'nullable|string|max:255',
+            'bank_name' => 'nullable|string|max:255',
+            'bank_account_number' => 'nullable|string|max:50',
+            'swift_code' => 'nullable|string|max:11',
+            'notes' => 'nullable|string',
             'status' => 'required|in:active,inactive,blocked'
         ]);
 
         $contractor->update($validated);
 
-        return response()->json($contractor);
+        if ($request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'contractor' => $contractor
+            ]);
+        }
+
+        return redirect()->route('contractors.index')
+            ->with('success', 'Kontrahent został zaktualizowany pomyślnie.');
     }
 
     /**

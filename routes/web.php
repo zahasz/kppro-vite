@@ -115,6 +115,10 @@ Route::middleware('auth')->group(function () {
         Route::get('/', [EstimateController::class, 'index'])->name('index');
     });
 
+    // Faktury
+    Route::get('invoices/{invoice}/pdf', [InvoiceController::class, 'generatePdf'])->name('invoices.pdf');
+    Route::resource('invoices', InvoiceController::class);
+
     // Panel administratora
     Route::prefix('admin')
         ->name('admin.')

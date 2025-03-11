@@ -23,3 +23,34 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 });
+
+// Obsługa responsywnego menu bocznego
+document.addEventListener('DOMContentLoaded', () => {
+    const sidebar = document.querySelector('.sidebar');
+    const menuButton = document.querySelector('.menu-button');
+    const mainContent = document.querySelector('.main-content');
+
+    if (menuButton && sidebar) {
+        menuButton.addEventListener('click', () => {
+            sidebar.classList.toggle('open');
+            if (mainContent) {
+                mainContent.classList.toggle('ml-0');
+                mainContent.classList.toggle('ml-[250px]');
+            }
+        });
+
+        // Zamykanie menu po kliknięciu poza nim na urządzeniach mobilnych
+        document.addEventListener('click', (e) => {
+            if (window.innerWidth <= 768 && 
+                !sidebar.contains(e.target) && 
+                !menuButton.contains(e.target) && 
+                sidebar.classList.contains('open')) {
+                sidebar.classList.remove('open');
+                if (mainContent) {
+                    mainContent.classList.remove('ml-0');
+                    mainContent.classList.add('ml-[250px]');
+                }
+            }
+        });
+    }
+});
