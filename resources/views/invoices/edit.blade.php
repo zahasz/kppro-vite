@@ -2,10 +2,6 @@
 
 @section('title', 'Edycja faktury')
 
-@push('styles')
-<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-@endpush
-
 @section('content')
 <div class="container mx-auto px-4 py-6">
     <div class="flex justify-between items-center mb-6">
@@ -40,11 +36,30 @@
                                 class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
                             <option value="">Wybierz kontrahenta</option>
                             @foreach($contractors as $contractor)
-                                <option value="{{ $contractor->id }}" {{ $invoice->contractor_id == $contractor->id ? 'selected' : '' }}>
-                                    {{ $contractor->name }}
+                                <option value="{{ $contractor->id }}" 
+                                        data-nip="{{ $contractor->nip }}"
+                                        data-address="{{ $contractor->street }}, {{ $contractor->postal_code }} {{ $contractor->city }}"
+                                        data-country="{{ $contractor->country }}"
+                                        data-email="{{ $contractor->email }}"
+                                        data-phone="{{ $contractor->phone }}"
+                                        {{ $invoice->contractor_id == $contractor->id ? 'selected' : '' }}>
+                                    {{ $contractor->company_name }} (NIP: {{ $contractor->nip }})
                                 </option>
                             @endforeach
                         </select>
+                    </div>
+
+                    <!-- Dane kontrahenta -->
+                    <div id="contractor-details" class="hidden mt-4 p-4 bg-gray-50 rounded-md">
+                        <h3 class="text-sm font-medium text-gray-700 mb-2">Dane kontrahenta</h3>
+                        <div class="space-y-2 text-sm text-gray-600">
+                            <p><span class="font-medium">Nazwa:</span> <span id="contractor-name"></span></p>
+                            <p><span class="font-medium">NIP:</span> <span id="contractor-nip"></span></p>
+                            <p><span class="font-medium">Adres:</span> <span id="contractor-address"></span></p>
+                            <p><span class="font-medium">Kraj:</span> <span id="contractor-country"></span></p>
+                            <p><span class="font-medium">Email:</span> <span id="contractor-email"></span></p>
+                            <p><span class="font-medium">Telefon:</span> <span id="contractor-phone"></span></p>
+                        </div>
                     </div>
 
                     <div>
@@ -201,13 +216,33 @@
 </div>
 
 @push('scripts')
-<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     // Inicjalizacja Select2 dla wyboru kontrahenta
-    $('#contractor_id').select2({
+    const contractorSelect = $('#contractor_id');
+    contractorSelect.select2({
         placeholder: 'Wybierz kontrahenta',
-        allowClear: true
+        allowClear: true,
+        width: '100%',
+        dropdownParent: document.body
+    });
+
+    // Obsługa zmiany kontrahenta
+    contractorSelect.on('select2:select select2:unselect', function(e) {
+        const selectedOption = $(this).find(':selected');
+        const contractorDetails = document.getElementById('contractor-details');
+        
+        if (selectedOption.val()) {
+            document.getElementById('contractor-name').textContent = selectedOption.text().split(' (NIP:')[0];
+            document.getElementById('contractor-nip').textContent = selectedOption.data('nip');
+            document.getElementById('contractor-address').textContent = selectedOption.data('address');
+            document.getElementById('contractor-country').textContent = selectedOption.data('country');
+            document.getElementById('contractor-email').textContent = selectedOption.data('email');
+            document.getElementById('contractor-phone').textContent = selectedOption.data('phone');
+            contractorDetails.classList.remove('hidden');
+        } else {
+            contractorDetails.classList.add('hidden');
+        }
     });
 
     // Szablon pozycji faktury
