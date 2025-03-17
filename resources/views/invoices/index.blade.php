@@ -111,7 +111,7 @@
                             {{ $invoice->number }}
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {{ $invoice->contractor->name }}
+                            {{ $invoice->contractor_name }}
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                             {{ $invoice->issue_date->format('d.m.Y') }}

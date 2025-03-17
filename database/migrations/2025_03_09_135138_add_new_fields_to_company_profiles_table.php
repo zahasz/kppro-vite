@@ -20,6 +20,16 @@ return new class extends Migration
             $table->string('email_additional')->nullable()->after('email');
             $table->string('swift')->nullable()->after('bank_account');
             $table->text('notes')->nullable()->after('logo_path');
+            
+            // Dodatkowe pola dotyczące faktur VAT
+            $table->string('invoice_prefix')->nullable()->after('notes');
+            $table->string('invoice_numbering_pattern')->nullable()->after('invoice_prefix')->default('FV/{YEAR}/{MONTH}/{NUMBER}');
+            $table->integer('invoice_next_number')->nullable()->after('invoice_numbering_pattern')->default(1);
+            $table->integer('invoice_payment_days')->nullable()->after('invoice_next_number')->default(14);
+            $table->string('default_payment_method')->nullable()->after('invoice_payment_days')->default('przelew');
+            $table->string('default_currency')->nullable()->after('default_payment_method')->default('PLN');
+            $table->text('invoice_notes')->nullable()->after('default_currency');
+            $table->text('invoice_footer')->nullable()->after('invoice_notes');
         });
     }
 
@@ -37,7 +47,15 @@ return new class extends Migration
                 'phone_additional',
                 'email_additional',
                 'swift',
-                'notes'
+                'notes',
+                'invoice_prefix',
+                'invoice_numbering_pattern',
+                'invoice_next_number',
+                'invoice_payment_days',
+                'default_payment_method',
+                'default_currency',
+                'invoice_notes',
+                'invoice_footer'
             ]);
         });
     }

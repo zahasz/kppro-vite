@@ -1,6 +1,10 @@
 @extends('layouts.app')
 
-@section('title', 'Szczegóły faktury')
+@section('title', 'Faktura ' . $invoice->number)
+
+@php
+use Illuminate\Support\Facades\Auth;
+@endphp
 
 @section('content')
 <div class="container mx-auto px-4 py-6">
@@ -25,10 +29,10 @@
             <div>
                 <h2 class="text-lg font-medium text-gray-900 mb-4">Sprzedawca</h2>
                 <div class="space-y-2">
-                    <p class="font-medium">{{ $invoice->company->name }}</p>
-                    <p>{{ $invoice->company->address }}</p>
-                    <p>{{ $invoice->company->postal_code }} {{ $invoice->company->city }}</p>
-                    <p>NIP: {{ $invoice->company->tax_number }}</p>
+                    <p class="font-medium">{{ Auth::user()->company_profile->company_name ?? 'Brak danych' }}</p>
+                    <p>{{ Auth::user()->company_profile->street ?? 'Brak danych' }}</p>
+                    <p>{{ Auth::user()->company_profile->postal_code ?? '' }} {{ Auth::user()->company_profile->city ?? 'Brak danych' }}</p>
+                    <p>NIP: {{ Auth::user()->company_profile->tax_number ?? 'Brak danych' }}</p>
                 </div>
             </div>
 
@@ -36,10 +40,9 @@
             <div>
                 <h2 class="text-lg font-medium text-gray-900 mb-4">Nabywca</h2>
                 <div class="space-y-2">
-                    <p class="font-medium">{{ $invoice->contractor->name }}</p>
-                    <p>{{ $invoice->contractor->address }}</p>
-                    <p>{{ $invoice->contractor->postal_code }} {{ $invoice->contractor->city }}</p>
-                    <p>NIP: {{ $invoice->contractor->tax_number }}</p>
+                    <p class="font-medium">{{ $invoice->contractor_name }}</p>
+                    <p>{{ $invoice->contractor_address }}</p>
+                    <p>NIP: {{ $invoice->contractor_nip }}</p>
                 </div>
             </div>
         </div>
@@ -65,8 +68,8 @@
                             {{ $invoice->payment_status }}
                         </span>
                     </p>
-                    @if($invoice->paid_at)
-                        <p><span class="text-gray-600">Data zapłaty:</span> {{ $invoice->paid_at->format('d.m.Y') }}</p>
+                    @if($invoice->status === 'paid')
+                        <p><span class="text-gray-600">Data zapłaty:</span> Opłacono</p>
                     @endif
                 </div>
             </div>
@@ -143,10 +146,10 @@
                 <p class="text-2xl font-bold text-gray-900">
                     {{ number_format($invoice->gross_total, 2) }} {{ $invoice->currency }}
                 </p>
-                @if($invoice->bank_account)
+                @if(Auth::user()->company_profile && Auth::user()->company_profile->bank_account)
                     <div class="mt-4 space-y-1">
-                        <p class="text-sm text-gray-600">{{ $invoice->bank_name }}</p>
-                        <p class="text-sm font-medium">{{ $invoice->bank_account }}</p>
+                        <p class="text-sm text-gray-600">{{ Auth::user()->company_profile->bank_name ?? 'Konto bankowe' }}</p>
+                        <p class="text-sm font-medium">{{ Auth::user()->company_profile->bank_account }}</p>
                     </div>
                 @endif
             </div>

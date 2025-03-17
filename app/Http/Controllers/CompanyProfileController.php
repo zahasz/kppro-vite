@@ -31,6 +31,14 @@ class CompanyProfileController extends Controller
             'swift' => 'nullable|string|max:255',
             'notes' => 'nullable|string|max:1000',
             'logo' => 'nullable|image|max:1024',
+            'invoice_prefix' => 'nullable|string|max:50',
+            'invoice_numbering_pattern' => 'nullable|string|max:255',
+            'invoice_next_number' => 'nullable|integer|min:1',
+            'invoice_payment_days' => 'nullable|integer|min:0',
+            'default_payment_method' => 'nullable|string|max:50',
+            'default_currency' => 'nullable|string|max:10',
+            'invoice_notes' => 'nullable|string|max:1000',
+            'invoice_footer' => 'nullable|string|max:1000',
         ]);
 
         $user = auth()->user();

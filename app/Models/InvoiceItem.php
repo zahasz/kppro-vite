@@ -15,21 +15,21 @@ class InvoiceItem extends Model
         'description',
         'quantity',
         'unit',
+        'unit_price',
         'net_price',
-        'net_value',
         'tax_rate',
-        'tax_value',
-        'gross_value',
+        'tax_amount',
+        'gross_price',
         'position'
     ];
 
     protected $casts = [
         'quantity' => 'decimal:2',
+        'unit_price' => 'decimal:2',
         'net_price' => 'decimal:2',
-        'net_value' => 'decimal:2',
         'tax_rate' => 'decimal:2',
-        'tax_value' => 'decimal:2',
-        'gross_value' => 'decimal:2'
+        'tax_amount' => 'decimal:2',
+        'gross_price' => 'decimal:2'
     ];
 
     public function invoice()
@@ -48,9 +48,9 @@ class InvoiceItem extends Model
         });
 
         static::saving(function ($item) {
-            $item->net_value = $item->quantity * $item->net_price;
-            $item->tax_value = $item->net_value * ($item->tax_rate / 100);
-            $item->gross_value = $item->net_value + $item->tax_value;
+            $item->net_price = $item->quantity * $item->unit_price;
+            $item->tax_amount = $item->net_price * ($item->tax_rate / 100);
+            $item->gross_price = $item->net_price + $item->tax_amount;
         });
     }
 }

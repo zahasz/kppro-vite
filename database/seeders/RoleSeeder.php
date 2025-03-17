@@ -17,12 +17,7 @@ class RoleSeeder extends Seeder
     {
         // Tworzenie roli administratora
         $adminRole = Role::firstOrCreate(
-            ['name' => 'admin'],
-            [
-                'display_name' => 'Administrator',
-                'description' => 'Administrator systemu',
-                'is_system' => true,
-            ]
+            ['name' => 'admin', 'guard_name' => 'web']
         );
 
         // Przypisanie roli administratora do pierwszego użytkownika

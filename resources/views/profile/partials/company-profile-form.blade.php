@@ -175,6 +175,79 @@
             </div>
         </div>
 
+        <!-- Ustawienia faktur -->
+        <div>
+            <h3 class="text-md font-medium text-gray-900 mb-4">{{ __('Ustawienia faktur VAT') }}</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Prefiks numeru faktury -->
+                <div>
+                    <x-input-label for="invoice_prefix" :value="__('Prefiks numeru faktury')" />
+                    <x-text-input id="invoice_prefix" name="invoice_prefix" type="text" class="mt-1 block w-full" :value="old('invoice_prefix', $user->companyProfile?->invoice_prefix)" />
+                    <x-input-error class="mt-2" :messages="$errors->get('invoice_prefix')" />
+                </div>
+
+                <!-- Wzorzec numeracji faktur -->
+                <div>
+                    <x-input-label for="invoice_numbering_pattern" :value="__('Wzorzec numeracji faktur')" />
+                    <x-text-input id="invoice_numbering_pattern" name="invoice_numbering_pattern" type="text" class="mt-1 block w-full" :value="old('invoice_numbering_pattern', $user->companyProfile?->invoice_numbering_pattern)" />
+                    <x-input-error class="mt-2" :messages="$errors->get('invoice_numbering_pattern')" />
+                    <p class="mt-1 text-sm text-gray-500">Dostępne zmienne: {YEAR}, {MONTH}, {DAY}, {NUMBER}</p>
+                </div>
+
+                <!-- Następny numer faktury -->
+                <div>
+                    <x-input-label for="invoice_next_number" :value="__('Następny numer faktury')" />
+                    <x-text-input id="invoice_next_number" name="invoice_next_number" type="number" min="1" class="mt-1 block w-full" :value="old('invoice_next_number', $user->companyProfile?->invoice_next_number)" />
+                    <x-input-error class="mt-2" :messages="$errors->get('invoice_next_number')" />
+                </div>
+
+                <!-- Domyślny termin płatności -->
+                <div>
+                    <x-input-label for="invoice_payment_days" :value="__('Domyślny termin płatności (dni)')" />
+                    <x-text-input id="invoice_payment_days" name="invoice_payment_days" type="number" min="0" class="mt-1 block w-full" :value="old('invoice_payment_days', $user->companyProfile?->invoice_payment_days)" />
+                    <x-input-error class="mt-2" :messages="$errors->get('invoice_payment_days')" />
+                </div>
+
+                <!-- Domyślna metoda płatności -->
+                <div>
+                    <x-input-label for="default_payment_method" :value="__('Domyślna metoda płatności')" />
+                    <select id="default_payment_method" name="default_payment_method" class="mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm">
+                        <option value="przelew" {{ old('default_payment_method', $user->companyProfile?->default_payment_method) === 'przelew' ? 'selected' : '' }}>Przelew</option>
+                        <option value="gotówka" {{ old('default_payment_method', $user->companyProfile?->default_payment_method) === 'gotówka' ? 'selected' : '' }}>Gotówka</option>
+                        <option value="karta" {{ old('default_payment_method', $user->companyProfile?->default_payment_method) === 'karta' ? 'selected' : '' }}>Karta płatnicza</option>
+                        <option value="blik" {{ old('default_payment_method', $user->companyProfile?->default_payment_method) === 'blik' ? 'selected' : '' }}>BLIK</option>
+                    </select>
+                    <x-input-error class="mt-2" :messages="$errors->get('default_payment_method')" />
+                </div>
+
+                <!-- Domyślna waluta -->
+                <div>
+                    <x-input-label for="default_currency" :value="__('Domyślna waluta')" />
+                    <select id="default_currency" name="default_currency" class="mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm">
+                        <option value="PLN" {{ old('default_currency', $user->companyProfile?->default_currency) === 'PLN' ? 'selected' : '' }}>PLN</option>
+                        <option value="EUR" {{ old('default_currency', $user->companyProfile?->default_currency) === 'EUR' ? 'selected' : '' }}>EUR</option>
+                        <option value="USD" {{ old('default_currency', $user->companyProfile?->default_currency) === 'USD' ? 'selected' : '' }}>USD</option>
+                        <option value="GBP" {{ old('default_currency', $user->companyProfile?->default_currency) === 'GBP' ? 'selected' : '' }}>GBP</option>
+                    </select>
+                    <x-input-error class="mt-2" :messages="$errors->get('default_currency')" />
+                </div>
+
+                <!-- Domyślne uwagi na fakturze -->
+                <div class="md:col-span-2">
+                    <x-input-label for="invoice_notes" :value="__('Domyślne uwagi na fakturze')" />
+                    <textarea id="invoice_notes" name="invoice_notes" class="mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm" rows="2">{{ old('invoice_notes', $user->companyProfile?->invoice_notes) }}</textarea>
+                    <x-input-error class="mt-2" :messages="$errors->get('invoice_notes')" />
+                </div>
+
+                <!-- Stopka faktury -->
+                <div class="md:col-span-2">
+                    <x-input-label for="invoice_footer" :value="__('Stopka faktury')" />
+                    <textarea id="invoice_footer" name="invoice_footer" class="mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm" rows="2">{{ old('invoice_footer', $user->companyProfile?->invoice_footer) }}</textarea>
+                    <x-input-error class="mt-2" :messages="$errors->get('invoice_footer')" />
+                </div>
+            </div>
+        </div>
+
         <!-- Dodatkowe informacje -->
         <div>
             <h3 class="text-md font-medium text-gray-900 mb-4">{{ __('Dodatkowe informacje') }}</h3>

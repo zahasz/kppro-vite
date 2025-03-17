@@ -25,6 +25,10 @@ class ContractorSeeder extends Seeder
             'nip' => '1234567890',
             'email' => 'kontakt@budex.pl',
             'phone' => '+48 123 456 789',
+            'street' => 'Budowlana 1',
+            'postal_code' => '00-001',
+            'city' => 'Warszawa',
+            'country' => 'Polska',
             'status' => 'active'
         ]);
 
@@ -34,6 +38,10 @@ class ContractorSeeder extends Seeder
                 'nip' => '9876543210',
                 'email' => 'biuro@itsolutions.pl',
                 'phone' => '+48 987 654 321',
+                'street' => 'Informatyczna 5',
+                'postal_code' => '00-002',
+                'city' => 'Kraków',
+                'country' => 'Polska',
                 'status' => 'active'
             ],
             [
@@ -41,6 +49,10 @@ class ContractorSeeder extends Seeder
                 'nip' => '5555666677',
                 'email' => 'zamowienia@smak.pl',
                 'phone' => '+48 555 666 777',
+                'street' => 'Handlowa 10',
+                'postal_code' => '00-003',
+                'city' => 'Poznań',
+                'country' => 'Polska',
                 'status' => 'inactive'
             ],
             [
@@ -48,6 +60,10 @@ class ContractorSeeder extends Seeder
                 'nip' => '1112223334',
                 'email' => 'biuro@trans-log.pl',
                 'phone' => '+48 111 222 333',
+                'street' => 'Transportowa 15',
+                'postal_code' => '00-004',
+                'city' => 'Gdańsk',
+                'country' => 'Polska',
                 'status' => 'active'
             ],
             [
@@ -55,6 +71,10 @@ class ContractorSeeder extends Seeder
                 'nip' => '4445556667',
                 'email' => 'ksiegowosc@bilans.pl',
                 'phone' => '+48 444 555 666',
+                'street' => 'Księgowa 20',
+                'postal_code' => '00-005',
+                'city' => 'Wrocław',
+                'country' => 'Polska',
                 'status' => 'blocked'
             ]
         ];

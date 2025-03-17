@@ -45,6 +45,14 @@ class Invoice extends Model
         'gross_total' => 'decimal:2'
     ];
 
+    protected $appends = [
+        'payment_status',
+        'payment_status_color',
+        'is_overdue',
+        'is_paid',
+        'status_color'
+    ];
+
     public function user()
     {
         return $this->belongsTo(User::class);
@@ -80,6 +88,39 @@ class Invoice extends Model
     public function getIsPaidAttribute()
     {
         return $this->status === 'paid';
+    }
+
+    public function getPaymentStatusAttribute()
+    {
+        if ($this->status === 'paid') {
+            return 'Opłacona';
+        } elseif ($this->status === 'overdue') {
+            return 'Zaległa';
+        } else {
+            return 'Wystawiona';
+        }
+    }
+
+    public function getPaymentStatusColorAttribute()
+    {
+        if ($this->status === 'paid') {
+            return 'green';
+        } elseif ($this->status === 'overdue') {
+            return 'red';
+        } else {
+            return 'yellow';
+        }
+    }
+
+    public function getStatusColorAttribute()
+    {
+        if ($this->status === 'paid') {
+            return 'green';
+        } elseif ($this->status === 'overdue') {
+            return 'red';
+        } else {
+            return 'yellow';
+        }
     }
 
     public function markAsPaid()

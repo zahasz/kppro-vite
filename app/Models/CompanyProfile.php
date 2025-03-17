@@ -31,10 +31,48 @@ class CompanyProfile extends Model
         'swift',
         'logo_path',
         'notes',
+        'invoice_prefix',
+        'invoice_numbering_pattern',
+        'invoice_next_number',
+        'invoice_payment_days',
+        'default_payment_method',
+        'default_currency',
+        'invoice_notes',
+        'invoice_footer',
+    ];
+
+    protected $casts = [
+        'invoice_next_number' => 'integer',
+        'invoice_payment_days' => 'integer',
     ];
 
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    /**
+     * Generuje następny numer faktury na podstawie wzorca numeracji
+     */
+    public function generateNextInvoiceNumber(): string
+    {
+        $pattern = $this->invoice_numbering_pattern ?? 'FV/{YEAR}/{MONTH}/{NUMBER}';
+        $number = $this->invoice_next_number ?? 1;
+        
+        $replacements = [
+            '{YEAR}' => date('Y'),
+            '{MONTH}' => date('m'),
+            '{NUMBER}' => str_pad($number, 3, '0', STR_PAD_LEFT),
+            '{DAY}' => date('d'),
+        ];
+        
+        $invoiceNumber = $this->invoice_prefix ? $this->invoice_prefix . ' ' : '';
+        $invoiceNumber .= str_replace(array_keys($replacements), array_values($replacements), $pattern);
+        
+        // Zwiększ licznik
+        $this->invoice_next_number = $number + 1;
+        $this->save();
+        
+        return $invoiceNumber;
     }
 }
