@@ -29,11 +29,15 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+    
     Route::patch('/company-profile', [CompanyProfileController::class, 'update'])->name('company-profile.update');
+    Route::get('/company-profile/json', [CompanyProfileController::class, 'getJson'])->name('company-profile.json');
+    Route::get('/company-profile/create-test', [CompanyProfileController::class, 'createTestProfile'])->name('company-profile.create-test');
 
     // Routing dla kontrahentów
     Route::resource('contractors', ContractorController::class);
     Route::post('contractors/export-pdf', [ContractorController::class, 'exportPDF'])->name('contractors.export-pdf');
+    Route::get('contractors/{contractor}/json', [ContractorController::class, 'getJson'])->name('contractors.json');
 
     // Routing dla modułu finansów
     Route::prefix('finances')->name('finances.')->group(function () {

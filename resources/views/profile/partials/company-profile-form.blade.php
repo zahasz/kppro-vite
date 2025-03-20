@@ -7,6 +7,15 @@
         <p class="mt-1 text-sm text-gray-600">
             {{ __('Zaktualizuj informacje o swojej firmie.') }}
         </p>
+        
+        @if(!$user->companyProfile)
+            <div class="mt-3">
+                <a href="{{ route('company-profile.create-test') }}" 
+                   class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700 focus:bg-blue-700 active:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150">
+                    Utwórz przykładowy profil firmy
+                </a>
+            </div>
+        @endif
     </header>
 
     <form method="post" action="{{ route('company-profile.update') }}" class="mt-6 space-y-6" enctype="multipart/form-data">

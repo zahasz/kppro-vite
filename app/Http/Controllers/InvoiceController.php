@@ -162,11 +162,26 @@ class InvoiceController extends Controller
      */
     public function edit(Invoice $invoice)
     {
+        $user = auth()->user();
+        $companyProfile = $user->companyProfile;
+        
+        // Dodajemy logowanie, aby sprawdzić dostępność danych
+        \Log::info('Edit invoice - User: ' . ($user ? 'ID: ' . $user->id : 'Niezalogowany'));
+        \Log::info('Edit invoice - CompanyProfile: ' . ($companyProfile ? 'ID: ' . $companyProfile->id : 'Brak'));
+        
+        if ($companyProfile) {
+            \Log::info('CompanyProfile data:', [
+                'company_name' => $companyProfile->company_name,
+                'street' => $companyProfile->street,
+                'tax_number' => $companyProfile->tax_number
+            ]);
+        }
+        
         if ($invoice->status !== 'draft') {
             return back()->with('error', 'Można edytować tylko faktury w statusie roboczym.');
         }
 
-        $contractors = Contractor::where('user_id', Auth::id())->get();
+        $contractors = Contractor::where('user_id', auth()->id())->orderBy('name')->get();
         return view('invoices.edit', compact('invoice', 'contractors'));
     }
 

@@ -134,4 +134,15 @@ class ContractorController extends Controller
         
         return response()->json(['message' => 'Funkcja eksportu do PDF zostanie zaimplementowana wkrótce.']);
     }
+
+    /**
+     * Pobierz dane kontrahenta w formacie JSON
+     */
+    public function getJson(Contractor $contractor)
+    {
+        return response()->json([
+            'success' => true,
+            'contractor' => $contractor
+        ]);
+    }
 } 

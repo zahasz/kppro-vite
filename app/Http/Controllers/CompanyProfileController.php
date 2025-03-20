@@ -58,4 +58,117 @@ class CompanyProfileController extends Controller
 
         return back()->with('status', 'company-profile-updated');
     }
+
+    /**
+     * Pobierz dane profilu firmy w formacie JSON
+     */
+    public function getJson()
+    {
+        \Log::info('Wywołanie metody getJson w CompanyProfileController');
+        
+        $user = auth()->user();
+        \Log::info('Użytkownik zalogowany: ' . ($user ? 'Tak (ID: ' . $user->id . ')' : 'Nie'));
+        
+        $companyProfile = $user ? $user->companyProfile : null;
+        \Log::info('CompanyProfile: ' . ($companyProfile ? 'Istnieje (ID: ' . $companyProfile->id . ')' : 'Brak'));
+        
+        $company = $user ? $user->company : null;
+        \Log::info('Company: ' . ($company ? 'Istnieje (ID: ' . $company->id . ')' : 'Brak'));
+
+        $data = [
+            'success' => true,
+            'company' => []
+        ];
+
+        if ($companyProfile) {
+            $data['company'] = [
+                'name' => $companyProfile->company_name,
+                'street' => $companyProfile->street,
+                'postal_code' => $companyProfile->postal_code,
+                'city' => $companyProfile->city,
+                'nip' => $companyProfile->tax_number,
+                'regon' => $companyProfile->regon,
+                'bank_name' => $companyProfile->bank_name,
+                'bank_account' => $companyProfile->bank_account,
+                'invoice_prefix' => $companyProfile->invoice_prefix,
+                'invoice_numbering_pattern' => $companyProfile->invoice_numbering_pattern,
+                'invoice_next_number' => $companyProfile->invoice_next_number,
+                'invoice_payment_days' => $companyProfile->invoice_payment_days,
+                'default_payment_method' => $companyProfile->default_payment_method,
+                'default_currency' => $companyProfile->default_currency,
+                'invoice_notes' => $companyProfile->invoice_notes,
+                'invoice_footer' => $companyProfile->invoice_footer,
+            ];
+        } elseif ($company) {
+            $data['company'] = [
+                'name' => $company->name,
+                'street' => $company->address,
+                'postal_code' => $company->postal_code,
+                'city' => $company->city,
+                'nip' => $company->nip,
+                'regon' => $company->regon,
+                'bank_name' => '',
+                'bank_account' => '',
+                'invoice_prefix' => '',
+                'invoice_numbering_pattern' => 'FV/{YEAR}/{MONTH}/{NUMBER}',
+                'invoice_next_number' => 1,
+                'invoice_payment_days' => 14,
+                'default_payment_method' => 'przelew',
+                'default_currency' => 'PLN',
+                'invoice_notes' => '',
+                'invoice_footer' => '',
+            ];
+        } else {
+            $data['company'] = [
+                'name' => config('app.name'),
+                'street' => '',
+                'postal_code' => '',
+                'city' => '',
+                'nip' => '',
+                'regon' => '',
+                'bank_name' => '',
+                'bank_account' => '',
+                'invoice_prefix' => '',
+                'invoice_numbering_pattern' => 'FV/{YEAR}/{MONTH}/{NUMBER}',
+                'invoice_next_number' => 1,
+                'invoice_payment_days' => 14,
+                'default_payment_method' => 'przelew',
+                'default_currency' => 'PLN',
+                'invoice_notes' => '',
+                'invoice_footer' => '',
+            ];
+        }
+
+        return response()->json($data);
+    }
+
+    /**
+     * Tworzy testowy profil firmy dla zalogowanego użytkownika
+     */
+    public function createTestProfile()
+    {
+        $user = auth()->user();
+        
+        // Sprawdź czy użytkownik już ma profil firmy
+        if ($user->companyProfile) {
+            return back()->with('info', 'Profil firmy już istnieje.');
+        }
+        
+        // Utwórz przykładowy profil firmy
+        $companyProfile = $user->companyProfile()->create([
+            'company_name' => 'KPPRO',
+            'tax_number' => '1234567890',
+            'street' => 'ul. Testowa 1',
+            'city' => 'Warszawa',
+            'postal_code' => '00-001',
+            'country' => 'Polska',
+            'phone' => '123456789',
+            'email' => $user->email,
+            'bank_name' => 'Bank Testowy',
+            'bank_account' => '12345678901234567890',
+            'invoice_footer' => 'Dziękujemy za skorzystanie z naszych usług!'
+        ]);
+        
+        return back()->with('success', 'Przykładowy profil firmy został utworzony.');
+    }
 }
