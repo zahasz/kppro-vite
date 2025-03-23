@@ -12,10 +12,14 @@ use App\Filament\Widgets\LatestWarehouseMaterials;
 use App\Filament\Widgets\LatestWarehouseEquipment;
 use App\Filament\Widgets\LatestWarehouseTools;
 use App\Filament\Widgets\LatestWarehouseVehicles;
+use App\Filament\Widgets\UserActivityLog;
 
 class Dashboard extends BaseDashboard
 {
     protected static ?string $navigationIcon = 'heroicon-o-home';
+    protected static ?string $navigationLabel = 'Pulpit';
+    protected static ?int $navigationSort = 0;
+    protected static ?string $title = 'Panel administracyjny';
 
     protected static string $view = 'filament.pages.dashboard';
 
@@ -31,6 +35,7 @@ class Dashboard extends BaseDashboard
         return [
             LatestInvoices::class,
             LatestEstimates::class,
+            UserActivityLog::class,
             LatestTasks::class,
             LatestContracts::class,
             LatestWarehouseMaterials::class,

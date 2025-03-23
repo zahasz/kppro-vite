@@ -18,7 +18,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function closeModal() {
         modal.classList.add('hidden');
         form.reset();
-        form.action = route('admin.roles.store');
+        form.action = '/admin/roles/create';
         form.querySelector('input[name="_method"]')?.remove();
     }
 
@@ -38,7 +38,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const permissions = Array.from(row.querySelectorAll('.bg-blue-100'))
                 .map(span => span.textContent.trim());
 
-            form.action = route('admin.roles.update', { role: roleId });
+            form.action = `/admin/roles/${roleId}/edit`;
             const methodInput = document.createElement('input');
             methodInput.type = 'hidden';
             methodInput.name = '_method';
@@ -59,24 +59,7 @@ document.addEventListener('DOMContentLoaded', function() {
         button.addEventListener('click', () => {
             const roleId = button.dataset.roleId;
             if (confirm('Czy na pewno chcesz usunąć tę rolę?')) {
-                const form = document.createElement('form');
-                form.method = 'POST';
-                form.action = route('admin.roles.destroy', { role: roleId });
-                
-                const methodInput = document.createElement('input');
-                methodInput.type = 'hidden';
-                methodInput.name = '_method';
-                methodInput.value = 'DELETE';
-                form.appendChild(methodInput);
-
-                const tokenInput = document.createElement('input');
-                tokenInput.type = 'hidden';
-                tokenInput.name = '_token';
-                tokenInput.value = document.querySelector('meta[name="csrf-token"]').content;
-                form.appendChild(tokenInput);
-
-                document.body.appendChild(form);
-                form.submit();
+                window.location.href = `/admin/roles/${roleId}`;
             }
         });
     });

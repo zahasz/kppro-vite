@@ -48,8 +48,9 @@ class InvoiceController extends Controller
      */
     public function create()
     {
-        $contractors = Contractor::where('user_id', Auth::id())->get();
-        $lastInvoice = Invoice::where('user_id', Auth::id())
+        $user = Auth::user();
+        $contractors = Contractor::where('user_id', $user->id)->get();
+        $lastInvoice = Invoice::where('user_id', $user->id)
             ->whereYear('issue_date', now()->year)
             ->latest()
             ->first();
@@ -57,8 +58,30 @@ class InvoiceController extends Controller
         $nextNumber = $lastInvoice 
             ? $this->generateNextNumber($lastInvoice->number)
             : $this->generateFirstNumber();
+            
+        // Pobieranie danych profilu firmy
+        $companyProfile = $user->companyProfile;
+        
+        // Pobieranie kont bankowych
+        $bankAccounts = $companyProfile ? $companyProfile->bankAccounts : collect();
+        
+        // Domyślne wartości z profilu firmy
+        $defaultPaymentMethod = $companyProfile ? $companyProfile->default_payment_method : 'przelew';
+        $defaultPaymentDays = $companyProfile ? $companyProfile->invoice_payment_days : 14;
+        $defaultCurrency = $companyProfile ? $companyProfile->default_currency : 'PLN';
+        
+        // Obliczanie domyślnej daty płatności
+        $defaultDueDate = now()->addDays($defaultPaymentDays)->format('Y-m-d');
 
-        return view('invoices.create', compact('contractors', 'nextNumber'));
+        return view('invoices.create', compact(
+            'contractors', 
+            'nextNumber', 
+            'companyProfile', 
+            'bankAccounts',
+            'defaultPaymentMethod',
+            'defaultDueDate',
+            'defaultCurrency'
+        ));
     }
 
     /**
@@ -73,16 +96,18 @@ class InvoiceController extends Controller
             $validatedData = $request->validate([
                 'number' => 'required|string|unique:invoices,number',
                 'contractor_id' => 'required|exists:contractors,id',
-                'payment_method' => 'required|string',
+                'payment_method' => 'required|string|max:255',
                 'issue_date' => 'required|date',
                 'sale_date' => 'required|date',
                 'due_date' => 'required|date',
+                'bank_account_id' => 'nullable|exists:bank_accounts,id',
+                'currency' => 'required|string|max:3',
                 'notes' => 'nullable|string',
                 'status' => 'required|in:draft,issued',
                 'items' => 'required|array|min:1',
-                'items.*.name' => 'required|string',
-                'items.*.quantity' => 'required|numeric|min:0',
-                'items.*.unit' => 'required|string',
+                'items.*.name' => 'required|string|max:255',
+                'items.*.quantity' => 'required|numeric|min:0.01',
+                'items.*.unit' => 'required|string|max:20',
                 'items.*.unit_price' => 'required|numeric|min:0',
                 'items.*.tax_rate' => 'required|numeric|min:0',
                 'items.*.net_value' => 'required|numeric|min:0',
@@ -102,6 +127,8 @@ class InvoiceController extends Controller
                 'issue_date' => $validatedData['issue_date'],
                 'sale_date' => $validatedData['sale_date'],
                 'due_date' => $validatedData['due_date'],
+                'bank_account_id' => $validatedData['bank_account_id'],
+                'currency' => $validatedData['currency'],
                 'notes' => $validatedData['notes'],
                 'status' => $validatedData['status'],
                 'total_net' => $validatedData['total_net'],
@@ -125,26 +152,19 @@ class InvoiceController extends Controller
 
             DB::commit();
 
-            return response()->json([
-                'success' => true,
-                'message' => 'Faktura została pomyślnie zapisana',
-                'redirect' => route('invoices.show', $invoice->id)
-            ]);
+            return redirect()->route('invoices.show', $invoice->id)
+                ->with('success', 'Faktura została pomyślnie zapisana');
 
         } catch (ValidationException $e) {
             DB::rollBack();
-            return response()->json([
-                'success' => false,
-                'message' => 'Błąd walidacji danych',
-                'errors' => $e->errors()
-            ], 422);
+            return redirect()->back()
+                ->withErrors($e->validator)
+                ->withInput();
         } catch (\Exception $e) {
             DB::rollBack();
-            return response()->json([
-                'success' => false,
-                'message' => 'Wystąpił błąd podczas zapisywania faktury',
-                'error' => $e->getMessage()
-            ], 500);
+            return redirect()->back()
+                ->with('error', 'Wystąpił błąd podczas zapisywania faktury: ' . $e->getMessage())
+                ->withInput();
         }
     }
 

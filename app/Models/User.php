@@ -40,6 +40,7 @@ use Illuminate\Database\Eloquent\Casts\Attribute;
  * @property \Carbon\Carbon|null $created_at
  * @property \Carbon\Carbon|null $updated_at
  * @property \Carbon\Carbon|null $deleted_at
+ * @property \Carbon\Carbon|null $last_active_at
  * 
  * @method static \Database\Factories\UserFactory factory()
  * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\User newModelQuery()
@@ -67,7 +68,7 @@ class User extends Authenticatable
     /**
      * The attributes that are mass assignable.
      *
-     * @var list<string>
+     * @var array<int, string>
      */
     protected $fillable = [
         'name',
@@ -85,7 +86,10 @@ class User extends Authenticatable
         'preferences',
         'is_active',
         'two_factor_enabled',
-        'two_factor_secret'
+        'two_factor_secret',
+        'last_active_at',
+        'failed_login_attempts',
+        'locked_until',
     ];
 
     /**
@@ -110,6 +114,7 @@ class User extends Authenticatable
         'is_active' => 'boolean',
         'two_factor_enabled' => 'boolean',
         'last_login_at' => 'datetime',
+        'last_active_at' => 'datetime',
         'locked_until' => 'datetime',
     ];
 
@@ -131,6 +136,16 @@ class User extends Authenticatable
     public function profile()
     {
         return $this->hasOne(Profile::class);
+    }
+
+    /**
+     * Pobiera profil firmy użytkownika
+     *
+     * @return HasOne
+     */
+    public function companyProfile()
+    {
+        return $this->hasOne(CompanyProfile::class);
     }
 
     public function incrementFailedLoginAttempts()
@@ -190,11 +205,6 @@ class User extends Authenticatable
         return $value;
     }
 
-    public function companyProfile(): HasOne
-    {
-        return $this->hasOne(CompanyProfile::class);
-    }
-
     public function company()
     {
         return $this->belongsTo(Company::class);
@@ -206,5 +216,10 @@ class User extends Authenticatable
             return asset('storage/' . $this->avatar);
         }
         return 'https://ui-avatars.com/api/?name=' . urlencode($this->name) . '&background=6366f1&color=fff';
+    }
+
+    public function getFullNameAttribute()
+    {
+        return trim("{$this->first_name} {$this->last_name}");
     }
 }

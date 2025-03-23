@@ -1,22 +1,18 @@
 <section>
-    <header>
-        <h2 class="text-lg font-medium text-gray-900">
-            {{ __('Profil firmy') }}
-        </h2>
+    @if (session('status') === 'company-profile-updated')
+        <div class="mb-4 font-medium text-sm text-green-600">
+            Profil firmy został zaktualizowany pomyślnie.
+        </div>
+    @endif
 
-        <p class="mt-1 text-sm text-gray-600">
-            {{ __('Zaktualizuj informacje o swojej firmie.') }}
-        </p>
-        
-        @if(!$user->companyProfile)
-            <div class="mt-3">
-                <a href="{{ route('company-profile.create-test') }}" 
-                   class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700 focus:bg-blue-700 active:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150">
-                    Utwórz przykładowy profil firmy
-                </a>
-            </div>
-        @endif
-    </header>
+    @if(!$user->companyProfile)
+        <div class="mt-3 mb-4">
+            <a href="{{ route('company-profile.create-test') }}" 
+               class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700 focus:bg-blue-700 active:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150">
+                Utwórz przykładowy profil firmy
+            </a>
+        </div>
+    @endif
 
     <form method="post" action="{{ route('company-profile.update') }}" class="mt-6 space-y-6" enctype="multipart/form-data">
         @csrf
@@ -122,8 +118,8 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <!-- Telefon -->
                 <div>
-                    <x-input-label for="phone" :value="__('Telefon')" />
-                    <x-text-input id="phone" name="phone" type="tel" class="mt-1 block w-full" :value="old('phone', $user->companyProfile?->phone)" required />
+                    <x-input-label for="company_phone" :value="__('Telefon')" />
+                    <x-text-input id="company_phone" name="phone" type="tel" class="mt-1 block w-full" :value="old('phone', $user->companyProfile?->phone)" required />
                     <x-input-error class="mt-2" :messages="$errors->get('phone')" />
                 </div>
 
@@ -136,8 +132,8 @@
 
                 <!-- Email -->
                 <div>
-                    <x-input-label for="email" :value="__('Email')" />
-                    <x-text-input id="email" name="email" type="email" class="mt-1 block w-full" :value="old('email', $user->companyProfile?->email)" required />
+                    <x-input-label for="company_email" :value="__('Email')" />
+                    <x-text-input id="company_email" name="email" type="email" class="mt-1 block w-full" :value="old('email', $user->companyProfile?->email)" required />
                     <x-input-error class="mt-2" :messages="$errors->get('email')" />
                 </div>
 
@@ -153,106 +149,6 @@
                     <x-input-label for="website" :value="__('Strona www')" />
                     <x-text-input id="website" name="website" type="url" class="mt-1 block w-full" :value="old('website', $user->companyProfile?->website)" />
                     <x-input-error class="mt-2" :messages="$errors->get('website')" />
-                </div>
-            </div>
-        </div>
-
-        <!-- Dane bankowe -->
-        <div>
-            <h3 class="text-md font-medium text-gray-900 mb-4">{{ __('Dane bankowe') }}</h3>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <!-- Nazwa banku -->
-                <div>
-                    <x-input-label for="bank_name" :value="__('Nazwa banku')" />
-                    <x-text-input id="bank_name" name="bank_name" type="text" class="mt-1 block w-full" :value="old('bank_name', $user->companyProfile?->bank_name)" required />
-                    <x-input-error class="mt-2" :messages="$errors->get('bank_name')" />
-                </div>
-
-                <!-- Numer konta -->
-                <div>
-                    <x-input-label for="bank_account" :value="__('Numer konta')" />
-                    <x-text-input id="bank_account" name="bank_account" type="text" class="mt-1 block w-full" :value="old('bank_account', $user->companyProfile?->bank_account)" required />
-                    <x-input-error class="mt-2" :messages="$errors->get('bank_account')" />
-                </div>
-
-                <!-- SWIFT -->
-                <div>
-                    <x-input-label for="swift" :value="__('Kod SWIFT')" />
-                    <x-text-input id="swift" name="swift" type="text" class="mt-1 block w-full" :value="old('swift', $user->companyProfile?->swift)" />
-                    <x-input-error class="mt-2" :messages="$errors->get('swift')" />
-                </div>
-            </div>
-        </div>
-
-        <!-- Ustawienia faktur -->
-        <div>
-            <h3 class="text-md font-medium text-gray-900 mb-4">{{ __('Ustawienia faktur VAT') }}</h3>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <!-- Prefiks numeru faktury -->
-                <div>
-                    <x-input-label for="invoice_prefix" :value="__('Prefiks numeru faktury')" />
-                    <x-text-input id="invoice_prefix" name="invoice_prefix" type="text" class="mt-1 block w-full" :value="old('invoice_prefix', $user->companyProfile?->invoice_prefix)" />
-                    <x-input-error class="mt-2" :messages="$errors->get('invoice_prefix')" />
-                </div>
-
-                <!-- Wzorzec numeracji faktur -->
-                <div>
-                    <x-input-label for="invoice_numbering_pattern" :value="__('Wzorzec numeracji faktur')" />
-                    <x-text-input id="invoice_numbering_pattern" name="invoice_numbering_pattern" type="text" class="mt-1 block w-full" :value="old('invoice_numbering_pattern', $user->companyProfile?->invoice_numbering_pattern)" />
-                    <x-input-error class="mt-2" :messages="$errors->get('invoice_numbering_pattern')" />
-                    <p class="mt-1 text-sm text-gray-500">Dostępne zmienne: {YEAR}, {MONTH}, {DAY}, {NUMBER}</p>
-                </div>
-
-                <!-- Następny numer faktury -->
-                <div>
-                    <x-input-label for="invoice_next_number" :value="__('Następny numer faktury')" />
-                    <x-text-input id="invoice_next_number" name="invoice_next_number" type="number" min="1" class="mt-1 block w-full" :value="old('invoice_next_number', $user->companyProfile?->invoice_next_number)" />
-                    <x-input-error class="mt-2" :messages="$errors->get('invoice_next_number')" />
-                </div>
-
-                <!-- Domyślny termin płatności -->
-                <div>
-                    <x-input-label for="invoice_payment_days" :value="__('Domyślny termin płatności (dni)')" />
-                    <x-text-input id="invoice_payment_days" name="invoice_payment_days" type="number" min="0" class="mt-1 block w-full" :value="old('invoice_payment_days', $user->companyProfile?->invoice_payment_days)" />
-                    <x-input-error class="mt-2" :messages="$errors->get('invoice_payment_days')" />
-                </div>
-
-                <!-- Domyślna metoda płatności -->
-                <div>
-                    <x-input-label for="default_payment_method" :value="__('Domyślna metoda płatności')" />
-                    <select id="default_payment_method" name="default_payment_method" class="mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm">
-                        <option value="przelew" {{ old('default_payment_method', $user->companyProfile?->default_payment_method) === 'przelew' ? 'selected' : '' }}>Przelew</option>
-                        <option value="gotówka" {{ old('default_payment_method', $user->companyProfile?->default_payment_method) === 'gotówka' ? 'selected' : '' }}>Gotówka</option>
-                        <option value="karta" {{ old('default_payment_method', $user->companyProfile?->default_payment_method) === 'karta' ? 'selected' : '' }}>Karta płatnicza</option>
-                        <option value="blik" {{ old('default_payment_method', $user->companyProfile?->default_payment_method) === 'blik' ? 'selected' : '' }}>BLIK</option>
-                    </select>
-                    <x-input-error class="mt-2" :messages="$errors->get('default_payment_method')" />
-                </div>
-
-                <!-- Domyślna waluta -->
-                <div>
-                    <x-input-label for="default_currency" :value="__('Domyślna waluta')" />
-                    <select id="default_currency" name="default_currency" class="mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm">
-                        <option value="PLN" {{ old('default_currency', $user->companyProfile?->default_currency) === 'PLN' ? 'selected' : '' }}>PLN</option>
-                        <option value="EUR" {{ old('default_currency', $user->companyProfile?->default_currency) === 'EUR' ? 'selected' : '' }}>EUR</option>
-                        <option value="USD" {{ old('default_currency', $user->companyProfile?->default_currency) === 'USD' ? 'selected' : '' }}>USD</option>
-                        <option value="GBP" {{ old('default_currency', $user->companyProfile?->default_currency) === 'GBP' ? 'selected' : '' }}>GBP</option>
-                    </select>
-                    <x-input-error class="mt-2" :messages="$errors->get('default_currency')" />
-                </div>
-
-                <!-- Domyślne uwagi na fakturze -->
-                <div class="md:col-span-2">
-                    <x-input-label for="invoice_notes" :value="__('Domyślne uwagi na fakturze')" />
-                    <textarea id="invoice_notes" name="invoice_notes" class="mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm" rows="2">{{ old('invoice_notes', $user->companyProfile?->invoice_notes) }}</textarea>
-                    <x-input-error class="mt-2" :messages="$errors->get('invoice_notes')" />
-                </div>
-
-                <!-- Stopka faktury -->
-                <div class="md:col-span-2">
-                    <x-input-label for="invoice_footer" :value="__('Stopka faktury')" />
-                    <textarea id="invoice_footer" name="invoice_footer" class="mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm" rows="2">{{ old('invoice_footer', $user->companyProfile?->invoice_footer) }}</textarea>
-                    <x-input-error class="mt-2" :messages="$errors->get('invoice_footer')" />
                 </div>
             </div>
         </div>
@@ -283,13 +179,39 @@
         </div>
 
         <div class="flex items-center gap-4">
-            <x-primary-button>{{ __('Zapisz') }}</x-primary-button>
+            <button type="submit" id="save-company-profile-button" class="inline-flex items-center px-4 py-2 bg-gray-800 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700 focus:bg-gray-700 active:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150">
+                {{ __('Zapisz dane firmy') }}
+            </button>
 
-            @if (session('status') === 'company-profile-updated')
-                <p x-data="{ show: true }" x-show="show" x-transition x-init="setTimeout(() => show = false, 2000)" class="text-sm text-gray-600">
-                    {{ __('Zapisano.') }}
-                </p>
-            @endif
+            <p id="save-notification" 
+               class="text-sm text-green-600 transition-opacity duration-500 opacity-0 hidden">
+                {{ __('Zapisano pomyślnie!') }}
+            </p>
         </div>
     </form>
-</section> 
+</section>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Znajdź przycisk zapisywania profilu firmy
+    const saveButton = document.getElementById('save-company-profile-button');
+    if (saveButton) {
+        // Znajdź formularz, w którym znajduje się przycisk
+        const form = saveButton.closest('form');
+        
+        // Dodaj obsługę zdarzenia kliknięcia
+        saveButton.addEventListener('click', function(e) {
+            console.log('Przycisk zapisz kliknięty, wysyłam formularz profilu firmy');
+            // NIE blokujemy domyślnej akcji przycisku typu submit - formularze HTML będą działać normalnie
+        });
+    } else {
+        console.error('Nie znaleziono przycisku zapisz profilu firmy');
+    }
+    
+    // Sprawdź czy jest tekst w stopce po załadowaniu strony
+    const footerTextarea = document.getElementById('invoice_footer');
+    if (footerTextarea) {
+        console.log('Wartość stopki faktury:', footerTextarea.value);
+    }
+});
+</script> 

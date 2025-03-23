@@ -33,7 +33,10 @@ class Invoice extends Model
         'notes',
         'issued_by',
         'received_by',
-        'status'
+        'status',
+        'bank_account_id',
+        'is_paid',
+        'paid_date',
     ];
 
     protected $casts = [
@@ -56,6 +59,16 @@ class Invoice extends Model
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function contractor()
+    {
+        return $this->belongsTo(Contractor::class);
+    }
+
+    public function bankAccount()
+    {
+        return $this->belongsTo(BankAccount::class);
     }
 
     public function items()

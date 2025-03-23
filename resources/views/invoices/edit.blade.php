@@ -230,6 +230,22 @@
                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">{{ $invoice->notes }}</textarea>
         </div>
 
+        <!-- Konto bankowe -->
+        <div class="mt-8">
+            <label for="bank_account_id" class="block text-sm font-medium text-gray-700">Konto bankowe</label>
+            <select id="bank_account_id" name="bank_account_id" class="mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm">
+                <option value="">{{ __('Wybierz konto bankowe') }}</option>
+                @if(auth()->user()->companyProfile)
+                    @foreach(auth()->user()->companyProfile->bankAccounts as $bankAccount)
+                        <option value="{{ $bankAccount->id }}" {{ (old('bank_account_id') ?? $invoice->bank_account_id) == $bankAccount->id ? 'selected' : '' }}>
+                            {{ $bankAccount->account_name }} - {{ $bankAccount->account_number }}
+                        </option>
+                    @endforeach
+                @endif
+            </select>
+            <x-input-error :messages="$errors->get('bank_account_id')" class="mt-2" />
+        </div>
+
         <!-- Przyciski -->
         <div class="mt-8 flex justify-end space-x-3">
             <button type="submit" name="status" value="draft" 
@@ -308,6 +324,22 @@
                         <div class="company-address">{{ $companyStreet }}</div>
                         <div class="company-postal-city">{{ $companyPostalCode }} {{ $companyCity }}</div>
                         <div>NIP: <span class="company-nip">{{ $companyTaxNumber }}</span></div>
+                        @if(!empty($invoice->bank_account_id) && auth()->user()->companyProfile && 
+                            $bankAccount = auth()->user()->companyProfile->bankAccounts->firstWhere('id', $invoice->bank_account_id))
+                            <div class="mt-2 pt-2 border-t border-gray-200">
+                                <div class="text-sm font-semibold">{{ $bankAccount->account_name }}</div>
+                                <div class="text-sm">{{ $bankAccount->bank_name }}</div>
+                                <div class="text-sm font-medium">{{ $bankAccount->account_number }}</div>
+                                @if($bankAccount->swift)
+                                    <div class="text-sm">SWIFT: {{ $bankAccount->swift }}</div>
+                                @endif
+                            </div>
+                        @else
+                            <div class="mt-2 pt-2 border-t border-gray-200">
+                                <div class="text-sm">{{ $companyProfile ? $companyProfile->bank_name : '' }}</div>
+                                <div class="text-sm font-medium">{{ $companyProfile ? $companyProfile->bank_account : '' }}</div>
+                            </div>
+                        @endif
                     </div>
                 </div>
                 <div>

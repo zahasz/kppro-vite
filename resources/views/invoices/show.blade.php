@@ -146,14 +146,32 @@ use Illuminate\Support\Facades\Auth;
                 <p class="text-2xl font-bold text-gray-900">
                     {{ number_format($invoice->gross_total, 2) }} {{ $invoice->currency }}
                 </p>
-                @if(Auth::user()->company_profile && Auth::user()->company_profile->bank_account)
+                @if($invoice->bank_account_id && Auth::user()->companyProfile && 
+                    $bankAccount = Auth::user()->companyProfile->bankAccounts->firstWhere('id', $invoice->bank_account_id))
                     <div class="mt-4 space-y-1">
-                        <p class="text-sm text-gray-600">{{ Auth::user()->company_profile->bank_name ?? 'Konto bankowe' }}</p>
-                        <p class="text-sm font-medium">{{ Auth::user()->company_profile->bank_account }}</p>
+                        <p class="text-sm text-gray-600">{{ $bankAccount->bank_name }}</p>
+                        <p class="text-sm font-medium">{{ $bankAccount->account_number }}</p>
+                        @if($bankAccount->swift)
+                            <p class="text-sm text-gray-500">SWIFT: {{ $bankAccount->swift }}</p>
+                        @endif
+                    </div>
+                @elseif(Auth::user()->companyProfile && Auth::user()->companyProfile->bank_account)
+                    <div class="mt-4 space-y-1">
+                        <p class="text-sm text-gray-600">{{ Auth::user()->companyProfile->bank_name ?? 'Konto bankowe' }}</p>
+                        <p class="text-sm font-medium">{{ Auth::user()->companyProfile->bank_account }}</p>
                     </div>
                 @endif
             </div>
         </div>
+        
+        <!-- Stopka faktury -->
+        @if(Auth::user()->companyProfile && Auth::user()->companyProfile->invoice_footer)
+            <div class="mt-8 pt-4 border-t border-gray-200">
+                <div class="text-sm text-gray-600 text-center">
+                    {{ Auth::user()->companyProfile->invoice_footer }}
+                </div>
+            </div>
+        @endif
     </div>
 </div>
 

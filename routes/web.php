@@ -15,6 +15,9 @@ use App\Http\Controllers\WarehouseMaterialsController;
 use App\Http\Controllers\WarehouseEquipmentController;
 use App\Http\Controllers\WarehouseToolsController;
 use App\Http\Controllers\WarehouseGarageController;
+use App\Http\Controllers\BankAccountController;
+use App\Http\Controllers\ProductController;
+use App\Http\Controllers\SettingController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -33,6 +36,13 @@ Route::middleware('auth')->group(function () {
     Route::patch('/company-profile', [CompanyProfileController::class, 'update'])->name('company-profile.update');
     Route::get('/company-profile/json', [CompanyProfileController::class, 'getJson'])->name('company-profile.json');
     Route::get('/company-profile/create-test', [CompanyProfileController::class, 'createTestProfile'])->name('company-profile.create-test');
+
+    // Zarządzanie kontami bankowymi
+    Route::get('/bank-accounts', [BankAccountController::class, 'index'])->name('bank-accounts.index');
+    Route::post('/bank-accounts', [BankAccountController::class, 'store'])->name('bank-accounts.store');
+    Route::put('/bank-accounts/{bankAccount}', [BankAccountController::class, 'update'])->name('bank-accounts.update');
+    Route::delete('/bank-accounts/{bankAccount}', [BankAccountController::class, 'destroy'])->name('bank-accounts.destroy');
+    Route::post('/bank-accounts/{bankAccount}/set-default', [BankAccountController::class, 'setDefault'])->name('bank-accounts.set-default');
 
     // Routing dla kontrahentów
     Route::resource('contractors', ContractorController::class);
@@ -123,27 +133,92 @@ Route::middleware('auth')->group(function () {
     Route::get('invoices/{invoice}/pdf', [InvoiceController::class, 'generatePdf'])->name('invoices.pdf');
     Route::resource('invoices', InvoiceController::class);
 
+    // Produkty
+    Route::resource('products', ProductController::class);
+
+    // Te ustawienia zostały usunięte, ponieważ dotyczą one danych prowadzonej działalności
+    // i są już dostępne w profilu użytkownika
+    // Route::get('/settings', [SettingController::class, 'index'])->name('settings.index');
+    // Route::patch('/settings', [SettingController::class, 'update'])->name('settings.update');
+
     // Panel administratora
-    Route::prefix('admin')
-        ->name('admin.')
-        ->middleware(['auth', 'verified'])
-        ->group(function () {
-            Route::get('/', [AdminPanelController::class, 'index'])->name('index');
-            // Alias dla admin.index jako admin.dashboard
-            Route::get('/dashboard', [AdminPanelController::class, 'index'])->name('dashboard');
-            
-            // Zarządzanie rolami
-            Route::get('/roles', [AdminPanelController::class, 'roles'])->name('roles');
-            Route::post('/roles', [AdminPanelController::class, 'storeRole'])->name('roles.store');
-            Route::put('/roles/{role}', [AdminPanelController::class, 'updateRole'])->name('roles.update');
-            Route::delete('/roles/{role}', [AdminPanelController::class, 'destroyRole'])->name('roles.destroy');
-            
-            // Zarządzanie użytkownikami
-            Route::get('/users', [AdminPanelController::class, 'users'])->name('users');
-            
-            // Zarządzanie uprawnieniami
-            Route::get('/permissions', [AdminPanelController::class, 'permissions'])->name('permissions');
+    Route::prefix('admin')->name('admin.')->middleware('can:admin')->group(function () {
+        // Dashboard
+        Route::get('/', [AdminPanelController::class, 'index'])->name('dashboard');
+        
+        // Zarządzanie użytkownikami
+        Route::prefix('users')->name('users.')->group(function () {
+            Route::get('/', [AdminPanelController::class, 'users'])->name('index');
+            Route::get('/create', [AdminPanelController::class, 'createUser'])->name('create');
+            Route::post('/', [AdminPanelController::class, 'storeUser'])->name('store');
+            Route::get('/{user}/edit', [AdminPanelController::class, 'editUser'])->name('edit');
+            Route::put('/{user}', [AdminPanelController::class, 'updateUser'])->name('update');
+            Route::delete('/{user}', [AdminPanelController::class, 'deleteUser'])->name('delete');
         });
+        
+        // Zarządzanie rolami
+        Route::prefix('roles')->name('roles.')->group(function () {
+            Route::get('/', [AdminPanelController::class, 'roles'])->name('index');
+            Route::get('/create', [AdminPanelController::class, 'createRole'])->name('create');
+            Route::post('/', [AdminPanelController::class, 'storeRole'])->name('store');
+            Route::get('/{role}/edit', [AdminPanelController::class, 'editRole'])->name('edit');
+            Route::get('/{role}', [AdminPanelController::class, 'showRole'])->name('show');
+            Route::put('/{role}', [AdminPanelController::class, 'updateRole'])->name('update');
+            Route::delete('/{role}', [AdminPanelController::class, 'deleteRole'])->name('destroy');
+        });
+        
+        // Zarządzanie uprawnieniami
+        Route::prefix('permissions')->name('permissions.')->group(function () {
+            Route::get('/', [AdminPanelController::class, 'permissions'])->name('index');
+            Route::get('/create', [AdminPanelController::class, 'createPermission'])->name('create');
+            Route::post('/', [AdminPanelController::class, 'storePermission'])->name('store');
+        });
+        
+        // Zarządzanie subskrypcjami
+        Route::prefix('subscriptions')->name('subscriptions.')->group(function () {
+            // Plany subskrypcji
+            Route::get('/', [AdminPanelController::class, 'subscriptions'])->name('index');
+            Route::get('/create', [AdminPanelController::class, 'createSubscription'])->name('create');
+            Route::post('/', [AdminPanelController::class, 'storeSubscription'])->name('store');
+            Route::get('/{plan}/edit', [AdminPanelController::class, 'editSubscription'])->name('edit');
+            Route::put('/{plan}', [AdminPanelController::class, 'updateSubscription'])->name('update');
+            Route::delete('/{plan}', [AdminPanelController::class, 'deleteSubscription'])->name('destroy');
+            
+            // Zarządzanie subskrypcjami użytkowników
+            Route::get('/users', [AdminPanelController::class, 'userSubscriptions'])->name('users');
+            Route::get('/users/create', [AdminPanelController::class, 'createUserSubscription'])->name('create-user-subscription');
+            Route::post('/users', [AdminPanelController::class, 'storeUserSubscription'])->name('store-user-subscription');
+            Route::get('/users/{subscription}/edit', [AdminPanelController::class, 'editUserSubscription'])->name('edit-user-subscription');
+            Route::put('/users/{subscription}', [AdminPanelController::class, 'updateUserSubscription'])->name('update-user-subscription');
+            Route::delete('/users/{subscription}', [AdminPanelController::class, 'deleteUserSubscription'])->name('delete-user-subscription');
+            
+            // Historia płatności
+            Route::get('/payments', [AdminPanelController::class, 'subscriptionPayments'])->name('payments');
+            Route::get('/payments/{payment}', [AdminPanelController::class, 'showPaymentDetails'])->name('payment-details');
+            Route::post('/payments/{payment}/refund', [AdminPanelController::class, 'refundPayment'])->name('refund-payment');
+        });
+        
+        // System
+        Route::prefix('system')->name('system.')->group(function () {
+            // Logi systemu
+            Route::get('/logs', [AdminPanelController::class, 'systemLogs'])->name('logs');
+            Route::post('/logs/clear', [AdminPanelController::class, 'clearSystemLogs'])->name('logs.clear');
+            
+            // Informacje o systemie
+            Route::get('/info', [AdminPanelController::class, 'systemInfo'])->name('info');
+            
+            // Kopie zapasowe
+            Route::get('/backup', [AdminPanelController::class, 'backupSystem'])->name('backup');
+            Route::post('/backup', [AdminPanelController::class, 'createBackup'])->name('backup.create');
+            
+            // Historia logowania
+            Route::get('/login-history', [AdminPanelController::class, 'loginHistory'])->name('login-history');
+        });
+
+        // Dodatkowa definicja dla trasy czyszczenia logów
+        Route::post('/system/logs/clear', [AdminPanelController::class, 'clearSystemLogs'])->name('system.logs.clear');
+    });
+
 });
 
 require __DIR__.'/auth.php';

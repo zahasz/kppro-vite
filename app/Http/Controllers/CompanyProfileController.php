@@ -10,6 +10,16 @@ class CompanyProfileController extends Controller
 {
     public function update(Request $request)
     {
+        \Log::info('Rozpoczęcie aktualizacji profilu firmy', ['user_id' => auth()->id()]);
+        
+        // Logowanie wszystkich danych z żądania
+        \Log::info('Wszystkie dane z żądania', [
+            'all' => $request->all(),
+            'method' => $request->method(),
+            'has_invoice_footer' => $request->has('invoice_footer'),
+            'raw_invoice_footer' => $request->input('invoice_footer')
+        ]);
+        
         $validated = $request->validate([
             'company_name' => 'required|string|max:255',
             'legal_form' => 'nullable|string|in:sole_proprietorship,partnership,limited_partnership,limited_liability,joint_stock',
@@ -40,21 +50,44 @@ class CompanyProfileController extends Controller
             'invoice_notes' => 'nullable|string|max:1000',
             'invoice_footer' => 'nullable|string|max:1000',
         ]);
+        \Log::info('Walidacja przeszła pomyślnie');
+
+        // Sprawdź dane stopki faktury
+        \Log::info('Wartość stopki faktury z formularza', [
+            'invoice_footer' => $request->input('invoice_footer'),
+            'ma_stopke' => $request->has('invoice_footer'),
+            'validated_invoice_footer' => $validated['invoice_footer'] ?? 'brak wartości'
+        ]);
 
         $user = auth()->user();
-        $companyProfile = $user->companyProfile ?? new CompanyProfile();
+        $companyProfile = $user->companyProfile;
+        
+        if (!$companyProfile) {
+            \Log::info('Tworzenie nowego profilu firmy');
+            $companyProfile = new CompanyProfile();
+            $companyProfile->user_id = $user->id;
+        } else {
+            \Log::info('Aktualizacja istniejącego profilu firmy', ['profile_id' => $companyProfile->id]);
+        }
 
         if ($request->hasFile('logo')) {
+            \Log::info('Przetwarzanie pliku logo');
             if ($companyProfile->logo_path) {
-                Storage::delete($companyProfile->logo_path);
+                \Log::info('Usuwanie starego logo', ['path' => $companyProfile->logo_path]);
+                Storage::disk('public')->delete($companyProfile->logo_path);
             }
             $validated['logo_path'] = $request->file('logo')->store('company-logos', 'public');
+            \Log::info('Zapisano nowe logo', ['path' => $validated['logo_path']]);
         }
 
         unset($validated['logo']);
         
-        $companyProfile->fill($validated);
-        $user->companyProfile()->save($companyProfile);
+        foreach ($validated as $key => $value) {
+            $companyProfile->$key = $value;
+        }
+        
+        $result = $companyProfile->save();
+        \Log::info('Wynik zapisywania profilu', ['success' => $result, 'profile_id' => $companyProfile->id]);
 
         return back()->with('status', 'company-profile-updated');
     }

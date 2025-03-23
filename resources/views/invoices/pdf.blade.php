@@ -81,6 +81,23 @@
             <p>{{ config('app.company_name') }}</p>
             <p>{{ config('app.company_address') }}</p>
             <p>NIP: {{ config('app.company_nip') }}</p>
+            
+            @if($invoice->bank_account_id && $bankAccount = $invoice->seller->companyProfile->bankAccounts->firstWhere('id', $invoice->bank_account_id))
+                <p style="margin-top: 10px; border-top: 1px solid #ddd; padding-top: 10px;">
+                    <strong>{{ $bankAccount->account_name }}</strong><br>
+                    {{ $bankAccount->bank_name }}<br>
+                    {{ $bankAccount->account_number }}<br>
+                    @if($bankAccount->swift)
+                        SWIFT: {{ $bankAccount->swift }}
+                    @endif
+                </p>
+            @elseif($invoice->seller && $invoice->seller->companyProfile && $invoice->seller->companyProfile->bank_account)
+                <p style="margin-top: 10px; border-top: 1px solid #ddd; padding-top: 10px;">
+                    <strong>Konto bankowe:</strong><br>
+                    {{ $invoice->seller->companyProfile->bank_name }}<br>
+                    {{ $invoice->seller->companyProfile->bank_account }}
+                </p>
+            @endif
         </div>
 
         <div class="party">
@@ -149,6 +166,12 @@
     @if($invoice->notes)
         <div class="footer">
             <p><strong>Uwagi:</strong> {{ $invoice->notes }}</p>
+        </div>
+    @endif
+
+    @if($invoice->seller && $invoice->seller->companyProfile && $invoice->seller->companyProfile->invoice_footer)
+        <div class="footer" style="text-align: center; font-size: 11px; color: #666;">
+            {{ $invoice->seller->companyProfile->invoice_footer }}
         </div>
     @endif
 

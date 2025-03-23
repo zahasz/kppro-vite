@@ -18,6 +18,15 @@ use Illuminate\Session\Middleware\AuthenticateSession;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
 use App\Filament\Pages\Dashboard;
+use App\Filament\Pages\Settings;
+use App\Filament\Pages\Logs;
+use App\Filament\Resources\UserResource;
+use App\Filament\Resources\RoleResource;
+use App\Filament\Resources\PermissionResource;
+use App\Filament\Resources\ContractorResource;
+use App\Filament\Resources\InvoiceResource;
+use App\Filament\Widgets\StatsOverview;
+use App\Filament\Pages\UserProfile;
 
 class AdminPanelProvider extends PanelProvider
 {
@@ -29,17 +38,31 @@ class AdminPanelProvider extends PanelProvider
             ->path('admin')
             ->login()
             ->colors([
-                'primary' => Color::Amber,
+                'primary' => Color::Indigo,
+                'danger' => Color::Rose,
+                'success' => Color::Emerald,
+                'warning' => Color::Orange,
+                'info' => Color::Blue,
             ])
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
+            ->resources([
+                UserResource::class,
+                RoleResource::class,
+                PermissionResource::class,
+                ContractorResource::class,
+                InvoiceResource::class,
+            ])
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\\Filament\\Pages')
             ->pages([
                 Dashboard::class,
+                Settings::class,
+                Logs::class,
+                UserProfile::class,
             ])
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\\Filament\\Widgets')
             ->widgets([
+                StatsOverview::class,
                 Widgets\AccountWidget::class,
-                Widgets\FilamentInfoWidget::class,
             ])
             ->middleware([
                 EncryptCookies::class,
@@ -55,8 +78,22 @@ class AdminPanelProvider extends PanelProvider
             ->authMiddleware([
                 Authenticate::class,
             ])
-            ->brandName('KPPro')
+            ->navigation(function () {
+                return [
+                    // Możesz dostosować kolejność i grupowanie - elementy zostaną wygenerowane automatycznie
+                ];
+            })
+            ->navigationGroups([
+                'System',
+                'Kontrahenci',
+                'Faktury',
+                'Magazyn',
+                'Użytkownicy',
+            ])
+            ->databaseNotifications()
+            ->brandName('KPPro Admin')
             ->favicon(asset('images/favicon.ico'))
+            ->maxContentWidth('full')
             ->sidebarFullyCollapsibleOnDesktop();
     }
 }

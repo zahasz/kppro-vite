@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class CompanyProfile extends Model
 {
@@ -30,6 +31,7 @@ class CompanyProfile extends Model
         'bank_name',
         'bank_account',
         'swift',
+        'default_bank_account_id',
         'logo_path',
         'notes',
         'invoice_prefix',
@@ -50,6 +52,26 @@ class CompanyProfile extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    /**
+     * Relacja z kontami bankowymi
+     *
+     * @return HasMany
+     */
+    public function bankAccounts(): HasMany
+    {
+        return $this->hasMany(BankAccount::class);
+    }
+
+    /**
+     * Relacja z domyślnym kontem bankowym
+     *
+     * @return BelongsTo
+     */
+    public function defaultBankAccount(): BelongsTo
+    {
+        return $this->belongsTo(BankAccount::class, 'default_bank_account_id');
     }
 
     /**

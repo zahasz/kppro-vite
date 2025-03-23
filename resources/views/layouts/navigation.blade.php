@@ -24,10 +24,10 @@
                     <x-nav-link :href="route('products.index')" :active="request()->routeIs('products.*')">
                         {{ __('Produkty') }}
                     </x-nav-link>
-                    <x-nav-link :href="route('finance.index')" :active="request()->routeIs('finance.*')">
+                    <x-nav-link :href="route('finances.index')" :active="request()->routeIs('finances.*')">
                         {{ __('Finanse') }}
                     </x-nav-link>
-                    <x-nav-link :href="route('budget.index')" :active="request()->routeIs('budget.*')">
+                    <x-nav-link :href="route('finances.budget.index')" :active="request()->routeIs('finances.budget.*')">
                         {{ __('Budżet') }}
                     </x-nav-link>
                     <x-nav-link :href="route('warehouse.index')" :active="request()->routeIs('warehouse.*')">
@@ -42,9 +42,6 @@
                     <x-nav-link :href="route('estimates.index')" :active="request()->routeIs('estimates.*')">
                         {{ __('Kosztorysy') }}
                     </x-nav-link>
-                    <x-nav-link :href="route('settings.index')" :active="request()->routeIs('settings.*')">
-                        {{ __('Ustawienia') }}
-                    </x-nav-link>
                 </div>
             </div>
 
@@ -53,7 +50,10 @@
                 <x-dropdown align="right" width="48">
                     <x-slot name="trigger">
                         <button class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 bg-white hover:text-gray-700 focus:outline-none transition ease-in-out duration-150">
-                            <div>{{ Auth::user()->name }}</div>
+                            <div class="flex items-center">
+                                {{ Auth::user()->name }}
+                                <span class="ml-2 px-2 py-0.5 text-xs rounded bg-blue-100 text-blue-800">Premium</span>
+                            </div>
 
                             <div class="ms-1">
                                 <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
@@ -65,7 +65,25 @@
 
                     <x-slot name="content">
                         <x-dropdown-link :href="route('profile.edit')">
-                            {{ __('Profile') }}
+                            {{ __('Mój profil') }}
+                        </x-dropdown-link>
+                        <x-dropdown-link :href="route('profile.edit') . '#dane-uzytkownika'">
+                            {{ __('Dane użytkownika') }}
+                        </x-dropdown-link>
+                        <x-dropdown-link :href="route('profile.edit') . '#dane-firmy'">
+                            {{ __('Dane firmy') }}
+                        </x-dropdown-link>
+                        <x-dropdown-link :href="route('profile.edit') . '#dane-bankowe'">
+                            {{ __('Dane bankowe') }}
+                        </x-dropdown-link>
+                        <x-dropdown-link :href="route('profile.edit') . '#ustawienia-faktur'">
+                            {{ __('Ustawienia faktur') }}
+                        </x-dropdown-link>
+                        <x-dropdown-link :href="route('profile.edit') . '#subskrypcja'">
+                            {{ __('Subskrypcja') }}
+                        </x-dropdown-link>
+                        <x-dropdown-link :href="route('profile.edit') . '#bezpieczenstwo'">
+                            {{ __('Bezpieczeństwo') }}
                         </x-dropdown-link>
 
                         <!-- Authentication -->
@@ -75,7 +93,7 @@
                             <x-dropdown-link :href="route('logout')"
                                     onclick="event.preventDefault();
                                                 this.closest('form').submit();">
-                                {{ __('Log Out') }}
+                                {{ __('Wyloguj') }}
                             </x-dropdown-link>
                         </form>
                     </x-slot>
@@ -109,10 +127,10 @@
             <x-responsive-nav-link :href="route('products.index')" :active="request()->routeIs('products.*')">
                 {{ __('Produkty') }}
             </x-responsive-nav-link>
-            <x-responsive-nav-link :href="route('finance.index')" :active="request()->routeIs('finance.*')">
+            <x-responsive-nav-link :href="route('finances.index')" :active="request()->routeIs('finances.*')">
                 {{ __('Finanse') }}
             </x-responsive-nav-link>
-            <x-responsive-nav-link :href="route('budget.index')" :active="request()->routeIs('budget.*')">
+            <x-responsive-nav-link :href="route('finances.budget.index')" :active="request()->routeIs('finances.budget.*')">
                 {{ __('Budżet') }}
             </x-responsive-nav-link>
             <x-responsive-nav-link :href="route('warehouse.index')" :active="request()->routeIs('warehouse.*')">
@@ -127,21 +145,41 @@
             <x-responsive-nav-link :href="route('estimates.index')" :active="request()->routeIs('estimates.*')">
                 {{ __('Kosztorysy') }}
             </x-responsive-nav-link>
-            <x-responsive-nav-link :href="route('settings.index')" :active="request()->routeIs('settings.*')">
-                {{ __('Ustawienia') }}
-            </x-responsive-nav-link>
         </div>
 
         <!-- Responsive Settings Options -->
         <div class="pt-4 pb-1 border-t border-gray-200">
             <div class="px-4">
-                <div class="font-medium text-base text-gray-800">{{ Auth::user()->name }}</div>
+                <div class="font-medium text-base text-gray-800">
+                    <div class="flex items-center">
+                        {{ Auth::user()->name }}
+                        <span class="ml-2 px-2 py-0.5 text-xs rounded bg-blue-100 text-blue-800">Premium</span>
+                    </div>
+                </div>
                 <div class="font-medium text-sm text-gray-500">{{ Auth::user()->email }}</div>
             </div>
 
             <div class="mt-3 space-y-1">
                 <x-responsive-nav-link :href="route('profile.edit')">
-                    {{ __('Profile') }}
+                    {{ __('Mój profil') }}
+                </x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('profile.edit') . '#dane-uzytkownika'" class="pl-6">
+                    {{ __('Dane użytkownika') }}
+                </x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('profile.edit') . '#dane-firmy'" class="pl-6">
+                    {{ __('Dane firmy') }}
+                </x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('profile.edit') . '#dane-bankowe'" class="pl-6">
+                    {{ __('Dane bankowe') }}
+                </x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('profile.edit') . '#ustawienia-faktur'" class="pl-6">
+                    {{ __('Ustawienia faktur') }}
+                </x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('profile.edit') . '#subskrypcja'" class="pl-6">
+                    {{ __('Subskrypcja') }}
+                </x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('profile.edit') . '#bezpieczenstwo'" class="pl-6">
+                    {{ __('Bezpieczeństwo') }}
                 </x-responsive-nav-link>
 
                 <!-- Authentication -->
@@ -151,10 +189,43 @@
                     <x-responsive-nav-link :href="route('logout')"
                             onclick="event.preventDefault();
                                         this.closest('form').submit();">
-                        {{ __('Log Out') }}
+                        {{ __('Wyloguj') }}
                     </x-responsive-nav-link>
                 </form>
             </div>
         </div>
     </div>
 </nav>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        updateActiveMenuSection();
+    });
+    
+    // Obsługa zmiany hasha przy przewijaniu
+    window.addEventListener('hashchange', function() {
+        updateActiveMenuSection();
+    });
+    
+    function updateActiveMenuSection() {
+        if (window.location.href.includes('profile.edit')) {
+            const hash = window.location.hash || '#dane-uzytkownika';
+            
+            // Znajdź wszystkie linki w dropdown menu użytkownika
+            const dropdownLinks = document.querySelectorAll('.dropdown-link');
+            
+            // Usuń aktywne klasy z wszystkich linków dropdown
+            dropdownLinks.forEach(link => {
+                link.classList.remove('bg-gray-100', 'active');
+            });
+            
+            // Znajdź pasujący link w dropdown
+            dropdownLinks.forEach(link => {
+                if (link.href && link.href.includes(hash)) {
+                    link.classList.add('bg-gray-100', 'active');
+                    console.log('Aktywny link dropdown znaleziony i podświetlony:', link.href);
+                }
+            });
+        }
+    }
+</script>
