@@ -41,6 +41,7 @@ use Illuminate\Database\Eloquent\Casts\Attribute;
  * @property \Carbon\Carbon|null $updated_at
  * @property \Carbon\Carbon|null $deleted_at
  * @property \Carbon\Carbon|null $last_active_at
+ * @property \Carbon\Carbon|null $last_seen_at
  * 
  * @method static \Database\Factories\UserFactory factory()
  * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\User newModelQuery()
@@ -90,6 +91,7 @@ class User extends Authenticatable
         'last_active_at',
         'failed_login_attempts',
         'locked_until',
+        'last_seen_at',
     ];
 
     /**
@@ -116,6 +118,7 @@ class User extends Authenticatable
         'last_login_at' => 'datetime',
         'last_active_at' => 'datetime',
         'locked_until' => 'datetime',
+        'last_seen_at' => 'datetime',
     ];
 
     public function getUserRolesAttribute()
@@ -171,8 +174,8 @@ class User extends Authenticatable
 
     public function recordSuccessfulLogin()
     {
-        $this->last_login_at = Carbon::now();
-        $this->last_login_ip = Request::ip();
+        $this->last_login_at = now();
+        $this->last_login_ip = request()->ip();
         $this->failed_login_attempts = 0;
         $this->locked_until = null;
         $this->save();
@@ -220,6 +223,30 @@ class User extends Authenticatable
 
     public function getFullNameAttribute()
     {
-        return trim("{$this->first_name} {$this->last_name}");
+        return trim($this->first_name . ' ' . $this->last_name);
+    }
+
+    /**
+     * Sprawdza, czy użytkownik jest online (aktywny w ciągu ostatnich 5 minut)
+     *
+     * @return bool
+     */
+    public function isOnline(): bool
+    {
+        if (!$this->last_seen_at) {
+            return false;
+        }
+
+        return $this->last_seen_at->gt(now()->subMinutes(5));
+    }
+
+    /**
+     * Aktualizuje timestamp ostatniej aktywności użytkownika
+     *
+     * @return bool
+     */
+    public function updateLastSeen(): bool
+    {
+        return $this->update(['last_seen_at' => now()]);
     }
 }

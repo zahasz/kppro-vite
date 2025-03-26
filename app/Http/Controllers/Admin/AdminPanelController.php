@@ -14,6 +14,8 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Schema;
+use App\Models\Subscription;
+use App\Models\Plan;
 
 class AdminPanelController extends Controller
 {
@@ -23,53 +25,108 @@ class AdminPanelController extends Controller
             abort(403, 'Brak dostępu.');
         }
 
-        $stats = [
-            'users_count' => Cache::remember('stats.users_count', now()->addMinutes(5), function () {
-                return User::count();
-            }),
-            'roles_count' => Cache::remember('stats.roles_count', now()->addMinutes(5), function () {
-                return Role::count();
-            }),
-            'permissions_count' => Cache::remember('stats.permissions_count', now()->addMinutes(5), function () {
-                return Permission::count();
-            }),
-            'new_users_this_month' => Cache::remember('stats.new_users_this_month', now()->addHours(1), function () {
-                return User::where('created_at', '>=', now()->startOfMonth())->count();
-            }),
-        ];
-
-        // Dodaj statystyki aktywnych użytkowników tylko jeśli kolumna istnieje
         try {
+            $stats = [
+                'users_count' => Cache::remember('stats.users_count', now()->addMinutes(5), function () {
+                    return User::count();
+                }),
+                
+                'online_users' => Cache::remember('stats.online_users', now()->addMinute(), function () {
+                    return User::where('last_seen_at', '>=', now()->subMinutes(5))->count();
+                }),
+                
+                // Subskrypcje
+                'active_subscriptions' => Cache::remember('stats.active_subscriptions', now()->addMinutes(5), function () {
+                    return Subscription::where('status', 'active')->count();
+                }),
+                
+                'active_subscriptions_value' => Cache::remember('stats.active_subscriptions_value', now()->addMinutes(5), function () {
+                    return Subscription::where('status', 'active')->sum('price');
+                }),
+                
+                'today_subscriptions' => Cache::remember('stats.today_subscriptions', now()->addMinutes(5), function () {
+                    return Subscription::whereDate('created_at', Carbon::today())->count();
+                }),
+                
+                'today_subscriptions_value' => Cache::remember('stats.today_subscriptions_value', now()->addMinutes(5), function () {
+                    return Subscription::whereDate('created_at', Carbon::today())->sum('price');
+                }),
+                
+                'month_subscriptions' => Cache::remember('stats.month_subscriptions', now()->addMinutes(5), function () {
+                    return Subscription::whereMonth('created_at', Carbon::now()->month)
+                        ->whereYear('created_at', Carbon::now()->year)
+                        ->count();
+                }),
+                
+                'month_subscriptions_value' => Cache::remember('stats.month_subscriptions_value', now()->addMinutes(5), function () {
+                    return Subscription::whereMonth('created_at', Carbon::now()->month)
+                        ->whereYear('created_at', Carbon::now()->year)
+                        ->sum('price');
+                }),
+                
+                'year_subscriptions' => Cache::remember('stats.year_subscriptions', now()->addMinutes(5), function () {
+                    return Subscription::whereYear('created_at', Carbon::now()->year)->count();
+                }),
+                
+                'year_subscriptions_value' => Cache::remember('stats.year_subscriptions_value', now()->addMinutes(5), function () {
+                    return Subscription::whereYear('created_at', Carbon::now()->year)->sum('price');
+                }),
+                
+                'total_active_subscriptions' => Cache::remember('stats.total_active_subscriptions', now()->addMinutes(5), function () {
+                    return Subscription::where('status', 'active')->count();
+                }),
+                
+                'total_active_value' => Cache::remember('stats.total_active_value', now()->addMinutes(5), function () {
+                    return Subscription::where('status', 'active')->sum('price');
+                }),
+            ];
+
+            // Dodaj statystyki aktywnych użytkowników
             if (Schema::hasColumn('users', 'last_active_at')) {
-                $stats['active_users'] = Cache::remember('stats.active_users', now()->addMinutes(5), function () {
+                $stats['active_users'] = Cache::remember('stats.active_users', now()->addMinute(), function () {
                     return User::where('last_active_at', '>=', now()->subMinutes(15))->count();
                 });
-            } else {
-                $stats['active_users'] = 0;
             }
-        } catch (\Exception $e) {
-            Log::error('Błąd podczas pobierania aktywnych użytkowników: ' . $e->getMessage());
-            $stats['active_users'] = 0;
-        }
 
-        // Dodaj statystyki logowania tylko jeśli tabela istnieje
-        try {
+            // Dodaj statystyki logowania
             if (Schema::hasTable('login_histories')) {
-                $stats['total_login_attempts'] = Cache::remember('stats.total_login_attempts', now()->addHours(3), function () {
+                $stats['total_login_attempts'] = Cache::remember('stats.total_login_attempts', now()->addHours(1), function () {
                     return DB::table('login_histories')->count();
                 });
                 
-                $stats['failed_login_attempts'] = Cache::remember('stats.failed_login_attempts', now()->addHours(3), function () {
+                $stats['failed_login_attempts'] = Cache::remember('stats.failed_login_attempts', now()->addHours(1), function () {
                     return DB::table('login_histories')->where('status', 'failed')->count();
                 });
-            } else {
-                $stats['total_login_attempts'] = 0;
-                $stats['failed_login_attempts'] = 0;
             }
-        } catch (\Exception $e) {
-            Log::error('Błąd podczas pobierania statystyk logowania: ' . $e->getMessage());
-            $stats['total_login_attempts'] = 0;
-            $stats['failed_login_attempts'] = 0;
+
+            Log::info('Statystyki panelu admina zostały wygenerowane pomyślnie', [
+                'online_users' => $stats['online_users'],
+                'active_users' => $stats['active_users'] ?? 0
+            ]);
+
+        } catch (Exception $e) {
+            Log::error('Błąd podczas generowania statystyk panelu admina', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            $stats = [
+                'users_count' => 0,
+                'online_users' => 0,
+                'active_users' => 0,
+                'active_subscriptions' => 0,
+                'active_subscriptions_value' => 0,
+                'today_subscriptions' => 0,
+                'today_subscriptions_value' => 0,
+                'month_subscriptions' => 0,
+                'month_subscriptions_value' => 0,
+                'year_subscriptions' => 0,
+                'year_subscriptions_value' => 0,
+                'total_active_subscriptions' => 0,
+                'total_active_value' => 0,
+                'total_login_attempts' => 0,
+                'failed_login_attempts' => 0
+            ];
         }
 
         // Aktywność użytkowników w ostatnich 7 dniach
@@ -792,5 +849,49 @@ class AdminPanelController extends Controller
         }
 
         return view('admin.system.login-history', compact('loginHistory'));
+    }
+
+    public function details($type)
+    {
+        switch ($type) {
+            case 'users':
+                $data = User::select('id', 'name', 'email', 'created_at', 'last_seen_at')
+                    ->latest()
+                    ->take(50)
+                    ->get()
+                    ->map(function ($user) {
+                        return [
+                            'id' => $user->id,
+                            'name' => $user->name,
+                            'email' => $user->email,
+                            'created_at' => $user->created_at->format('d.m.Y H:i'),
+                            'last_seen' => $user->last_seen_at ? $user->last_seen_at->diffForHumans() : 'Nigdy',
+                            'last_seen_raw' => $user->last_seen_at ? $user->last_seen_at->toDateTimeString() : null,
+                            'is_online' => $user->last_seen_at && $user->last_seen_at->gt(now()->subMinutes(5))
+                        ];
+                    });
+                break;
+
+            case 'online':
+                $data = User::select('id', 'name', 'email', 'last_seen_at')
+                    ->where('last_seen_at', '>=', now()->subMinutes(5))
+                    ->orderBy('last_seen_at', 'desc')
+                    ->get()
+                    ->map(function ($user) {
+                        return [
+                            'id' => $user->id,
+                            'name' => $user->name,
+                            'email' => $user->email,
+                            'last_seen' => $user->last_seen_at ? $user->last_seen_at->diffForHumans() : 'Nigdy',
+                            'last_seen_raw' => $user->last_seen_at ? $user->last_seen_at->toDateTimeString() : null
+                        ];
+                    });
+                break;
+
+            default:
+                return response()->json(['error' => 'Nieprawidłowy typ danych'], 400);
+        }
+
+        return response()->json(['data' => $data]);
     }
 } 

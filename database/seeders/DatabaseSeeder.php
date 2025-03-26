@@ -18,6 +18,7 @@ class DatabaseSeeder extends Seeder
         // Wywołanie seederów
         $this->call([
             RoleAndPermissionSeeder::class,
+            AdminPlanSeeder::class,
             ContractorSeeder::class,
             BudgetCategoriesSeeder::class,
             AdminSeeder::class,

@@ -145,6 +145,7 @@ Route::middleware('auth')->group(function () {
     Route::prefix('admin')->name('admin.')->middleware('can:admin')->group(function () {
         // Dashboard
         Route::get('/', [AdminPanelController::class, 'index'])->name('dashboard');
+        Route::get('/dashboard/details/{type}', [AdminPanelController::class, 'details'])->name('dashboard.details');
         
         // Zarządzanie użytkownikami
         Route::prefix('users')->name('users.')->group(function () {

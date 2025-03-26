@@ -1,5 +1,6 @@
 @php
     use Illuminate\Support\Facades\Schema;
+    use Illuminate\Support\Facades\Cache;
 @endphp
 
 <x-admin-layout>
@@ -11,7 +12,7 @@
         <!-- Statystyki -->
         <div class="mb-8">
             <h2 class="text-xl font-semibold mb-4">Statystyki systemu</h2>
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 <div class="bg-white overflow-hidden shadow-sm rounded-lg p-6">
                     <div class="flex items-center">
                         <div class="p-3 rounded-full bg-blue-100 text-blue-600">
@@ -29,15 +30,84 @@
 
                 <div class="bg-white overflow-hidden shadow-sm rounded-lg p-6">
                     <div class="flex items-center">
-                        <div class="p-3 rounded-full bg-green-100 text-green-600">
+                        <div class="p-3 rounded-full bg-emerald-100 text-emerald-600">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 11c0 3.517-1.009 6.799-2.753 9.571m-3.44-2.04l.054-.09A13.916 13.916 0 008 11a4 4 0 118 0c0 1.017-.07 2.019-.203 3m-2.118 6.844A21.88 21.88 0 0015.171 17m3.839 1.132c.645-2.266.99-4.659.99-7.132A8 8 0 008 4.07M3 15.364c.64-1.319 1-2.8 1-4.364 0-1.457.39-2.823 1.07-4" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
                         </div>
                         <div class="ml-4">
-                            <h3 class="text-lg font-semibold text-gray-900">Role</h3>
-                            <p class="text-2xl font-bold">{{ $stats['roles_count'] ?? 0 }}</p>
-                            <p class="text-sm text-gray-500">Zarządzaj uprawnieniami</p>
+                            <h3 class="text-lg font-semibold text-gray-900">Online</h3>
+                            <p class="text-2xl font-bold" id="online-users-count">
+                                @php
+                                    $onlineUsers = Cache::remember('online_users_count', now()->addMinute(), function () {
+                                        return \App\Models\User::whereNotNull('last_seen_at')
+                                            ->get()
+                                            ->filter(function($user) {
+                                                return $user->isOnline();
+                                            })
+                                            ->count();
+                                    });
+                                @endphp
+                                {{ $onlineUsers }}
+                            </p>
+                            <p class="text-sm text-gray-500">Aktywnych użytkowników</p>
+                            <p class="text-xs text-gray-400 mt-1">Ostatnie 5 minut</p>
+                        </div>
+                    </div>
+                    <div class="mt-4 pt-4 border-t border-gray-200">
+                        <button onclick="showDetails('online')" class="text-sm text-blue-600 hover:text-blue-800 font-medium">
+                            Zobacz szczegóły
+                        </button>
+                    </div>
+                </div>
+
+                <div class="bg-white overflow-hidden shadow-sm rounded-lg p-6">
+                    <div class="flex items-center">
+                        <div class="p-3 rounded-full bg-emerald-100 text-emerald-600">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                        </div>
+                        <div class="ml-4">
+                            <h3 class="text-lg font-semibold text-gray-900">Aktywne subskrypcje</h3>
+                            <p class="text-2xl font-bold">{{ $stats['active_subscriptions'] ?? 0 }}</p>
+                            <p class="text-sm text-emerald-500">{{ number_format($stats['active_subscriptions_value'] ?? 0, 2) }} zł</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Statystyki subskrypcji -->
+        <div class="mb-8">
+            <h2 class="text-xl font-semibold mb-4">Statystyki subskrypcji</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="bg-white overflow-hidden shadow-sm rounded-lg p-6">
+                    <div class="flex items-center">
+                        <div class="p-3 rounded-full bg-blue-100 text-blue-600">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                        </div>
+                        <div class="ml-4">
+                            <h3 class="text-lg font-semibold text-gray-900">Sprzedane dziś</h3>
+                            <p class="text-2xl font-bold">{{ $stats['today_subscriptions'] ?? 0 }}</p>
+                            <p class="text-sm text-emerald-500">{{ number_format($stats['today_subscriptions_value'] ?? 0, 2) }} zł</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white overflow-hidden shadow-sm rounded-lg p-6">
+                    <div class="flex items-center">
+                        <div class="p-3 rounded-full bg-indigo-100 text-indigo-600">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
+                        </div>
+                        <div class="ml-4">
+                            <h3 class="text-lg font-semibold text-gray-900">W tym miesiącu</h3>
+                            <p class="text-2xl font-bold">{{ $stats['month_subscriptions'] ?? 0 }}</p>
+                            <p class="text-sm text-emerald-500">{{ number_format($stats['month_subscriptions_value'] ?? 0, 2) }} zł</p>
                         </div>
                     </div>
                 </div>
@@ -46,102 +116,31 @@
                     <div class="flex items-center">
                         <div class="p-3 rounded-full bg-purple-100 text-purple-600">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                             </svg>
                         </div>
                         <div class="ml-4">
-                            <h3 class="text-lg font-semibold text-gray-900">Uprawnienia</h3>
-                            <p class="text-2xl font-bold">{{ $stats['permissions_count'] ?? 0 }}</p>
-                            <p class="text-sm text-gray-500">Przeglądaj uprawnienia</p>
+                            <h3 class="text-lg font-semibold text-gray-900">W tym roku</h3>
+                            <p class="text-2xl font-bold">{{ $stats['year_subscriptions'] ?? 0 }}</p>
+                            <p class="text-sm text-emerald-500">{{ number_format($stats['year_subscriptions_value'] ?? 0, 2) }} zł</p>
                         </div>
                     </div>
                 </div>
 
                 <div class="bg-white overflow-hidden shadow-sm rounded-lg p-6">
                     <div class="flex items-center">
-                        <div class="p-3 rounded-full bg-yellow-100 text-yellow-600">
+                        <div class="p-3 rounded-full bg-emerald-100 text-emerald-600">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
                         </div>
                         <div class="ml-4">
-                            <h3 class="text-lg font-semibold text-gray-900">Aktywni</h3>
-                            <p class="text-2xl font-bold">{{ $stats['active_users'] ?? 0 }}</p>
-                            <p class="text-sm text-gray-500">Aktywnych użytkowników</p>
+                            <h3 class="text-lg font-semibold text-gray-900">Wszystkie aktywne</h3>
+                            <p class="text-2xl font-bold">{{ $stats['total_active_subscriptions'] ?? 0 }}</p>
+                            <p class="text-sm text-emerald-500">{{ number_format($stats['total_active_value'] ?? 0, 2) }} zł</p>
                         </div>
                     </div>
                 </div>
-            </div>
-        </div>
-
-        <!-- Wykresy i dodatkowe informacje -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-            <!-- Aktywność użytkowników -->
-            <div class="bg-white overflow-hidden shadow-sm rounded-lg p-6">
-                <h3 class="text-lg font-semibold mb-4">Aktywność użytkowników</h3>
-                <div class="h-64 flex items-end">
-                    @foreach($userActivity as $date => $count)
-                        <div class="flex flex-col items-center mx-2">
-                            <div class="bg-blue-500 rounded-t-md w-8" style="height: {{ ($count / (max($userActivity) ?: 1)) * 150 }}px;"></div>
-                            <span class="text-xs text-gray-500 mt-2">{{ \Carbon\Carbon::parse($date)->format('d.m') }}</span>
-                        </div>
-                    @endforeach
-                </div>
-            </div>
-
-            <!-- Informacje o logowaniu -->
-            <div class="bg-white overflow-hidden shadow-sm rounded-lg p-6">
-                <h3 class="text-lg font-semibold mb-4">Statystyki logowania</h3>
-                
-                @if(Schema::hasTable('login_histories'))
-                    <div class="space-y-4">
-                        <div class="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                            <div class="flex items-center">
-                                <div class="p-2 rounded-full bg-green-100 text-green-600 mr-3">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                                    </svg>
-                                </div>
-                                <span>Udane logowania</span>
-                            </div>
-                            <span class="text-xl font-semibold">{{ $stats['total_login_attempts'] - $stats['failed_login_attempts'] }}</span>
-                        </div>
-                        <div class="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                            <div class="flex items-center">
-                                <div class="p-2 rounded-full bg-red-100 text-red-600 mr-3">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                                    </svg>
-                                </div>
-                                <span>Nieudane logowania</span>
-                            </div>
-                            <span class="text-xl font-semibold">{{ $stats['failed_login_attempts'] }}</span>
-                        </div>
-                        <div class="mt-4">
-                            <a href="{{ route('admin.system.login-history') }}" class="text-blue-600 hover:underline flex items-center">
-                                Zobacz pełną historię logowania
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                                </svg>
-                            </a>
-                        </div>
-                    </div>
-                @else
-                    <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4">
-                        <div class="flex">
-                            <div class="flex-shrink-0">
-                                <svg class="h-5 w-5 text-yellow-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                                    <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
-                                </svg>
-                            </div>
-                            <div class="ml-3">
-                                <p class="text-sm text-yellow-700">
-                                    Statystyki logowania będą dostępne po utworzeniu tabeli historii logowań.
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                @endif
             </div>
         </div>
 
@@ -163,34 +162,6 @@
                     </div>
                 </a>
 
-                <a href="{{ route('admin.roles.index') }}" class="bg-white overflow-hidden shadow-sm rounded-lg p-6 hover:bg-gray-50 transition-colors">
-                    <div class="flex items-center">
-                        <div class="p-3 rounded-full bg-green-100 text-green-600">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                            </svg>
-                        </div>
-                        <div class="ml-4">
-                            <h3 class="text-lg font-semibold text-gray-900">Zarządzanie rolami</h3>
-                            <p class="text-gray-500">Tworzenie i zarządzanie rolami użytkowników</p>
-                        </div>
-                    </div>
-                </a>
-
-                <a href="{{ route('admin.permissions.index') }}" class="bg-white overflow-hidden shadow-sm rounded-lg p-6 hover:bg-gray-50 transition-colors">
-                    <div class="flex items-center">
-                        <div class="p-3 rounded-full bg-purple-100 text-purple-600">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z" />
-                            </svg>
-                        </div>
-                        <div class="ml-4">
-                            <h3 class="text-lg font-semibold text-gray-900">Uprawnienia</h3>
-                            <p class="text-gray-500">Zarządzanie uprawnieniami systemowymi</p>
-                        </div>
-                    </div>
-                </a>
-
                 <a href="{{ route('admin.system.logs') }}" class="bg-white overflow-hidden shadow-sm rounded-lg p-6 hover:bg-gray-50 transition-colors">
                     <div class="flex items-center">
                         <div class="p-3 rounded-full bg-yellow-100 text-yellow-600">
@@ -200,67 +171,107 @@
                         </div>
                         <div class="ml-4">
                             <h3 class="text-lg font-semibold text-gray-900">Logi systemowe</h3>
-                            <p class="text-gray-500">Przeglądaj logi systemu</p>
+                            <p class="text-gray-500">Przeglądanie logów systemowych</p>
                         </div>
                     </div>
                 </a>
 
-                <a href="{{ route('admin.system.info') }}" class="bg-white overflow-hidden shadow-sm rounded-lg p-6 hover:bg-gray-50 transition-colors">
+                <a href="{{ route('admin.system.login-history') }}" class="bg-white overflow-hidden shadow-sm rounded-lg p-6 hover:bg-gray-50 transition-colors">
                     <div class="flex items-center">
                         <div class="p-3 rounded-full bg-indigo-100 text-indigo-600">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
                         </div>
                         <div class="ml-4">
-                            <h3 class="text-lg font-semibold text-gray-900">Informacje o systemie</h3>
-                            <p class="text-gray-500">Szczegóły konfiguracji</p>
-                        </div>
-                    </div>
-                </a>
-
-                <a href="{{ route('admin.system.backup') }}" class="bg-white overflow-hidden shadow-sm rounded-lg p-6 hover:bg-gray-50 transition-colors">
-                    <div class="flex items-center">
-                        <div class="p-3 rounded-full bg-red-100 text-red-600">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
-                            </svg>
-                        </div>
-                        <div class="ml-4">
-                            <h3 class="text-lg font-semibold text-gray-900">Kopie zapasowe</h3>
-                            <p class="text-gray-500">Zarządzaj kopiami zapasowymi systemu</p>
-                        </div>
-                    </div>
-                </a>
-
-                <a href="{{ route('admin.subscriptions.index') }}" class="bg-white overflow-hidden shadow-sm rounded-lg p-6 hover:bg-gray-50 transition-colors">
-                    <div class="flex items-center">
-                        <div class="p-3 rounded-full bg-blue-100 text-blue-600">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z" />
-                            </svg>
-                        </div>
-                        <div class="ml-4">
-                            <h3 class="text-lg font-semibold text-gray-900">Plany subskrypcji</h3>
-                            <p class="text-gray-500">Zarządzaj planami subskrypcji i limitami</p>
-                        </div>
-                    </div>
-                </a>
-
-                <a href="{{ route('admin.subscriptions.users') }}" class="bg-white overflow-hidden shadow-sm rounded-lg p-6 hover:bg-gray-50 transition-colors">
-                    <div class="flex items-center">
-                        <div class="p-3 rounded-full bg-green-100 text-green-600">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
-                            </svg>
-                        </div>
-                        <div class="ml-4">
-                            <h3 class="text-lg font-semibold text-gray-900">Subskrypcje użytkowników</h3>
-                            <p class="text-gray-500">Przeglądaj i zarządzaj subskrypcjami</p>
+                            <h3 class="text-lg font-semibold text-gray-900">Historia logowań</h3>
+                            <p class="text-gray-500">Przeglądanie historii logowań</p>
                         </div>
                     </div>
                 </a>
             </div>
         </div>
     </div>
+
+    <!-- Modal ze szczegółami -->
+    <div id="detailsModal" class="hidden fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50">
+        <div class="fixed inset-0 flex items-center justify-center p-4">
+            <div class="bg-white rounded-lg max-w-lg w-full max-h-[80vh] overflow-y-auto">
+                <div class="p-4 border-b border-gray-200 flex justify-between items-center">
+                    <h3 class="text-lg font-semibold text-gray-900" id="modalTitle">Szczegóły</h3>
+                    <button onclick="closeDetails()" class="text-gray-400 hover:text-gray-500">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+                <div class="p-4" id="modalContent">
+                    <!-- Zawartość modalu będzie wstawiana dynamicznie -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @push('scripts')
+    <script>
+    // Automatyczne odświeżanie licznika użytkowników online
+    setInterval(function() {
+        fetch('/admin/dashboard/details/online')
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('online-users-count').textContent = data.data.length;
+            });
+    }, 60000); // Odświeżaj co minutę
+
+    function showDetails(type) {
+        const modal = document.getElementById('detailsModal');
+        const modalTitle = document.getElementById('modalTitle');
+        const modalContent = document.getElementById('modalContent');
+        
+        modal.classList.remove('hidden');
+        modalTitle.textContent = type === 'online' ? 'Użytkownicy online' : 'Szczegóły';
+        
+        fetch(`/admin/dashboard/details/${type}`)
+            .then(response => response.json())
+            .then(data => {
+                if (type === 'online') {
+                    const content = data.data.map(user => `
+                        <div class="flex items-center justify-between py-3 border-b border-gray-200 last:border-0">
+                            <div>
+                                <p class="font-medium text-gray-900">${user.name}</p>
+                                <p class="text-sm text-gray-500">${user.email}</p>
+                            </div>
+                            <div class="text-sm text-gray-500">
+                                ${user.last_seen}
+                            </div>
+                        </div>
+                    `).join('');
+                    
+                    modalContent.innerHTML = content || '<p class="text-gray-500 text-center py-4">Brak użytkowników online</p>';
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                modalContent.innerHTML = '<p class="text-red-500 text-center py-4">Wystąpił błąd podczas ładowania danych</p>';
+            });
+    }
+
+    function closeDetails() {
+        document.getElementById('detailsModal').classList.add('hidden');
+    }
+
+    // Automatyczne odświeżanie licznika użytkowników online
+    function updateOnlineUsersCount() {
+        fetch('/admin/dashboard/details/online')
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('online-users-count').textContent = data.data.length;
+            })
+            .catch(error => console.error('Error:', error));
+    }
+
+    // Odświeżaj co 60 sekund
+    setInterval(updateOnlineUsersCount, 60000);
+    </script>
+    @endpush
 </x-admin-layout> 
