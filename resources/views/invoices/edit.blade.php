@@ -89,6 +89,19 @@
                         </div>
                     </div>
 
+                    <!-- Dane kontrahenta -->
+                    <div id="contractor-details" class="hidden mt-4 p-4 bg-gray-50 rounded-md">
+                        <h3 class="text-sm font-medium text-gray-700 mb-2">Dane kontrahenta</h3>
+                        <div class="space-y-2 text-sm text-gray-600">
+                            <p><span class="font-medium">Nazwa:</span> <span id="contractor-name"></span></p>
+                            <p><span class="font-medium">NIP:</span> <span id="contractor-nip"></span></p>
+                            <p><span class="font-medium">Adres:</span> <span id="contractor-address"></span></p>
+                            <p><span class="font-medium">Kraj:</span> <span id="contractor-country"></span></p>
+                            <p><span class="font-medium">Email:</span> <span id="contractor-email"></span></p>
+                            <p><span class="font-medium">Telefon:</span> <span id="contractor-phone"></span></p>
+                        </div>
+                    </div>
+
                     <div>
                         <label for="payment_method" class="block text-sm font-medium text-gray-700">Metoda płatności</label>
                         <div class="custom-select-wrapper">
