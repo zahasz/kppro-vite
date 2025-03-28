@@ -18,26 +18,64 @@
                             </div>
                             <div class="ml-3 flex-1 md:flex md:justify-between">
                                 <p class="text-sm text-blue-700">
-                                    Edytujesz subskrypcję dla użytkownika <span class="font-bold">Jan Kowalski</span> (jan.kowalski@example.com)
+                                    Edytujesz subskrypcję dla użytkownika <span class="font-bold">{{ $subscription->user->name }}</span> ({{ $subscription->user->email }})
                                 </p>
                             </div>
                         </div>
                     </div>
                     
-                    <form action="{{ route('admin.subscriptions.update-user-subscription', 1) }}" method="POST">
+                    <form action="{{ route('admin.subscriptions.update-user-subscription', $subscription->id) }}" method="POST">
                         @csrf
                         @method('PUT')
                         
                         <div class="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
                             <div class="sm:col-span-3">
-                                <label for="subscription_plan" class="block text-sm font-medium text-gray-700">Plan subskrypcji</label>
-                                <select id="subscription_plan" name="subscription_plan" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md">
-                                    <option value="free">Darmowy (0 PLN)</option>
-                                    <option value="standard">Standard (49 PLN / miesiąc)</option>
-                                    <option value="premium" selected>Premium (99 PLN / miesiąc)</option>
-                                    <option value="premium_yearly">Premium Roczny (999 PLN / rok)</option>
+                                <label for="user_id" class="block text-sm font-medium text-gray-700">Użytkownik</label>
+                                <select id="user_id" name="user_id" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md">
+                                    @foreach($users as $user)
+                                        <option value="{{ $user->id }}" {{ $subscription->user_id == $user->id ? 'selected' : '' }}>
+                                            {{ $user->name }} ({{ $user->email }})
+                                        </option>
+                                    @endforeach
                                 </select>
-                                @error('subscription_plan')
+                                @error('user_id')
+                                    <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
+                                @enderror
+                            </div>
+
+                            <div class="sm:col-span-3">
+                                <label for="plan_id" class="block text-sm font-medium text-gray-700">Plan subskrypcji</label>
+                                <select id="plan_id" name="plan_id" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md">
+                                    @foreach($plans as $plan)
+                                        <option value="{{ $plan->id }}" data-price="{{ $plan->price }}" data-interval="{{ $plan->interval }}" {{ $subscription->plan_id == $plan->id ? 'selected' : '' }}>
+                                            {{ $plan->name }} ({{ number_format($plan->price, 2) }} PLN / {{ $plan->interval == 'monthly' ? 'miesiąc' : ($plan->interval == 'annually' ? 'rok' : $plan->interval) }})
+                                        </option>
+                                    @endforeach
+                                </select>
+                                @error('plan_id')
+                                    <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
+                                @enderror
+                            </div>
+
+                            <div class="sm:col-span-3">
+                                <label for="subscription_type" class="block text-sm font-medium text-gray-700">Typ subskrypcji</label>
+                                <select id="subscription_type" name="subscription_type" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md">
+                                    <option value="manual" {{ $subscription->subscription_type == 'manual' ? 'selected' : '' }}>Ręczna (bez automatycznego odnowienia)</option>
+                                    <option value="automatic" {{ $subscription->subscription_type == 'automatic' ? 'selected' : '' }}>Automatyczna (z automatycznym odnowieniem)</option>
+                                </select>
+                                @error('subscription_type')
+                                    <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
+                                @enderror
+                            </div>
+
+                            <div id="renewal_options" class="sm:col-span-3 {{ $subscription->subscription_type == 'automatic' ? '' : 'hidden' }}">
+                                <label for="renewal_status" class="block text-sm font-medium text-gray-700">Status odnowienia</label>
+                                <select id="renewal_status" name="renewal_status" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md">
+                                    <option value="enabled" {{ $subscription->renewal_status == 'enabled' ? 'selected' : '' }}>Włączone</option>
+                                    <option value="disabled" {{ $subscription->renewal_status == 'disabled' ? 'selected' : '' }}>Wyłączone</option>
+                                </select>
+                                <p class="mt-1 text-xs text-gray-500">Określa, czy subskrypcja będzie odnawiana automatycznie</p>
+                                @error('renewal_status')
                                     <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
                                 @enderror
                             </div>
@@ -45,10 +83,10 @@
                             <div class="sm:col-span-3">
                                 <label for="status" class="block text-sm font-medium text-gray-700">Status</label>
                                 <select id="status" name="status" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md">
-                                    <option value="active" selected>Aktywna</option>
-                                    <option value="pending">Oczekująca</option>
-                                    <option value="cancelled">Anulowana</option>
-                                    <option value="expired">Wygasła</option>
+                                    <option value="active" {{ $subscription->status == 'active' ? 'selected' : '' }}>Aktywna</option>
+                                    <option value="pending" {{ $subscription->status == 'pending' ? 'selected' : '' }}>Oczekująca na płatność</option>
+                                    <option value="inactive" {{ $subscription->status == 'inactive' ? 'selected' : '' }}>Nieaktywna</option>
+                                    <option value="cancelled" {{ $subscription->status == 'cancelled' ? 'selected' : '' }}>Anulowana</option>
                                 </select>
                                 @error('status')
                                     <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
@@ -56,18 +94,40 @@
                             </div>
                             
                             <div class="sm:col-span-3">
-                                <label for="start_date" class="block text-sm font-medium text-gray-700">Data rozpoczęcia</label>
-                                <input type="date" name="start_date" id="start_date" value="2023-01-15" class="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
-                                @error('start_date')
+                                <label for="price" class="block text-sm font-medium text-gray-700">Cena</label>
+                                <div class="mt-1 relative rounded-md shadow-sm">
+                                    <input type="number" name="price" id="price" step="0.01" min="0" value="{{ $subscription->price }}" class="focus:ring-blue-500 focus:border-blue-500 block w-full pr-12 sm:text-sm border-gray-300 rounded-md">
+                                    <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                                        <span class="text-gray-500 sm:text-sm">PLN</span>
+                                    </div>
+                                </div>
+                                @error('price')
                                     <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
                                 @enderror
                             </div>
                             
                             <div class="sm:col-span-3">
-                                <label for="end_date" class="block text-sm font-medium text-gray-700">Data zakończenia</label>
-                                <input type="date" name="end_date" id="end_date" value="2023-12-15" class="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
-                                <p class="mt-1 text-xs text-gray-500">Pozostaw puste dla bezterminowej subskrypcji</p>
-                                @error('end_date')
+                                <label for="start_date" class="block text-sm font-medium text-gray-700">Data rozpoczęcia</label>
+                                <input type="date" name="start_date" id="start_date" value="{{ $subscription->start_date ? $subscription->start_date->format('Y-m-d') : '' }}" class="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
+                                @error('start_date')
+                                    <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
+                                @enderror
+                            </div>
+                            
+                            <div class="sm:col-span-3" id="next_payment_date_container" {{ $subscription->subscription_type == 'automatic' ? '' : 'hidden' }}>
+                                <label for="next_payment_date" class="block text-sm font-medium text-gray-700">Data następnej płatności</label>
+                                <input type="date" name="next_payment_date" id="next_payment_date" value="{{ $subscription->next_payment_date ? $subscription->next_payment_date->format('Y-m-d') : '' }}" class="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
+                                <p class="mt-1 text-xs text-gray-500">Tylko dla automatycznych subskrypcji</p>
+                                @error('next_payment_date')
+                                    <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
+                                @enderror
+                            </div>
+                            
+                            <div class="sm:col-span-3">
+                                <label for="trial_ends_at" class="block text-sm font-medium text-gray-700">Data zakończenia okresu próbnego</label>
+                                <input type="date" name="trial_ends_at" id="trial_ends_at" value="{{ $subscription->trial_ends_at ? $subscription->trial_ends_at->format('Y-m-d') : '' }}" class="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
+                                <p class="mt-1 text-xs text-gray-500">Pozostaw puste jeśli nie dotyczy</p>
+                                @error('trial_ends_at')
                                     <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
                                 @enderror
                             </div>
@@ -75,10 +135,11 @@
                             <div class="sm:col-span-3">
                                 <label for="payment_method" class="block text-sm font-medium text-gray-700">Metoda płatności</label>
                                 <select id="payment_method" name="payment_method" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md">
-                                    <option value="card" selected>Karta płatnicza</option>
-                                    <option value="paypal">PayPal</option>
-                                    <option value="bank_transfer">Przelew bankowy</option>
-                                    <option value="none">Brak (darmowy plan)</option>
+                                    <option value="card" {{ $subscription->payment_method == 'card' ? 'selected' : '' }}>Karta płatnicza</option>
+                                    <option value="paypal" {{ $subscription->payment_method == 'paypal' ? 'selected' : '' }}>PayPal</option>
+                                    <option value="bank_transfer" {{ $subscription->payment_method == 'bank_transfer' ? 'selected' : '' }}>Przelew bankowy</option>
+                                    <option value="cash" {{ $subscription->payment_method == 'cash' ? 'selected' : '' }}>Gotówka</option>
+                                    <option value="free" {{ $subscription->payment_method == 'free' ? 'selected' : '' }}>Bezpłatnie</option>
                                 </select>
                                 @error('payment_method')
                                     <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
@@ -86,15 +147,16 @@
                             </div>
                             
                             <div class="sm:col-span-3">
-                                <label for="payment_details" class="block text-sm font-medium text-gray-700">Szczegóły płatności</label>
-                                <input type="text" name="payment_details" id="payment_details" value="Visa ****4512" class="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
-                                <p class="mt-1 text-xs text-gray-500">np. ostatnie 4 cyfry karty, adres email PayPal</p>
-                                @error('payment_details')
+                                <label for="last_payment_id" class="block text-sm font-medium text-gray-700">ID ostatniej płatności</label>
+                                <input type="text" name="last_payment_id" id="last_payment_id" value="{{ $subscription->last_payment_id }}" class="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
+                                <p class="mt-1 text-xs text-gray-500">np. ID transakcji, nr faktury</p>
+                                @error('last_payment_id')
                                     <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
                                 @enderror
                             </div>
                         </div>
                         
+                        @if(isset($payments) && count($payments) > 0)
                         <div class="mt-8 border-t border-gray-200 pt-6">
                             <h3 class="text-lg font-medium text-gray-900">Historia płatności</h3>
                             <div class="mt-4 overflow-hidden shadow ring-1 ring-black ring-opacity-5 md:rounded-lg">
@@ -109,50 +171,36 @@
                                         </tr>
                                     </thead>
                                     <tbody class="divide-y divide-gray-200 bg-white">
+                                        @foreach($payments as $payment)
                                         <tr>
-                                            <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6">15.10.2023</td>
-                                            <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">99 PLN</td>
+                                            <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6">{{ $payment->created_at->format('d.m.Y') }}</td>
+                                            <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{{ number_format($payment->amount, 2) }} PLN</td>
                                             <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                                    Opłacona
+                                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-{{ $payment->status == 'paid' ? 'green' : 'red' }}-100 text-{{ $payment->status == 'paid' ? 'green' : 'red' }}-800">
+                                                    {{ $payment->status == 'paid' ? 'Opłacona' : 'Nieopłacona' }}
                                                 </span>
                                             </td>
-                                            <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">Visa ****4512</td>
-                                            <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">TXN8765432190</td>
+                                            <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{{ $payment->payment_method }}</td>
+                                            <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{{ $payment->transaction_id }}</td>
                                         </tr>
-                                        <tr>
-                                            <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6">15.09.2023</td>
-                                            <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">99 PLN</td>
-                                            <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                                    Opłacona
-                                                </span>
-                                            </td>
-                                            <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">Visa ****4512</td>
-                                            <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">TXN8765432189</td>
-                                        </tr>
-                                        <tr>
-                                            <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6">15.08.2023</td>
-                                            <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">99 PLN</td>
-                                            <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                                    Opłacona
-                                                </span>
-                                            </td>
-                                            <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">Visa ****4512</td>
-                                            <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">TXN8765432188</td>
-                                        </tr>
+                                        @endforeach
                                     </tbody>
                                 </table>
                             </div>
                         </div>
+                        @endif
                         
                         <div class="mt-8 border-t border-gray-200 pt-6">
                             <div class="flex justify-between">
                                 <div>
-                                    <button type="button" class="bg-red-600 py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
-                                        Anuluj subskrypcję
-                                    </button>
+                                    @if($subscription->status != 'cancelled')
+                                    <a href="{{ route('admin.subscriptions.cancel', $subscription->id) }}" class="bg-red-600 py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                                       onclick="return confirm('Czy na pewno chcesz anulować tę subskrypcję?')">
+                                       Anuluj subskrypcję
+                                    </a>
+                                    @else
+                                    <span class="text-gray-500 text-sm">Subskrypcja jest już anulowana</span>
+                                    @endif
                                 </div>
                                 <div class="flex">
                                     <a href="{{ route('admin.subscriptions.users') }}" class="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 mr-3">
@@ -169,4 +217,40 @@
             </div>
         </div>
     </div>
+    
+    @push('scripts')
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const subscriptionTypeSelect = document.getElementById('subscription_type');
+            const renewalOptionsDiv = document.getElementById('renewal_options');
+            const nextPaymentDateContainer = document.getElementById('next_payment_date_container');
+            const planSelect = document.getElementById('plan_id');
+            const priceInput = document.getElementById('price');
+            
+            // Pokaż/ukryj opcje odnowienia w zależności od typu subskrypcji
+            subscriptionTypeSelect.addEventListener('change', function() {
+                if (this.value === 'automatic') {
+                    renewalOptionsDiv.classList.remove('hidden');
+                    nextPaymentDateContainer.classList.remove('hidden');
+                } else {
+                    renewalOptionsDiv.classList.add('hidden');
+                    nextPaymentDateContainer.classList.add('hidden');
+                }
+            });
+            
+            // Ustawienie ceny na podstawie wybranego planu
+            planSelect.addEventListener('change', function() {
+                const selectedOption = this.options[this.selectedIndex];
+                if (selectedOption.value !== '' && !priceInput.dataset.manuallyChanged) {
+                    priceInput.value = selectedOption.dataset.price;
+                }
+            });
+            
+            // Oznacz, że cena została ręcznie zmieniona
+            priceInput.addEventListener('input', function() {
+                this.dataset.manuallyChanged = true;
+            });
+        });
+    </script>
+    @endpush
 </x-admin-layout> 

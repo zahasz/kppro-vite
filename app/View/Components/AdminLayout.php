@@ -23,6 +23,6 @@ class AdminLayout extends Component
      */
     public function render()
     {
-        return view('admin.layouts.admin');
+        return view('layouts.admin-livewire');
     }
 }

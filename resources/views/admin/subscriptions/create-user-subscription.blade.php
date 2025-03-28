@@ -15,75 +15,30 @@
                         <div class="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
                             <div class="sm:col-span-6">
                                 <label for="user_id" class="block text-sm font-medium text-gray-700">Użytkownik</label>
-                                <div class="mt-1 relative">
-                                    <input type="text" name="user_search" id="user_search" placeholder="Wyszukaj użytkownika po nazwie lub emailu" class="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
-                                    <input type="hidden" name="user_id" id="user_id">
+                                <div class="mt-1">
+                                    <select id="user_id" name="user_id" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md">
+                                        <option value="">Wybierz użytkownika</option>
+                                        @foreach($users as $user)
+                                            <option value="{{ $user->id }}">{{ $user->name }} ({{ $user->email }})</option>
+                                        @endforeach
+                                    </select>
                                 </div>
-                                <div id="user_suggestions" class="absolute z-10 mt-1 w-full bg-white shadow-lg max-h-56 rounded-md py-1 text-base ring-1 ring-black ring-opacity-5 overflow-auto focus:outline-none sm:text-sm hidden">
-                                    <!-- Przykładowe dane do wyszukiwania użytkowników -->
-                                    <div data-id="1" class="user-item cursor-pointer select-none relative py-2 pl-3 pr-9 hover:bg-gray-100">
-                                        <div class="flex items-center">
-                                            <span class="ml-3 block font-medium truncate">Jan Kowalski (jan.kowalski@example.com)</span>
-                                        </div>
-                                    </div>
-                                    <div data-id="2" class="user-item cursor-pointer select-none relative py-2 pl-3 pr-9 hover:bg-gray-100">
-                                        <div class="flex items-center">
-                                            <span class="ml-3 block font-medium truncate">Anna Nowak (anna.nowak@example.com)</span>
-                                        </div>
-                                    </div>
-                                    <div data-id="3" class="user-item cursor-pointer select-none relative py-2 pl-3 pr-9 hover:bg-gray-100">
-                                        <div class="flex items-center">
-                                            <span class="ml-3 block font-medium truncate">Piotr Wiśniewski (piotr.wisniewski@example.com)</span>
-                                        </div>
-                                    </div>
-                                </div>
-                                
                                 @error('user_id')
                                     <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
                                 @enderror
-                                
-                                <script>
-                                    document.addEventListener('DOMContentLoaded', function() {
-                                        const userSearch = document.getElementById('user_search');
-                                        const userSuggestions = document.getElementById('user_suggestions');
-                                        const userIdInput = document.getElementById('user_id');
-                                        const userItems = document.querySelectorAll('.user-item');
-                                        
-                                        userSearch.addEventListener('focus', function() {
-                                            userSuggestions.classList.remove('hidden');
-                                        });
-                                        
-                                        userSearch.addEventListener('input', function() {
-                                            userSuggestions.classList.remove('hidden');
-                                            // Tutaj normalnie byłoby API call do wyszukiwania użytkowników
-                                        });
-                                        
-                                        document.addEventListener('click', function(e) {
-                                            if (!userSearch.contains(e.target) && !userSuggestions.contains(e.target)) {
-                                                userSuggestions.classList.add('hidden');
-                                            }
-                                        });
-                                        
-                                        userItems.forEach(item => {
-                                            item.addEventListener('click', function() {
-                                                userIdInput.value = this.dataset.id;
-                                                userSearch.value = this.querySelector('span').textContent;
-                                                userSuggestions.classList.add('hidden');
-                                            });
-                                        });
-                                    });
-                                </script>
                             </div>
                             
                             <div class="sm:col-span-3">
-                                <label for="subscription_plan" class="block text-sm font-medium text-gray-700">Plan subskrypcji</label>
-                                <select id="subscription_plan" name="subscription_plan" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md">
-                                    <option value="free">Darmowy (0 PLN)</option>
-                                    <option value="standard">Standard (49 PLN / miesiąc)</option>
-                                    <option value="premium">Premium (99 PLN / miesiąc)</option>
-                                    <option value="premium_yearly">Premium Roczny (999 PLN / rok)</option>
+                                <label for="plan_id" class="block text-sm font-medium text-gray-700">Plan subskrypcji</label>
+                                <select id="plan_id" name="plan_id" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md">
+                                    <option value="">Wybierz plan</option>
+                                    @foreach($plans as $plan)
+                                        <option value="{{ $plan->id }}" data-price="{{ $plan->price }}" data-interval="{{ $plan->interval }}">
+                                            {{ $plan->name }} ({{ number_format($plan->price, 2) }} PLN / {{ $plan->interval == 'monthly' ? 'miesiąc' : ($plan->interval == 'annually' ? 'rok' : $plan->interval) }})
+                                        </option>
+                                    @endforeach
                                 </select>
-                                @error('subscription_plan')
+                                @error('plan_id')
                                     <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
                                 @enderror
                             </div>
@@ -93,9 +48,32 @@
                                 <select id="status" name="status" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md">
                                     <option value="active">Aktywna</option>
                                     <option value="pending" selected>Oczekująca na płatność</option>
-                                    <option value="trial">Trial</option>
+                                    <option value="inactive">Nieaktywna</option>
                                 </select>
                                 @error('status')
+                                    <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
+                                @enderror
+                            </div>
+                            
+                            <div class="sm:col-span-3">
+                                <label for="subscription_type" class="block text-sm font-medium text-gray-700">Typ subskrypcji</label>
+                                <select id="subscription_type" name="subscription_type" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md">
+                                    <option value="manual">Ręczna (bez automatycznego odnowienia)</option>
+                                    <option value="automatic">Automatyczna (z automatycznym odnowieniem)</option>
+                                </select>
+                                @error('subscription_type')
+                                    <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
+                                @enderror
+                            </div>
+                            
+                            <div id="renewal_options" class="sm:col-span-3 hidden">
+                                <label for="renewal_status" class="block text-sm font-medium text-gray-700">Status odnowienia</label>
+                                <select id="renewal_status" name="renewal_status" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md">
+                                    <option value="enabled" selected>Włączone</option>
+                                    <option value="disabled">Wyłączone</option>
+                                </select>
+                                <p class="mt-1 text-xs text-gray-500">Określa, czy subskrypcja będzie odnawiana automatycznie</p>
+                                @error('renewal_status')
                                     <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
                                 @enderror
                             </div>
@@ -109,10 +87,23 @@
                             </div>
                             
                             <div class="sm:col-span-3">
-                                <label for="end_date" class="block text-sm font-medium text-gray-700">Data zakończenia</label>
-                                <input type="date" name="end_date" id="end_date" class="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
-                                <p class="mt-1 text-xs text-gray-500">Pozostaw puste dla bezterminowej subskrypcji</p>
-                                @error('end_date')
+                                <label for="trial_ends_at" class="block text-sm font-medium text-gray-700">Data zakończenia okresu próbnego</label>
+                                <input type="date" name="trial_ends_at" id="trial_ends_at" class="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
+                                <p class="mt-1 text-xs text-gray-500">Pozostaw puste jeśli nie dotyczy</p>
+                                @error('trial_ends_at')
+                                    <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
+                                @enderror
+                            </div>
+                            
+                            <div class="sm:col-span-3">
+                                <label for="price" class="block text-sm font-medium text-gray-700">Cena</label>
+                                <div class="mt-1 relative rounded-md shadow-sm">
+                                    <input type="number" name="price" id="price" step="0.01" min="0" class="focus:ring-blue-500 focus:border-blue-500 block w-full pr-12 sm:text-sm border-gray-300 rounded-md" placeholder="0.00">
+                                    <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                                        <span class="text-gray-500 sm:text-sm">PLN</span>
+                                    </div>
+                                </div>
+                                @error('price')
                                     <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
                                 @enderror
                             </div>
@@ -123,7 +114,8 @@
                                     <option value="card">Karta płatnicza</option>
                                     <option value="paypal">PayPal</option>
                                     <option value="bank_transfer">Przelew bankowy</option>
-                                    <option value="none">Brak (darmowy plan)</option>
+                                    <option value="cash">Gotówka</option>
+                                    <option value="free">Bezpłatnie</option>
                                 </select>
                                 @error('payment_method')
                                     <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
@@ -131,9 +123,9 @@
                             </div>
                             
                             <div class="sm:col-span-3">
-                                <label for="payment_details" class="block text-sm font-medium text-gray-700">Szczegóły płatności</label>
-                                <input type="text" name="payment_details" id="payment_details" placeholder="np. ostatnie 4 cyfry karty, adres email PayPal" class="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
-                                @error('payment_details')
+                                <label for="payment_id" class="block text-sm font-medium text-gray-700">ID płatności</label>
+                                <input type="text" name="payment_id" id="payment_id" placeholder="np. ID transakcji, nr faktury" class="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
+                                @error('payment_id')
                                     <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
                                 @enderror
                             </div>
@@ -171,4 +163,39 @@
             </div>
         </div>
     </div>
+    
+    @push('scripts')
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const subscriptionTypeSelect = document.getElementById('subscription_type');
+            const renewalOptionsDiv = document.getElementById('renewal_options');
+            const planSelect = document.getElementById('plan_id');
+            const priceInput = document.getElementById('price');
+            
+            // Pokaż/ukryj opcje odnowienia w zależności od typu subskrypcji
+            subscriptionTypeSelect.addEventListener('change', function() {
+                if (this.value === 'automatic') {
+                    renewalOptionsDiv.classList.remove('hidden');
+                } else {
+                    renewalOptionsDiv.classList.add('hidden');
+                }
+            });
+            
+            // Ustawienie ceny na podstawie wybranego planu
+            planSelect.addEventListener('change', function() {
+                const selectedOption = this.options[this.selectedIndex];
+                if (selectedOption.value !== '') {
+                    priceInput.value = selectedOption.dataset.price;
+                } else {
+                    priceInput.value = '';
+                }
+            });
+            
+            // Inicjalne ustawienie widoczności opcji odnowienia
+            if (subscriptionTypeSelect.value === 'automatic') {
+                renewalOptionsDiv.classList.remove('hidden');
+            }
+        });
+    </script>
+    @endpush
 </x-admin-layout> 

@@ -16,6 +16,7 @@ class Plan extends Model
         'price',
         'interval',
         'trial_period_days',
+        'subscription_type',
         'features',
         'is_active',
     ];
@@ -27,6 +28,11 @@ class Plan extends Model
         'trial_period_days' => 'integer',
     ];
 
+    // Typy subskrypcji
+    const TYPE_MANUAL = 'manual';
+    const TYPE_AUTOMATIC = 'automatic';
+    const TYPE_BOTH = 'both';
+
     public function subscriptions()
     {
         return $this->hasMany(Subscription::class);
@@ -35,5 +41,21 @@ class Plan extends Model
     public function activeSubscriptions()
     {
         return $this->subscriptions()->where('status', 'active');
+    }
+
+    /**
+     * Sprawdza czy plan obsługuje ręczną subskrypcję
+     */
+    public function supportsManualSubscription()
+    {
+        return $this->subscription_type === self::TYPE_MANUAL || $this->subscription_type === self::TYPE_BOTH;
+    }
+
+    /**
+     * Sprawdza czy plan obsługuje automatyczną subskrypcję
+     */
+    public function supportsAutomaticSubscription()
+    {
+        return $this->subscription_type === self::TYPE_AUTOMATIC || $this->subscription_type === self::TYPE_BOTH;
     }
 } 

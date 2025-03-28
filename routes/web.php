@@ -150,6 +150,7 @@ Route::middleware('auth')->group(function () {
         // Zarządzanie użytkownikami
         Route::prefix('users')->name('users.')->group(function () {
             Route::get('/', [AdminPanelController::class, 'users'])->name('index');
+            Route::get('/online', [AdminPanelController::class, 'onlineUsers'])->name('online');
             Route::get('/create', [AdminPanelController::class, 'createUser'])->name('create');
             Route::post('/', [AdminPanelController::class, 'storeUser'])->name('store');
             Route::get('/{user}/edit', [AdminPanelController::class, 'editUser'])->name('edit');
@@ -179,6 +180,7 @@ Route::middleware('auth')->group(function () {
         Route::prefix('subscriptions')->name('subscriptions.')->group(function () {
             // Plany subskrypcji
             Route::get('/', [AdminPanelController::class, 'subscriptions'])->name('index');
+            Route::get('/alpine', [AdminPanelController::class, 'subscriptionsAlpine'])->name('alpine');
             Route::get('/create', [AdminPanelController::class, 'createSubscription'])->name('create');
             Route::post('/', [AdminPanelController::class, 'storeSubscription'])->name('store');
             Route::get('/{plan}/edit', [AdminPanelController::class, 'editSubscription'])->name('edit');
@@ -197,6 +199,21 @@ Route::middleware('auth')->group(function () {
             Route::get('/payments', [AdminPanelController::class, 'subscriptionPayments'])->name('payments');
             Route::get('/payments/{payment}', [AdminPanelController::class, 'showPaymentDetails'])->name('payment-details');
             Route::post('/payments/{payment}/refund', [AdminPanelController::class, 'refundPayment'])->name('refund-payment');
+            
+            // Powiadomienia subskrypcji
+            Route::get('/notifications', [AdminPanelController::class, 'subscriptionNotifications'])->name('notifications');
+        });
+        
+        // Zarządzanie przychodami
+        Route::prefix('revenue')->name('revenue.')->group(function () {
+            // Dashboard przychodów
+            Route::get('/', [AdminPanelController::class, 'revenueDashboard'])->name('dashboard');
+            
+            // Raporty miesięczne
+            Route::get('/monthly', [AdminPanelController::class, 'revenueMonthly'])->name('monthly');
+            
+            // Raporty roczne
+            Route::get('/annual', [AdminPanelController::class, 'revenueAnnual'])->name('annual');
         });
         
         // System

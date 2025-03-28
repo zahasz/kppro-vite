@@ -50,6 +50,9 @@ class LoginRequest extends FormRequest
         }
 
         RateLimiter::clear($this->throttleKey());
+        
+        // Rejestruj udane logowanie
+        Auth::user()->recordSuccessfulLogin();
     }
 
     /**

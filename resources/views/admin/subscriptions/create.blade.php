@@ -59,15 +59,28 @@
                 </div>
 
                 <!-- Okres rozliczeniowy -->
-                <div>
-                    <label for="billing_period" class="block text-sm font-medium text-gray-700">Okres rozliczeniowy</label>
-                    <select name="billing_period" id="billing_period" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
-                        <option value="monthly" {{ (isset($plan) && $plan->billing_period == 'monthly') ? 'selected' : '' }}>Miesięczny</option>
-                        <option value="quarterly" {{ (isset($plan) && $plan->billing_period == 'quarterly') ? 'selected' : '' }}>Kwartalny</option>
-                        <option value="yearly" {{ (isset($plan) && $plan->billing_period == 'yearly') ? 'selected' : '' }}>Roczny</option>
-                        <option value="lifetime" {{ (isset($plan) && $plan->billing_period == 'lifetime') ? 'selected' : '' }}>Bezterminowy</option>
+                <div class="sm:col-span-3">
+                    <label for="interval" class="block text-sm font-medium text-gray-700">Okres trwania</label>
+                    <select id="interval" name="interval" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md">
+                        <option value="monthly">Miesięczny</option>
+                        <option value="quarterly">Kwartalny</option>
+                        <option value="biannually">Półroczny</option>
+                        <option value="annually">Roczny</option>
+                        <option value="lifetime">Bezterminowy</option>
                     </select>
-                    @error('billing_period')
+                    @error('interval')
+                        <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
+                    @enderror
+                </div>
+                
+                <div class="sm:col-span-3">
+                    <label for="subscription_type" class="block text-sm font-medium text-gray-700">Typ subskrypcji</label>
+                    <select id="subscription_type" name="subscription_type" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md">
+                        @foreach($subscriptionTypes as $value => $label)
+                            <option value="{{ $value }}">{{ $label }}</option>
+                        @endforeach
+                    </select>
+                    @error('subscription_type')
                         <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
                     @enderror
                 </div>

@@ -14,6 +14,7 @@ use Spatie\Permission\Traits\HasRoles;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Request;
 use Illuminate\Database\Eloquent\Casts\Attribute;
+use Illuminate\Support\Facades\Cache;
 
 /**
  * @property int $id
@@ -92,6 +93,8 @@ class User extends Authenticatable
         'failed_login_attempts',
         'locked_until',
         'last_seen_at',
+        'last_login_at',
+        'last_login_ip',
     ];
 
     /**
@@ -172,13 +175,22 @@ class User extends Authenticatable
         return $this->locked_until && $this->locked_until->isFuture();
     }
 
-    public function recordSuccessfulLogin()
+    public function recordSuccessfulLogin(): bool
     {
-        $this->last_login_at = now();
-        $this->last_login_ip = request()->ip();
-        $this->failed_login_attempts = 0;
-        $this->locked_until = null;
-        $this->save();
+        \Log::info('User::recordSuccessfulLogin - Rejestrowanie udanego logowania', [
+            'user_id' => $this->id,
+            'name' => $this->name,
+            'email' => $this->email,
+            'ip' => request()->ip(),
+            'user_agent' => request()->userAgent(),
+        ]);
+
+        return $this->update([
+            'last_login_at' => now(),
+            'last_login_ip' => request()->ip(),
+            'failed_login_attempts' => 0,
+            'locked_until' => null,
+        ]);
     }
 
     public function isActive()
@@ -227,12 +239,23 @@ class User extends Authenticatable
     }
 
     /**
-     * Sprawdza, czy użytkownik jest online (aktywny w ciągu ostatnich 5 minut)
+     * Sprawdza czy użytkownik jest online (aktywny w ostatnich 5 minutach)
      *
      * @return bool
      */
     public function isOnline(): bool
     {
+        \Log::info('User::isOnline - Sprawdzanie statusu online', [
+            'user_id' => $this->id,
+            'last_seen_at' => $this->last_seen_at?->toDateTimeString(),
+            'current_time' => now()->toDateTimeString(),
+            'timezone' => config('app.timezone'),
+            'threshold' => now()->subMinutes(5)->toDateTimeString(),
+            'is_online' => $this->last_seen_at && $this->last_seen_at->gt(now()->subMinutes(5)),
+            'cache_key' => "user.{$this->id}",
+            'cache_exists' => Cache::has("user.{$this->id}"),
+        ]);
+
         if (!$this->last_seen_at) {
             return false;
         }
@@ -241,12 +264,32 @@ class User extends Authenticatable
     }
 
     /**
-     * Aktualizuje timestamp ostatniej aktywności użytkownika
+     * Aktualizuje znacznik czasu ostatniej aktywności
      *
      * @return bool
      */
     public function updateLastSeen(): bool
     {
-        return $this->update(['last_seen_at' => now()]);
+        \Log::info('User::updateLastSeen - Przed aktualizacją', [
+            'user_id' => $this->id,
+            'current_last_seen_at' => $this->last_seen_at?->toDateTimeString(),
+            'new_last_seen_at' => now()->toDateTimeString(),
+            'timezone' => config('app.timezone'),
+            'cache_key' => "user.{$this->id}",
+            'cache_exists' => Cache::has("user.{$this->id}"),
+        ]);
+
+        $result = $this->update(['last_seen_at' => now()]);
+
+        \Log::info('User::updateLastSeen - Po aktualizacji', [
+            'user_id' => $this->id,
+            'update_success' => $result,
+            'new_last_seen_at' => $this->fresh()->last_seen_at?->toDateTimeString(),
+            'is_online' => $this->fresh()->isOnline(),
+            'cache_key' => "user.{$this->id}",
+            'cache_exists' => Cache::has("user.{$this->id}"),
+        ]);
+
+        return $result;
     }
 }

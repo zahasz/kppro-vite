@@ -22,72 +22,81 @@ class UpdateUserLastActive
      */
     public function handle(Request $request, Closure $next)
     {
-        $isAjax = $request->ajax() || $request->wantsJson();
-        $currentTime = now();
-        
-        Log::info('UpdateUserLastActive middleware rozpoczęty', [
+        \Log::info('UpdateUserLastActive - Start', [
             'path' => $request->path(),
             'method' => $request->method(),
-            'user_id' => Auth::id(),
             'is_authenticated' => Auth::check(),
-            'app_timezone' => config('app.timezone'),
-            'current_time' => $currentTime->toDateTimeString(),
-            'is_ajax' => $isAjax,
-            'request_headers' => $request->headers->all(),
+            'user_id' => Auth::id(),
             'session_id' => session()->getId(),
-            'ip' => $request->ip()
         ]);
 
-        if (Auth::check()) {
-            $user = Auth::user();
+        if (auth()->check()) {
+            $user = auth()->user();
             
+            \Log::info('UpdateUserLastActive - Przed aktualizacją', [
+                'user_id' => $user->id,
+                'name' => $user->name,
+                'last_seen_at' => $user->last_seen_at?->toDateTimeString(),
+                'is_online' => $user->isOnline(),
+                'request_path' => $request->path(),
+                'request_method' => $request->method(),
+                'request_ip' => $request->ip(),
+                'user_agent' => $request->userAgent(),
+                'roles' => $user->getRoleNames(),
+                'permissions' => $user->getAllPermissions()->pluck('name'),
+                'timezone' => config('app.timezone'),
+                'current_time' => now()->toDateTimeString(),
+                'session_id' => session()->getId(),
+            ]);
+
             try {
                 DB::enableQueryLog();
                 
-                // Sprawdź aktualny stan przed aktualizacją
                 $beforeUpdate = $user->fresh();
-                
-                Log::info('Stan przed aktualizacją', [
-                    'user_id' => $user->id,
-                    'name' => $user->name,
-                    'current_last_seen' => $beforeUpdate->last_seen_at?->toDateTimeString(),
-                    'now' => $currentTime->toDateTimeString(),
-                    'is_online' => $beforeUpdate->isOnline()
-                ]);
-
-                // Aktualizacja przez metodę modelu
-                $updated = $user->updateLastSeen();
-                
-                // Sprawdź stan po aktualizacji
+                $updateResult = $user->updateLastSeen();
                 $afterUpdate = $user->fresh();
                 
-                $queryLog = DB::getQueryLog();
-                
-                Log::info('Status aktualizacji last_seen_at', [
-                    'updated' => $updated,
+                \Log::info('UpdateUserLastActive - Po aktualizacji', [
                     'user_id' => $user->id,
-                    'before_last_seen' => $beforeUpdate->last_seen_at?->toDateTimeString(),
-                    'after_last_seen' => $afterUpdate->last_seen_at?->toDateTimeString(),
-                    'current_time' => $currentTime->toDateTimeString(),
-                    'is_online' => $afterUpdate->isOnline(),
-                    'query_log' => $queryLog,
-                    'session_id' => session()->getId()
+                    'name' => $user->name,
+                    'update_success' => $updateResult,
+                    'before_update' => [
+                        'last_seen_at' => $beforeUpdate->last_seen_at?->toDateTimeString(),
+                        'is_online' => $beforeUpdate->isOnline(),
+                    ],
+                    'after_update' => [
+                        'last_seen_at' => $afterUpdate->last_seen_at?->toDateTimeString(),
+                        'is_online' => $afterUpdate->isOnline(),
+                    ],
+                    'queries' => DB::getQueryLog(),
+                    'cache_status' => [
+                        'cache_driver' => config('cache.default'),
+                        'cache_prefix' => config('cache.prefix'),
+                        'cache_ttl' => config('cache.ttl'),
+                    ],
+                    'session_id' => session()->getId(),
                 ]);
 
-                // Wyczyść cache użytkownika
-                Cache::tags(['users'])->forget('user.' . $user->id);
+                // Wyczyść cache użytkownika i licznika online
+                Cache::forget("user.{$user->id}");
+                Cache::forget('online_users_count');
                 
-                DB::disableQueryLog();
-                
-            } catch (Exception $e) {
-                Log::error('Błąd podczas aktualizacji last_seen_at', [
+                \Log::info('UpdateUserLastActive - Cache wyczyszczony', [
+                    'user_id' => $user->id,
+                    'name' => $user->name,
+                    'cache_keys' => [
+                        "user.{$user->id}",
+                        'online_users_count'
+                    ],
+                    'session_id' => session()->getId(),
+                ]);
+            } catch (\Exception $e) {
+                \Log::error('UpdateUserLastActive - Błąd podczas aktualizacji', [
+                    'user_id' => $user->id,
+                    'name' => $user->name,
                     'error' => $e->getMessage(),
                     'trace' => $e->getTraceAsString(),
-                    'user_id' => $user->id,
-                    'request_path' => $request->path(),
-                    'current_time' => $currentTime->toDateTimeString(),
-                    'query_log' => DB::getQueryLog() ?? [],
-                    'session_id' => session()->getId()
+                    'session_id' => session()->getId(),
                 ]);
             }
         } else {
@@ -96,11 +105,10 @@ class UpdateUserLastActive
                 'request_method' => $request->method(),
                 'ip' => $request->ip(),
                 'user_agent' => $request->userAgent(),
-                'is_ajax' => $isAjax
+                'is_ajax' => $request->ajax() || $request->wantsJson()
             ]);
         }
 
-        Log::info('UpdateUserLastActive middleware zakończony', ['is_ajax' => $isAjax]);
         return $next($request);
     }
 } 

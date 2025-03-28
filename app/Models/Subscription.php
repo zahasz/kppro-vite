@@ -11,6 +11,8 @@ class Subscription extends Model
 {
     use HasFactory, SoftDeletes;
 
+    protected $table = 'subscriptions';
+
     protected $fillable = [
         'user_id',
         'plan_id',
@@ -20,6 +22,11 @@ class Subscription extends Model
         'end_date',
         'trial_ends_at',
         'cancelled_at',
+        'subscription_type',
+        'renewal_status',
+        'next_payment_date',
+        'payment_method',
+        'last_payment_id',
     ];
 
     protected $casts = [
@@ -27,8 +34,15 @@ class Subscription extends Model
         'end_date' => 'datetime',
         'trial_ends_at' => 'datetime',
         'cancelled_at' => 'datetime',
+        'next_payment_date' => 'datetime',
         'price' => 'decimal:2',
     ];
+
+    const TYPE_MANUAL = 'manual';
+    const TYPE_AUTOMATIC = 'automatic';
+    
+    const RENEWAL_ENABLED = 'enabled';
+    const RENEWAL_DISABLED = 'disabled';
 
     public function user()
     {
@@ -51,6 +65,40 @@ class Subscription extends Model
         $this->update([
             'status' => 'cancelled',
             'cancelled_at' => Carbon::now(),
+            'renewal_status' => self::RENEWAL_DISABLED,
         ]);
+    }
+    
+    public function isAutomatic()
+    {
+        return $this->subscription_type === self::TYPE_AUTOMATIC;
+    }
+    
+    public function isManual()
+    {
+        return $this->subscription_type === self::TYPE_MANUAL;
+    }
+    
+    public function isRenewalEnabled()
+    {
+        return $this->renewal_status === self::RENEWAL_ENABLED;
+    }
+    
+    public function enableRenewal()
+    {
+        if ($this->isAutomatic()) {
+            $this->update(['renewal_status' => self::RENEWAL_ENABLED]);
+            return true;
+        }
+        return false;
+    }
+    
+    public function disableRenewal()
+    {
+        if ($this->isAutomatic()) {
+            $this->update(['renewal_status' => self::RENEWAL_DISABLED]);
+            return true;
+        }
+        return false;
     }
 } 
