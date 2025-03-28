@@ -24,7 +24,7 @@ class AdminPanelController extends Controller
         if (Gate::denies('access-admin-panel')) {
             abort(403, 'Brak dostępu.');
         }
-        
+
         // Pobierz statystyki
         $stats = Cache::remember('admin_dashboard_stats', 3600, function () {
             $activeSubscriptions = Subscription::where('status', 'active')->count();
@@ -56,13 +56,13 @@ class AdminPanelController extends Controller
             
             // Przychód z subskrypcji w bieżącym miesiącu
             $monthSubscriptionsValue = Subscription::whereMonth('created_at', Carbon::now()->month)
-                ->whereYear('created_at', Carbon::now()->year)
+                        ->whereYear('created_at', Carbon::now()->year)
                 ->sum('price');
             
             // Przychód z subskrypcji w poprzednim miesiącu
             $lastMonthSubscriptionsValue = Subscription::whereMonth('created_at', $lastMonth->month)
                 ->whereYear('created_at', $lastMonth->year)
-                ->sum('price');
+                        ->sum('price');
             
             // Zmiana procentowa przychodu
             $revenueMonthlyChange = 0;
@@ -769,9 +769,9 @@ class AdminPanelController extends Controller
             
             // Wyczyść cache związane ze statystykami subskrypcji
             $this->clearSubscriptionCache();
-            
-            return redirect()->route('admin.subscriptions.users')
-                             ->with('success', 'Subskrypcja została przypisana do użytkownika.');
+        
+        return redirect()->route('admin.subscriptions.users')
+                         ->with('success', 'Subskrypcja została przypisana do użytkownika.');
         } catch (\Exception $e) {
             Log::error('Błąd podczas tworzenia subskrypcji: ' . $e->getMessage());
             return redirect()->back()
@@ -916,9 +916,9 @@ class AdminPanelController extends Controller
             
             // Wyczyść cache związane ze statystykami subskrypcji
             $this->clearSubscriptionCache();
-            
-            return redirect()->route('admin.subscriptions.users')
-                             ->with('success', 'Subskrypcja użytkownika została zaktualizowana.');
+        
+        return redirect()->route('admin.subscriptions.users')
+                         ->with('success', 'Subskrypcja użytkownika została zaktualizowana.');
         } catch (\Exception $e) {
             Log::error('Błąd podczas aktualizacji subskrypcji: ' . $e->getMessage());
             return redirect()->back()
@@ -981,7 +981,7 @@ class AdminPanelController extends Controller
         if (Gate::denies('access-admin-panel')) {
             abort(403, 'Brak dostępu.');
         }
-
+        
         // Tutaj kod do zwrotu płatności
         return redirect()->back()->with('success', 'Zwrot płatności został zrealizowany.');
     }

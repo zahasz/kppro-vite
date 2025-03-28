@@ -22,42 +22,36 @@
             [x-cloak] { display: none !important; }
             
             :root {
-                /* Ciemniejsza paleta kolorów biznesowych */
-                --primary-50: #f0f6ff;
-                --primary-100: #e0eefe;
-                --primary-200: #bae0fd;
-                --primary-300: #7cd0fc;
-                --primary-400: #36b4f9;
-                --primary-500: #0c95eb;
-                --primary-600: #0170c9;
-                --primary-700: #0158a2;
-                --primary-800: #064886;
-                --primary-900: #0a3c70;
-                --primary-950: #062852;
+                /* Paleta kolorów biznesowych */
+                --business-50: #f5f7fa;
+                --business-100: #ebeef2;
+                --business-200: #dde1e8;
+                --business-300: #cbd0db;
+                --business-400: #a2acc0;
+                --business-500: #7886a2;
+                --business-600: #5b6a88;
+                --business-700: #44546A;
+                --business-800: #384057;
+                --business-900: #303748;
+                --business-950: #1e222d;
                 
-                /* Ciemne odcienie tła */
-                --dark-50: #f6f6f9;
-                --dark-100: #eeeef3;
-                --dark-200: #d8dbe5;
-                --dark-300: #b5bbd0;
-                --dark-400: #8c92b2;
-                --dark-500: #6b7399;
-                --dark-600: #555c7b;
-                --dark-700: #444a65;
-                --dark-800: #383c54;
-                --dark-900: #232533;
-                --dark-950: #15161f;
+                /* Akcenty pastelowe */
+                --pastel-blue: #b8c5e2;
+                --pastel-green: #bfe5bf;
+                --pastel-orange: #f9d5a7;
+                --pastel-red: #f8bfc3;
+                --pastel-purple: #d0bfde;
             }
         </style>
     </head>
     <body class="font-sans antialiased bg-gray-50">
         <div class="min-h-screen flex" x-data="{ sidebarOpen: true }">
             <!-- Sidebar -->
-            <aside class="fixed left-0 top-0 h-full bg-dark-900 shadow-xl z-30 transition-all duration-300 border-r border-dark-800" 
+            <aside class="fixed left-0 top-0 h-full bg-[#44546A]/90 shadow-xl z-30 transition-all duration-300 border-r border-[#44546A]/30" 
                    :class="{'w-[280px]': sidebarOpen, 'w-[80px]': !sidebarOpen}">
                 
                 <!-- Logo i nazwa firmy -->
-                <div class="flex flex-col items-center p-6 border-b border-dark-800">
+                <div class="flex flex-col items-center p-6 border-b border-[#44546A]/40">
                     <div class="w-14 h-14 rounded-full overflow-hidden mb-3 bg-white/10 shadow-lg flex items-center justify-center">
                         <img class="w-10 h-10 object-contain" src="{{ auth()->user()->company?->logo_url ?? asset('images/logo.svg') }}" alt="Logo firmy">
                     </div>
@@ -74,7 +68,7 @@
             <div class="transition-all duration-300" :class="{'pl-[280px]': sidebarOpen, 'pl-[80px]': !sidebarOpen}">
                 <!-- Toggle Button -->
                 <button @click="sidebarOpen = !sidebarOpen" 
-                        class="fixed top-5 left-[284px] bg-primary-600 text-white p-2 rounded-full shadow-md z-40 hover:bg-primary-700 transition-all duration-200"
+                        class="fixed top-5 left-[284px] bg-[#44546A] text-white p-2 rounded-full shadow-md z-40 hover:bg-[#44546A]/80 transition-all duration-200"
                         :class="{'left-[284px]': sidebarOpen, 'left-[84px]': !sidebarOpen}">
                     <svg x-show="sidebarOpen" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                         <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
