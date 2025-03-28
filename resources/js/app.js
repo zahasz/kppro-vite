@@ -2,10 +2,42 @@ import './bootstrap';
 import './utils';
 
 import Alpine from 'alpinejs';
+import AlpinePersist from '@alpinejs/persist';
+import Focus from '@alpinejs/focus';
+
+// Dodaj import Turbo dla obsługi nawigacji
+import * as Turbo from '@hotwired/turbo';
 
 // Inicjalizacja Alpine.js
 window.Alpine = Alpine;
+Alpine.plugin(AlpinePersist);
+Alpine.plugin(Focus);
+
+// Inicjalizacja Turbo
+window.Turbo = Turbo;
+
+// Obsługa nawigacji bez przeładowania strony
+document.addEventListener('turbo:before-render', () => {
+    // Opcjonalne: dodaj efekt ładowania strony
+    document.body.classList.add('turbo-loading');
+});
+
+document.addEventListener('turbo:render', () => {
+    // Opcjonalne: usuń efekt ładowania po zakończeniu
+    document.body.classList.remove('turbo-loading');
+});
+
 Alpine.start();
+
+// Dodaj style dla efektu ładowania
+const style = document.createElement('style');
+style.textContent = `
+    .turbo-loading {
+        opacity: 0.7;
+        transition: opacity 0.3s;
+    }
+`;
+document.head.appendChild(style);
 
 // Dynamiczne ładowanie skryptów admin
 const loadedModules = new Set();

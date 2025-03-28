@@ -56,7 +56,7 @@ $adminItems = [
     [
         'route' => 'admin.dashboard',
         'icon' => 'fas fa-tachometer-alt',
-        'label' => 'Statystyki',
+        'label' => 'Panel administratora',
         'routeMatch' => 'admin.dashboard'
     ],
     [
