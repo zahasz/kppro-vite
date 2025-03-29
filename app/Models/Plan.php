@@ -38,7 +38,7 @@ class Plan extends Model
      */
     public function subscriptions()
     {
-        return $this->hasMany(Subscription::class);
+        return $this->hasMany(UserSubscription::class, 'plan_id');
     }
 
     /**
@@ -46,7 +46,7 @@ class Plan extends Model
      */
     public function activeSubscriptions()
     {
-        return $this->hasMany(Subscription::class)->where('status', 'active');
+        return $this->hasMany(UserSubscription::class, 'plan_id')->where('status', 'active');
     }
 
     /**

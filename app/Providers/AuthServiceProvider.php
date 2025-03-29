@@ -7,7 +7,9 @@ use Illuminate\Support\Facades\Gate;
 use App\Models\User;
 use App\Models\Role;
 use App\Models\BankAccount;
+use App\Models\Product;
 use App\Policies\BankAccountPolicy;
+use App\Policies\ProductPolicy;
 
 class AuthServiceProvider extends ServiceProvider
 {
@@ -18,6 +20,7 @@ class AuthServiceProvider extends ServiceProvider
      */
     protected $policies = [
         BankAccount::class => BankAccountPolicy::class,
+        Product::class => ProductPolicy::class,
     ];
 
     /**

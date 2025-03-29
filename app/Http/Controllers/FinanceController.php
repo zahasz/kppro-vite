@@ -14,6 +14,41 @@ class FinanceController extends Controller
         return view('finances.index');
     }
 
+    public function subscriptionInvoices()
+    {
+        return view('finances.invoices.subscriptions');
+    }
+
+    public function generateSubscriptionInvoices(Request $request)
+    {
+        try {
+            \Artisan::call('invoices:generate-automatic --force');
+            $output = \Artisan::output();
+            
+            \Log::info('Wywołano ręczne generowanie faktur subskrypcyjnych', [
+                'user_id' => auth()->id(),
+                'output' => $output
+            ]);
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'Rozpoczęto generowanie faktur subskrypcyjnych',
+                'details' => $output
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Błąd podczas generowania faktur subskrypcyjnych', [
+                'user_id' => auth()->id(),
+                'error' => $e->getMessage()
+            ]);
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Wystąpił błąd podczas generowania faktur',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
     public function scanner()
     {
         return view('finances.scanner');

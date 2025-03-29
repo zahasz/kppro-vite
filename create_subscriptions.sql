@@ -1,0 +1,22 @@
+CREATE TABLE IF NOT EXISTS subscriptions (
+  id bigint unsigned NOT NULL AUTO_INCREMENT,
+  user_id bigint unsigned NOT NULL,
+  plan_id bigint unsigned NOT NULL,
+  status varchar(255) DEFAULT 'active',
+  subscription_type varchar(255) DEFAULT 'manual',
+  renewal_status varchar(255) DEFAULT NULL,
+  price decimal(10,2) NOT NULL,
+  start_date timestamp NOT NULL,
+  end_date timestamp NULL DEFAULT NULL,
+  next_payment_date timestamp NULL DEFAULT NULL,
+  trial_ends_at timestamp NULL DEFAULT NULL,
+  cancelled_at timestamp NULL DEFAULT NULL,
+  invoice_generated tinyint(1) DEFAULT '0',
+  payment_method varchar(255) DEFAULT NULL,
+  created_at timestamp NULL DEFAULT NULL,
+  updated_at timestamp NULL DEFAULT NULL,
+  deleted_at timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (id),
+  KEY subscriptions_user_id_foreign (user_id),
+  KEY subscriptions_plan_id_foreign (plan_id)
+); 

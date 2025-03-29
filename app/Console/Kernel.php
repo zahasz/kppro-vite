@@ -34,6 +34,7 @@ class Kernel extends ConsoleKernel
             
         $schedule->command('subscriptions:process-renewals')
             ->dailyAt('01:00')
+            ->withoutOverlapping()
             ->appendOutputTo(storage_path('logs/subscriptions-renewals.log'));
             
         $schedule->command('subscriptions:cleanup-expired --days=7')

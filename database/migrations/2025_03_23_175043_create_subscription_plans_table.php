@@ -13,7 +13,21 @@ return new class extends Migration
     {
         Schema::create('subscription_plans', function (Blueprint $table) {
             $table->id();
+            $table->string('name');
+            $table->string('code')->unique();
+            $table->text('description')->nullable();
+            $table->decimal('price', 10, 2);
+            $table->string('currency', 3)->default('PLN');
+            $table->enum('billing_period', ['monthly', 'quarterly', 'annually', 'lifetime'])->default('monthly');
+            $table->integer('max_users')->nullable();
+            $table->integer('max_invoices')->nullable();
+            $table->integer('max_products')->nullable();
+            $table->integer('max_clients')->nullable();
+            $table->json('features')->nullable();
+            $table->boolean('is_active')->default(true);
+            $table->integer('display_order')->default(0);
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

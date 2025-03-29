@@ -27,7 +27,7 @@
                         <div class="flex justify-between items-start">
                             <h3 class="text-xl font-bold text-gray-900">{{ $plan->name }}</h3>
                             <div class="flex items-center space-x-2">
-                                @if($plan->is_active)
+                                @if(isset($plan->is_active) && $plan->is_active)
                                     <span class="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">Aktywny</span>
                                 @else
                                     <span class="px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">Nieaktywny</span>
@@ -35,17 +35,17 @@
                             </div>
                         </div>
                         <div class="mt-2">
-                            <span class="text-3xl font-bold text-gray-900">{{ number_format($plan->price, 2) }}</span>
+                            <span class="text-3xl font-bold text-gray-900">{{ number_format($plan->price ?? 0, 2) }}</span>
                             <span class="text-gray-500 ml-1">zł</span>
                             <span class="text-gray-500 ml-1">/ 
-                                @if($plan->interval == 'monthly')
+                                @if(isset($plan->interval) && $plan->interval == 'monthly')
                                     miesiąc
-                                @elseif($plan->interval == 'quarterly')
+                                @elseif(isset($plan->interval) && $plan->interval == 'quarterly')
                                     kwartał
-                                @elseif($plan->interval == 'yearly')
+                                @elseif(isset($plan->interval) && $plan->interval == 'yearly')
                                     rok
                                 @else
-                                    {{ $plan->interval }}
+                                    {{ $plan->interval ?? 'miesiąc' }}
                                 @endif
                             </span>
                         </div>
@@ -53,22 +53,24 @@
 
                     <div class="p-5">
                         <div class="text-sm text-gray-600 mb-4">
-                            {{ $plan->description }}
+                            {{ $plan->description ?? 'Brak opisu' }}
                         </div>
 
                         <div class="space-y-3">
                             <h4 class="font-medium text-gray-900">Funkcje:</h4>
                             <ul class="space-y-2">
-                                @forelse($plan->features as $feature)
-                                    <li class="flex items-start">
-                                        <svg class="h-5 w-5 text-green-500 mr-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
-                                        </svg>
-                                        <span>{{ $feature }}</span>
-                                    </li>
-                                @empty
+                                @if(isset($plan->features) && is_array($plan->features) && count($plan->features) > 0)
+                                    @foreach($plan->features as $feature)
+                                        <li class="flex items-start">
+                                            <svg class="h-5 w-5 text-green-500 mr-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                                            </svg>
+                                            <span>{{ $feature }}</span>
+                                        </li>
+                                    @endforeach
+                                @else
                                     <li class="text-gray-500">Brak zdefiniowanych funkcji</li>
-                                @endforelse
+                                @endif
                             </ul>
                         </div>
 
@@ -76,17 +78,19 @@
                             <div class="flex items-center justify-between text-sm">
                                 <span class="text-gray-600">Typ subskrypcji:</span>
                                 <span class="font-medium">
-                                    @if($plan->subscription_type == 'manual')
+                                    @if(isset($plan->subscription_type) && $plan->subscription_type == 'manual')
                                         Ręczna
-                                    @elseif($plan->subscription_type == 'automatic')
+                                    @elseif(isset($plan->subscription_type) && $plan->subscription_type == 'automatic')
                                         Automatyczna
-                                    @elseif($plan->subscription_type == 'both')
+                                    @elseif(isset($plan->subscription_type) && $plan->subscription_type == 'both')
                                         Ręczna i automatyczna
+                                    @else
+                                        Nieokreślony
                                     @endif
                                 </span>
                             </div>
                             
-                            @if($plan->trial_period_days > 0)
+                            @if(isset($plan->trial_period_days) && $plan->trial_period_days > 0)
                                 <div class="flex items-center justify-between text-sm mt-2">
                                     <span class="text-gray-600">Okres próbny:</span>
                                     <span class="font-medium">{{ $plan->trial_period_days }} dni</span>

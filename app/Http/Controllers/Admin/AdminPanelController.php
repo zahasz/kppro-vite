@@ -16,6 +16,7 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\Schema;
 use App\Models\Subscription;
 use App\Models\Plan;
+use App\Models\UserSubscription;
 
 class AdminPanelController extends Controller
 {
@@ -31,8 +32,8 @@ class AdminPanelController extends Controller
             $totalSubscriptions = Subscription::count();
             
             // Statystyki subskrypcji według typu
-            $manualSubscriptions = Subscription::where('subscription_type', Subscription::TYPE_MANUAL)->count();
-            $automaticSubscriptions = Subscription::where('subscription_type', Subscription::TYPE_AUTOMATIC)->count();
+            $manualSubscriptions = UserSubscription::where('subscription_type', 'manual')->count();
+            $automaticSubscriptions = UserSubscription::where('subscription_type', 'automatic')->count();
             
             // Oblicz procenty
             $manualPercentage = $totalSubscriptions > 0 ? round(($manualSubscriptions / $totalSubscriptions) * 100) : 0;
@@ -567,7 +568,7 @@ class AdminPanelController extends Controller
         
         // Filtrowanie według typu subskrypcji
         if ($request->has('subscription_type') && $request->subscription_type) {
-            $query->where('subscription_type', $request->subscription_type);
+            $query->where('subscription_type', '=', $request->subscription_type);
         }
         
         // Wyszukiwanie po nazwie lub emailu użytkownika
@@ -728,8 +729,8 @@ class AdminPanelController extends Controller
             $totalSubscriptions = Subscription::count();
             
             // Statystyki według typu
-            $manualSubscriptions = Subscription::where('subscription_type', 'manual')->count();
-            $automaticSubscriptions = Subscription::where('subscription_type', 'automatic')->count();
+            $manualSubscriptions = UserSubscription::where('subscription_type', UserSubscription::TYPE_MANUAL)->count();
+            $automaticSubscriptions = UserSubscription::where('subscription_type', UserSubscription::TYPE_AUTOMATIC)->count();
             
             // Oblicz procenty
             $manualPercentage = $totalSubscriptions > 0 ? round(($manualSubscriptions / $totalSubscriptions) * 100) : 0;
@@ -980,24 +981,78 @@ class AdminPanelController extends Controller
         }
     }
 
-    public function loginHistory()
+    public function loginHistory(Request $request)
     {
         if (Gate::denies('access-admin-panel')) {
             abort(403, 'Brak dostępu.');
         }
 
         try {
-            if (Schema::hasTable('login_histories')) {
-                $loginHistory = DB::table('login_histories')
-                    ->join('users', 'login_histories.user_id', '=', 'users.id')
-                    ->select('login_histories.*', 'users.name', 'users.email')
-                    ->orderBy('login_histories.created_at', 'desc')
-                    ->paginate(15);
+            // Sprawdź czy tabela istnieje
+            $tableExists = Schema::hasTable('login_histories');
+            Log::info('Sprawdzanie tabeli login_histories', ['exists' => $tableExists]);
+
+            if ($tableExists) {
+                // Loguj początek zapytania
+                Log::info('Rozpoczynanie pobierania historii logowań');
+                
+                try {
+                    $query = \App\Models\LoginHistory::with('user');
+                    
+                    // Zapisz liczbę wszystkich rekordów przed filtrowaniem
+                    $totalCount = $query->count();
+                    Log::info('Liczba wszystkich rekordów w tabeli', ['count' => $totalCount]);
+                    
+                    // Filtrowanie po użytkowniku
+                    if ($request->filled('user')) {
+                        $userSearch = $request->input('user');
+                        $query->whereHas('user', function($q) use ($userSearch) {
+                            $q->where('name', 'like', "%{$userSearch}%")
+                              ->orWhere('email', 'like', "%{$userSearch}%");
+                        });
+                    }
+                    
+                    // Filtrowanie po statusie
+                    if ($request->filled('status')) {
+                        $query->where('status', $request->input('status'));
+                    }
+                    
+                    // Filtrowanie po dacie od
+                    if ($request->filled('date_from')) {
+                        $query->whereDate('created_at', '>=', $request->input('date_from'));
+                    }
+                    
+                    // Filtrowanie po dacie do
+                    if ($request->filled('date_to')) {
+                        $query->whereDate('created_at', '<=', $request->input('date_to'));
+                    }
+                    
+                    $loginHistory = $query->orderBy('created_at', 'desc')->paginate(15)
+                                          ->appends($request->except('page'));
+                    
+                    // Loguj sukces
+                    Log::info('Pobrano historię logowań', [
+                        'count' => $loginHistory->count(),
+                        'total' => $loginHistory->total()
+                    ]);
+                } catch (\Exception $e) {
+                    Log::error('Błąd podczas wykonywania zapytania do historii logowań', [
+                        'message' => $e->getMessage(),
+                        'trace' => $e->getTraceAsString()
+                    ]);
+                    
+                    // Jeśli błąd dotyczy relacji lub struktury tabeli
+                    $loginHistory = collect([]);
+                }
             } else {
+                Log::warning('Tabela login_histories nie istnieje');
                 $loginHistory = collect([]);
             }
         } catch (\Exception $e) {
-            Log::error('Błąd podczas pobierania historii logowań: ' . $e->getMessage());
+            Log::error('Błąd podczas pobierania historii logowań', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
             $loginHistory = collect([]);
         }
 
@@ -1159,8 +1214,8 @@ class AdminPanelController extends Controller
             $totalSubscriptions = Subscription::count();
             
             // Statystyki subskrypcji według typu
-            $manualSubscriptions = Subscription::where('subscription_type', Subscription::TYPE_MANUAL)->count();
-            $automaticSubscriptions = Subscription::where('subscription_type', Subscription::TYPE_AUTOMATIC)->count();
+            $manualSubscriptions = UserSubscription::where('subscription_type', UserSubscription::TYPE_MANUAL)->count();
+            $automaticSubscriptions = UserSubscription::where('subscription_type', UserSubscription::TYPE_AUTOMATIC)->count();
             
             // Oblicz procenty
             $manualPercentage = $totalSubscriptions > 0 ? round(($manualSubscriptions / $totalSubscriptions) * 100) : 0;

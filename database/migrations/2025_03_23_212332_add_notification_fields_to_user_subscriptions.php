@@ -12,10 +12,10 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('user_subscriptions', function (Blueprint $table) {
-            $table->timestamp('notified_at')->nullable()->after('auto_renew');
-            $table->string('last_notification_type')->nullable()->after('notified_at');
-            $table->integer('renewal_attempts')->default(0)->after('last_notification_type');
-            $table->timestamp('last_renewal_attempt')->nullable()->after('renewal_attempts');
+            $table->timestamp('notified_at')->nullable();
+            $table->string('last_notification_type')->nullable();
+            $table->integer('renewal_attempts')->default(0);
+            $table->timestamp('last_renewal_attempt')->nullable();
         });
     }
 

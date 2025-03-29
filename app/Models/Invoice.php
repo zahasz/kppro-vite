@@ -37,15 +37,23 @@ class Invoice extends Model
         'bank_account_id',
         'is_paid',
         'paid_date',
+        'auto_generated',
+        'approval_status',
+        'approved_at',
+        'approved_by',
+        'subscription_id',
     ];
 
     protected $casts = [
         'issue_date' => 'date',
         'sale_date' => 'date',
         'due_date' => 'date',
+        'paid_date' => 'date',
         'net_total' => 'decimal:2',
         'tax_total' => 'decimal:2',
-        'gross_total' => 'decimal:2'
+        'gross_total' => 'decimal:2',
+        'auto_generated' => 'boolean',
+        'approved_at' => 'datetime',
     ];
 
     protected $appends = [
@@ -74,6 +82,16 @@ class Invoice extends Model
     public function items()
     {
         return $this->hasMany(InvoiceItem::class);
+    }
+
+    public function subscription()
+    {
+        return $this->belongsTo(UserSubscription::class, 'subscription_id');
+    }
+
+    public function approvedBy()
+    {
+        return $this->belongsTo(User::class, 'approved_by');
     }
 
     public function scopeOverdue($query)

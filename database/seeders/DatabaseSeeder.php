@@ -17,12 +17,10 @@ class DatabaseSeeder extends Seeder
 
         // Wywołanie seederów
         $this->call([
-            RoleAndPermissionSeeder::class,
-            AdminPlanSeeder::class,
-            ContractorSeeder::class,
-            BudgetCategoriesSeeder::class,
-            AdminSeeder::class,
-            InvoiceSeeder::class,
+            SetupSystemSeeder::class,        // Główny seeder konfigurujący system
+            AdminPlanSeeder::class,          // Konfiguracja planów dla administratora
+            ContractorSeeder::class,         // Przykładowi kontrahenci
+            InvoiceSeeder::class,            // Przykładowe faktury
         ]);
     }
 }

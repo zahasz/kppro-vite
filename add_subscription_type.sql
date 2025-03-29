@@ -1,0 +1,1 @@
+ALTER TABLE plans ADD COLUMN subscription_type varchar(255) DEFAULT 'both' AFTER `interval`; 

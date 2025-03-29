@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('subscription_plan_permission', function (Blueprint $table) {
             $table->id();
             $table->foreignId('subscription_plan_id')->constrained()->onDelete('cascade');
-            $table->foreignId('subscription_permission_id')->constrained()->onDelete('cascade');
+            $table->unsignedBigInteger('subscription_permission_id');
             $table->string('value')->nullable();
             $table->timestamps();
 

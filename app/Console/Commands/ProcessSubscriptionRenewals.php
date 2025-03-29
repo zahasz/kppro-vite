@@ -4,183 +4,117 @@ namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
 use App\Models\UserSubscription;
-use App\Models\SubscriptionPayment;
+use App\Services\SubscriptionService;
 use Carbon\Carbon;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Str;
 
 class ProcessSubscriptionRenewals extends Command
 {
     /**
-     * Nazwa i sygnatura komendy.
+     * The name and signature of the console command.
      *
      * @var string
      */
-    protected $signature = 'subscriptions:process-renewals {--limit=20 : Maksymalna liczba subskrypcji do przetworzenia}';
+    protected $signature = 'subscriptions:process-renewals {--force : Wymuś odnowienie wszystkich automatycznych subskrypcji}';
 
     /**
-     * Opis komendy.
+     * The console command description.
      *
      * @var string
      */
-    protected $description = 'Przetwarza automatyczne odnowienia subskrypcji użytkowników';
+    protected $description = 'Przetwarza odnowienia subskrypcji, które wkrótce wygasną';
 
     /**
-     * Maksymalna liczba prób odnowienia subskrypcji.
+     * @var SubscriptionService
      */
-    protected $maxRenewalAttempts = 3;
+    protected $subscriptionService;
 
     /**
-     * Wykonanie komendy.
+     * Create a new command instance.
+     *
+     * @param SubscriptionService $subscriptionService
+     * @return void
+     */
+    public function __construct(SubscriptionService $subscriptionService)
+    {
+        parent::__construct();
+        $this->subscriptionService = $subscriptionService;
+    }
+
+    /**
+     * Execute the console command.
      */
     public function handle()
     {
-        $limit = (int) $this->option('limit');
+        $this->info('Rozpoczynam przetwarzanie odnowień subskrypcji...');
         
-        $this->info("Rozpoczynam przetwarzanie automatycznych odnowień subskrypcji (limit: {$limit})...");
-        
-        // Znajdź subskrypcje, które wygasają dzisiaj lub wygasły wczoraj, z włączonym auto-odnowieniem
-        $now = Carbon::now();
-        $yesterday = Carbon::yesterday();
-        
-        $expiredSubscriptions = UserSubscription::with(['user', 'subscriptionPlan'])
-            ->where('status', 'active')
-            ->where('auto_renew', true)
-            ->where(function($query) use ($now, $yesterday) {
-                $query->whereDate('end_date', $now->format('Y-m-d'))
-                    ->orWhereDate('end_date', $yesterday->format('Y-m-d'));
-            })
-            ->where(function($query) {
-                // Subskrypcje, które nie miały żadnych prób odnowienia lub miały mniej niż maksymalna liczba prób
-                $query->whereNull('last_renewal_attempt')
-                    ->orWhere('renewal_attempts', '<', $this->maxRenewalAttempts);
-            })
-            ->orderBy('end_date')
-            ->limit($limit)
-            ->get();
-        
-        $count = $expiredSubscriptions->count();
-        
-        if ($count === 0) {
-            $this->info("Nie znaleziono subskrypcji do odnowienia.");
-            return 0;
-        }
-        
-        $this->info("Znaleziono {$count} subskrypcji do odnowienia.");
-        
-        $renewedCount = 0;
-        $failedCount = 0;
-        
-        $bar = $this->output->createProgressBar($count);
-        $bar->start();
-        
-        foreach ($expiredSubscriptions as $subscription) {
-            $user = $subscription->user;
-            $plan = $subscription->subscriptionPlan;
+        try {
+            $renewalWindowDays = config('subscription.renewal_window_days', 7);
+            $now = Carbon::now();
+            $renewalDate = $now->copy()->addDays($renewalWindowDays);
             
-            if (!$user || !$plan) {
-                $this->error("Brak użytkownika lub planu dla subskrypcji #{$subscription->id}");
-                $failedCount++;
+            // Budowanie zapytania
+            $query = UserSubscription::where('status', 'active')
+                ->where('subscription_type', UserSubscription::TYPE_AUTOMATIC)
+                ->where(function ($q) {
+                    $q->where('renewal_status', UserSubscription::RENEWAL_ENABLED)
+                      ->orWhere('auto_renew', true);
+                });
+            
+            // Jeśli nie wymuszamy odnowienia, dodajemy filtr daty
+            if (!$this->option('force')) {
+                $query->whereNotNull('end_date')
+                      ->whereDate('end_date', '<=', $renewalDate)
+                      ->whereDate('end_date', '>', $now);
+            }
+            
+            $subscriptions = $query->get();
+            
+            $this->info("Znaleziono {$subscriptions->count()} subskrypcji do odnowienia.");
+            
+            $bar = $this->output->createProgressBar($subscriptions->count());
+            $bar->start();
+            
+            $successCount = 0;
+            $failureCount = 0;
+            
+            foreach ($subscriptions as $subscription) {
+                try {
+                    $result = $this->subscriptionService->renewSubscription($subscription);
+                    
+                    if ($result['success']) {
+                        $successCount++;
+                        $this->info("\nOdnowiono subskrypcję ID: {$subscription->id} dla użytkownika: {$subscription->user->name}");
+                    } else {
+                        $failureCount++;
+                        $this->error("\nNie udało się odnowić subskrypcji ID: {$subscription->id}: {$result['message']}");
+                    }
+                } catch (\Exception $e) {
+                    $failureCount++;
+                    $this->error("\nBłąd podczas odnawiania subskrypcji ID: {$subscription->id}: {$e->getMessage()}");
+                    Log::error("Błąd podczas odnawiania subskrypcji: {$e->getMessage()}", [
+                        'subscription_id' => $subscription->id,
+                        'exception' => $e
+                    ]);
+                }
+                
                 $bar->advance();
-                continue;
             }
             
-            // Zwiększ licznik prób odnowienia
-            $subscription->renewal_attempts += 1;
-            $subscription->last_renewal_attempt = Carbon::now();
-            $subscription->save();
+            $bar->finish();
             
-            $this->line("");
-            $this->line("Przetwarzanie subskrypcji #{$subscription->id} dla {$user->email} (plan: {$plan->name})");
+            $this->info("\nZakończono przetwarzanie odnowień subskrypcji.");
+            $this->info("Pomyślnie odnowiono: {$successCount} subskrypcji.");
+            $this->info("Nie udało się odnowić: {$failureCount} subskrypcji.");
             
-            // W rzeczywistym systemie tutaj byłaby integracja z bramką płatności
-            // Na potrzeby tego przykładu symulujemy udaną płatność
+            return 0;
+        } catch (\Exception $e) {
+            $this->error("Wystąpił błąd podczas przetwarzania odnowień: {$e->getMessage()}");
+            Log::error("Błąd podczas przetwarzania odnowień subskrypcji: {$e->getMessage()}", [
+                'exception' => $e
+            ]);
             
-            DB::beginTransaction();
-            
-            try {
-                // Oblicz nową datę zakończenia subskrypcji
-                $newEndDate = null;
-                
-                switch ($plan->billing_period) {
-                    case 'monthly':
-                        $newEndDate = Carbon::parse($subscription->end_date)->addMonth();
-                        break;
-                    case 'quarterly':
-                        $newEndDate = Carbon::parse($subscription->end_date)->addMonths(3);
-                        break;
-                    case 'yearly':
-                        $newEndDate = Carbon::parse($subscription->end_date)->addYear();
-                        break;
-                    case 'lifetime':
-                        // Dla bezterminowych nie ustawiamy daty końca
-                        $newEndDate = null;
-                        break;
-                }
-                
-                // Utwórz płatność dla odnowionej subskrypcji
-                $transactionId = 'TXN' . time() . Str::random(6);
-                $invoiceNumber = 'INV' . date('Ymd') . Str::random(4);
-                
-                // W rzeczywistym systemie tutaj byłaby integracja z bramką płatności
-                // Na potrzeby tego przykładu symulujemy udaną płatność
-                
-                $paymentStatus = 'paid'; // W rzeczywistości to by zależało od odpowiedzi bramki płatności
-                
-                if ($paymentStatus === 'paid') {
-                    // Aktualizuj subskrypcję
-                    $subscription->update([
-                        'end_date' => $newEndDate,
-                        'status' => 'active',
-                    ]);
-                    
-                    // Utwórz wpis płatności
-                    SubscriptionPayment::create([
-                        'transaction_id' => $transactionId,
-                        'user_id' => $user->id,
-                        'user_subscription_id' => $subscription->id,
-                        'amount' => $plan->price,
-                        'status' => 'paid',
-                        'payment_method' => $subscription->payment_method,
-                        'payment_details' => 'Automatyczne odnowienie subskrypcji',
-                        'invoice_number' => $invoiceNumber,
-                        'invoice_date' => Carbon::now(),
-                        'notes' => 'Automatyczne odnowienie przez system',
-                    ]);
-                    
-                    $this->info("Subskrypcja #{$subscription->id} została pomyślnie odnowiona do {$newEndDate}");
-                    Log::info("Subskrypcja #{$subscription->id} dla użytkownika {$user->email} została odnowiona do {$newEndDate}");
-                    
-                    $renewedCount++;
-                } else {
-                    // Jeśli płatność się nie powiodła, oznaczamy subskrypcję jako 'pending'
-                    $subscription->update([
-                        'status' => 'pending',
-                    ]);
-                    
-                    $this->error("Płatność za odnowienie subskrypcji #{$subscription->id} nie powiodła się");
-                    Log::error("Płatność za odnowienie subskrypcji #{$subscription->id} dla użytkownika {$user->email} nie powiodła się");
-                    
-                    $failedCount++;
-                }
-                
-                DB::commit();
-            } catch (\Exception $e) {
-                DB::rollBack();
-                $this->error("Błąd podczas przetwarzania odnowienia: " . $e->getMessage());
-                Log::error("Błąd odnowienia subskrypcji #{$subscription->id}: " . $e->getMessage());
-                $failedCount++;
-            }
-            
-            $bar->advance();
+            return 1;
         }
-        
-        $bar->finish();
-        $this->line("");
-        $this->info("Zakończono przetwarzanie odnowień subskrypcji.");
-        $this->info("Odnowiono: {$renewedCount}, Niepowodzenia: {$failedCount}");
-        
-        return 0;
     }
 }

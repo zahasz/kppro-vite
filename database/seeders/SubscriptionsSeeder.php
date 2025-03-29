@@ -3,7 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\Plan;
-use App\Models\Subscription;
+use App\Models\UserSubscription;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Database\Seeder;
@@ -24,7 +24,6 @@ class SubscriptionsSeeder extends Seeder
                 'description' => 'Plan podstawowy z ograniczonymi funkcjami',
                 'price' => 29.99,
                 'interval' => 'monthly',
-                'subscription_type' => 'both',
                 'is_active' => true,
             ]);
             
@@ -33,7 +32,6 @@ class SubscriptionsSeeder extends Seeder
                 'description' => 'Plan premium ze wszystkimi funkcjami',
                 'price' => 99.99,
                 'interval' => 'monthly',
-                'subscription_type' => 'both',
                 'is_active' => true,
             ]);
             
@@ -42,7 +40,6 @@ class SubscriptionsSeeder extends Seeder
                 'description' => 'Plan biznesowy z dedykowanym wsparciem',
                 'price' => 199.99,
                 'interval' => 'monthly',
-                'subscription_type' => 'both',
                 'is_active' => true,
             ]);
         }
@@ -60,9 +57,7 @@ class SubscriptionsSeeder extends Seeder
         }
         
         // Wyczyść istniejące subskrypcje - użyj delete zamiast truncate ze względu na klucze obce
-        // Wcześniej usuń powiązane rekordy w tabeli invoices
-        DB::table('invoices')->where('subscription_id', '>', 0)->delete();
-        Subscription::query()->delete();
+        UserSubscription::query()->delete();
         
         // Pobierz istniejące plany i użytkowników
         $plans = Plan::all();
@@ -74,10 +69,10 @@ class SubscriptionsSeeder extends Seeder
             $plan = $plans->random();
             
             // Co drugi użytkownik ma subskrypcję automatyczną, reszta ręczną
-            $subscriptionType = $index % 2 === 0 ? Subscription::TYPE_AUTOMATIC : Subscription::TYPE_MANUAL;
+            $subscriptionType = $index % 2 === 0 ? UserSubscription::TYPE_AUTOMATIC : UserSubscription::TYPE_MANUAL;
             
             // Ustaw status odnowienia tylko dla automatycznych subskrypcji
-            $renewalStatus = $subscriptionType === Subscription::TYPE_AUTOMATIC ? Subscription::RENEWAL_ENABLED : null;
+            $renewalStatus = $subscriptionType === UserSubscription::TYPE_AUTOMATIC ? UserSubscription::RENEWAL_ENABLED : null;
             
             // Utwórz subskrypcję
             $startDate = Carbon::now()->subDays(rand(1, 30));
@@ -96,11 +91,11 @@ class SubscriptionsSeeder extends Seeder
             }
             
             // Ustaw datę następnej płatności dla automatycznych subskrypcji
-            $nextPaymentDate = $subscriptionType === Subscription::TYPE_AUTOMATIC ? $endDate : null;
+            $nextPaymentDate = $subscriptionType === UserSubscription::TYPE_AUTOMATIC ? $endDate : null;
             
-            Subscription::create([
+            UserSubscription::create([
                 'user_id' => $user->id,
-                'plan_id' => $plan->id,
+                'subscription_plan_id' => $plan->id,
                 'status' => 'active',
                 'price' => $plan->price,
                 'start_date' => $startDate,
@@ -108,7 +103,7 @@ class SubscriptionsSeeder extends Seeder
                 'subscription_type' => $subscriptionType,
                 'renewal_status' => $renewalStatus,
                 'next_payment_date' => $nextPaymentDate,
-                'payment_method' => $subscriptionType === Subscription::TYPE_AUTOMATIC ? 'card' : 'transfer',
+                'payment_method' => $subscriptionType === UserSubscription::TYPE_AUTOMATIC ? 'card' : 'transfer',
             ]);
         }
         
@@ -118,8 +113,8 @@ class SubscriptionsSeeder extends Seeder
         foreach ($statuses as $status) {
             foreach ($users->take(3) as $user) {
                 $plan = $plans->random();
-                $subscriptionType = rand(0, 1) === 0 ? Subscription::TYPE_AUTOMATIC : Subscription::TYPE_MANUAL;
-                $renewalStatus = $subscriptionType === Subscription::TYPE_AUTOMATIC ? Subscription::RENEWAL_ENABLED : null;
+                $subscriptionType = rand(0, 1) === 0 ? UserSubscription::TYPE_AUTOMATIC : UserSubscription::TYPE_MANUAL;
+                $renewalStatus = $subscriptionType === UserSubscription::TYPE_AUTOMATIC ? UserSubscription::RENEWAL_ENABLED : null;
                 
                 $startDate = Carbon::now()->subDays(rand(30, 60));
                 
@@ -137,9 +132,9 @@ class SubscriptionsSeeder extends Seeder
                 
                 $cancelled_at = $status === 'cancelled' ? Carbon::now()->subDays(rand(1, 10)) : null;
                 
-                Subscription::create([
+                UserSubscription::create([
                     'user_id' => $user->id,
-                    'plan_id' => $plan->id,
+                    'subscription_plan_id' => $plan->id,
                     'status' => $status,
                     'price' => $plan->price,
                     'start_date' => $startDate,
@@ -147,7 +142,7 @@ class SubscriptionsSeeder extends Seeder
                     'subscription_type' => $subscriptionType,
                     'renewal_status' => $renewalStatus,
                     'next_payment_date' => null,
-                    'payment_method' => $subscriptionType === Subscription::TYPE_AUTOMATIC ? 'card' : 'transfer',
+                    'payment_method' => $subscriptionType === UserSubscription::TYPE_AUTOMATIC ? 'card' : 'transfer',
                     'cancelled_at' => $cancelled_at,
                 ]);
             }

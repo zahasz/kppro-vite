@@ -10,6 +10,13 @@ class SubscriptionPermission extends Model
     use HasFactory;
 
     /**
+     * Nazwa tabeli w bazie danych.
+     *
+     * @var string
+     */
+    protected $table = 'subscription_permissions';
+
+    /**
      * Pola, które można przypisać masowo.
      *
      * @var array<int, string>

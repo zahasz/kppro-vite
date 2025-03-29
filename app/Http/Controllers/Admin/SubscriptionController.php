@@ -89,7 +89,10 @@ class SubscriptionController extends Controller
         $plan = new SubscriptionPlan();
         $plan->fill($validated);
         
-        if ($request->has('features')) {
+        // Upewniamy się, że features jest zawsze tablicą
+        if (!$request->has('features') || !is_array($request->input('features'))) {
+            $plan->features = [];
+        } else {
             $plan->features = $request->input('features');
         }
         
@@ -138,7 +141,10 @@ class SubscriptionController extends Controller
 
         $plan->fill($validated);
         
-        if ($request->has('features')) {
+        // Upewniamy się, że features jest zawsze tablicą
+        if (!$request->has('features') || !is_array($request->input('features'))) {
+            $plan->features = [];
+        } else {
             $plan->features = $request->input('features');
         }
         
@@ -176,24 +182,33 @@ class SubscriptionController extends Controller
      */
     public function users(Request $request)
     {
-        $query = UserSubscription::with(['user', 'plan']);
+        try {
+            $query = UserSubscription::with(['user', 'plan']);
 
-        // Filtrowanie
-        if ($request->has('search')) {
-            $search = $request->input('search');
-            $query->whereHas('user', function($q) use ($search) {
-                $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('email', 'like', "%{$search}%");
-            });
+            // Filtrowanie
+            if ($request->has('search')) {
+                $search = $request->input('search');
+                $query->whereHas('user', function($q) use ($search) {
+                    $q->where('name', 'like', "%{$search}%")
+                    ->orWhere('email', 'like', "%{$search}%");
+                });
+            }
+
+            if ($request->has('status') && $request->input('status') != 'all') {
+                $query->where('status', $request->input('status'));
+            }
+
+            if ($request->has('subscription_type') && $request->input('subscription_type')) {
+                $query->where('subscription_type', '=', $request->input('subscription_type'));
+            }
+
+            $subscriptions = $query->latest()->paginate(15);
+
+            return view('admin.subscriptions.users', compact('subscriptions'));
+        } catch (\Exception $e) {
+            \Log::error('Błąd przy wyświetlaniu subskrypcji: ' . $e->getMessage());
+            return view('admin.subscriptions.users', ['subscriptions' => collect([])])->withErrors(['error' => 'Wystąpił błąd podczas pobierania subskrypcji: ' . $e->getMessage()]);
         }
-
-        if ($request->has('status') && $request->input('status') != 'all') {
-            $query->where('status', $request->input('status'));
-        }
-
-        $subscriptions = $query->latest()->paginate(15);
-
-        return view('admin.subscriptions.users', compact('subscriptions'));
     }
 
     /**
@@ -225,10 +240,14 @@ class SubscriptionController extends Controller
             'payment_details' => 'nullable|string',
             'notes' => 'nullable|string',
             'send_notification' => 'boolean',
+            'subscription_type' => 'required|in:manual,automatic',
         ]);
 
         $user = User::findOrFail($validated['user_id']);
         $plan = SubscriptionPlan::findOrFail($validated['plan_id']);
+
+        // Dodaj subscription_type do validated data
+        $validated['subscription_type'] = $validated['subscription_type'] ?? UserSubscription::TYPE_MANUAL;
 
         $result = $this->subscriptionService->createSubscription($user, $plan, $validated);
 
@@ -274,8 +293,15 @@ class SubscriptionController extends Controller
             'payment_details' => 'nullable|string',
             'notes' => 'nullable|string',
             'auto_renew' => 'boolean',
+            'subscription_type' => 'required|in:manual,automatic',
         ]);
 
+        // Upewnij się, że nowy plan istnieje
+        $plan = SubscriptionPlan::findOrFail($validated['plan_id']);
+        
+        // Dodaj subscription_type do validated data
+        $validated['subscription_type'] = $validated['subscription_type'] ?? $subscription->subscription_type;
+        
         $result = $this->subscriptionService->updateSubscription($subscription, $validated);
 
         if ($result['success']) {

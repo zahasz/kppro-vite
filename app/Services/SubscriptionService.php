@@ -42,104 +42,78 @@ class SubscriptionService
      */
     public function createSubscription(User $user, SubscriptionPlan $plan, array $data)
     {
-        // Sprawdzenie czy użytkownik już ma aktywną subskrypcję
-        $activeSubscription = $user->activeSubscription();
-        if ($activeSubscription) {
-            return [
-                'success' => false,
-                'message' => 'Użytkownik posiada już aktywną subskrypcję',
-                'subscription' => null,
-                'payment' => null,
-            ];
-        }
-
         try {
             DB::beginTransaction();
-
-            // Obliczanie daty rozpoczęcia i zakończenia subskrypcji
-            $startDate = $data['start_date'] ?? Carbon::now();
-            $endDate = $this->calculateEndDate($plan, $startDate);
-
-            // Tworzenie rekordu subskrypcji
+            
+            // Sprawdź czy użytkownik już ma aktywną subskrypcję tego samego planu
+            $existingSubscription = UserSubscription::where('user_id', $user->id)
+                ->where('subscription_plan_id', $plan->id)
+                ->where('status', 'active')
+                ->first();
+            
+            if ($existingSubscription) {
+                return [
+                    'success' => false,
+                    'message' => 'Użytkownik już posiada aktywną subskrypcję tego planu.'
+                ];
+            }
+            
+            // Oblicz daty na podstawie planu
+            $startDate = Carbon::parse($data['start_date'] ?? now());
+            $endDate = isset($data['end_date']) ? Carbon::parse($data['end_date']) : $this->calculateEndDate($startDate, $plan->billing_period);
+            
+            // Ustal datę następnej płatności tylko dla automatycznych subskrypcji
+            $nextBillingDate = null;
+            if (($data['subscription_type'] ?? 'manual') === UserSubscription::TYPE_AUTOMATIC) {
+                $nextBillingDate = $endDate;
+            }
+            
+            // Utwórz nową subskrypcję
             $subscription = new UserSubscription();
             $subscription->user_id = $user->id;
-            $subscription->plan_id = $plan->id;
-            $subscription->status = $data['status'] ?? 'pending_payment';
+            $subscription->subscription_plan_id = $plan->id;
+            $subscription->status = $data['status'] ?? 'active';
+            $subscription->price = $data['price'] ?? $plan->price;
             $subscription->start_date = $startDate;
             $subscription->end_date = $endDate;
-            $subscription->payment_method = $data['payment_method'] ?? 'card';
+            $subscription->subscription_type = $data['subscription_type'] ?? UserSubscription::TYPE_MANUAL;
+            $subscription->renewal_status = isset($data['auto_renew']) && $data['auto_renew'] ? UserSubscription::RENEWAL_ENABLED : null;
+            $subscription->next_billing_date = $nextBillingDate;
+            $subscription->payment_method = $data['payment_method'] ?? 'manual';
             $subscription->payment_details = $data['payment_details'] ?? null;
-            $subscription->notes = $data['notes'] ?? null;
-            $subscription->auto_renew = $data['auto_renew'] ?? true;
+            $subscription->admin_notes = $data['notes'] ?? null;
             $subscription->save();
-
-            // Jeśli nie jest to darmowy plan, przetwarzamy płatność
-            $payment = null;
-            if ($plan->price > 0) {
-                // Przetwarzanie płatności
-                $paymentResult = $this->paymentGateway->processPayment(
-                    $user,
-                    $plan->price,
-                    $plan->currency,
-                    $subscription->payment_method,
-                    "Nowa subskrypcja: {$plan->name}",
-                    ['subscription_id' => $subscription->id]
-                );
-
-                if (!$paymentResult['success']) {
-                    throw new \Exception($paymentResult['message']);
-                }
-
-                // Zapisanie informacji o płatności
-                $payment = new SubscriptionPayment();
-                $payment->user_id = $user->id;
-                $payment->subscription_id = $subscription->id;
-                $payment->transaction_id = $paymentResult['transaction_id'];
-                $payment->amount = $plan->price;
-                $payment->currency = $plan->currency;
-                $payment->payment_method = $subscription->payment_method;
-                $payment->payment_details = $subscription->payment_details;
-                $payment->status = 'completed';
-                $payment->save();
-
-                // Aktualizacja statusu subskrypcji na aktywną
-                $subscription->status = 'active';
-                $subscription->save();
-            } else {
-                // Dla darmowego planu, automatycznie ustawiamy status na aktywny
-                $subscription->status = 'active';
-                $subscription->save();
+            
+            // Jeśli subskrypcja wymaga płatności, utwórz rekord płatności
+            if (isset($data['create_payment']) && $data['create_payment']) {
+                $this->createPaymentForSubscription($subscription, $data);
             }
-
-            DB::commit();
-
-            // Wysyłanie powiadomienia do użytkownika
-            if ($data['send_notification'] ?? true) {
+            
+            // Wyślij powiadomienie do użytkownika, jeśli potrzeba
+            if (isset($data['send_notification']) && $data['send_notification']) {
                 $user->notify(new SubscriptionActivated($subscription));
             }
-
-            // Wyzwolenie zdarzenia SubscriptionCreated
+            
+            // Wyemituj zdarzenie o utworzeniu subskrypcji
             event(new SubscriptionCreated($subscription));
-
+            
+            DB::commit();
+            
             return [
                 'success' => true,
-                'message' => 'Subskrypcja została utworzona pomyślnie',
-                'subscription' => $subscription,
-                'payment' => $payment,
+                'subscription' => $subscription
             ];
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Błąd podczas tworzenia subskrypcji: ' . $e->getMessage(), [
                 'user_id' => $user->id,
                 'plan_id' => $plan->id,
-                'data' => $data,
+                'exception' => $e
             ]);
-
+            
             return [
                 'success' => false,
-                'message' => 'Wystąpił błąd podczas tworzenia subskrypcji: ' . $e->getMessage(),
-                'subscription' => null,
-                'payment' => null,
+                'message' => 'Wystąpił błąd podczas tworzenia subskrypcji: ' . $e->getMessage()
             ];
         }
     }
@@ -157,57 +131,39 @@ class SubscriptionService
             return [
                 'success' => false,
                 'message' => 'Subskrypcja nie może zostać odnowiona',
-                'subscription' => $subscription,
-                'payment' => null,
+                'subscription' => $subscription
             ];
         }
-
-        $user = $subscription->user;
-        $plan = $subscription->plan;
 
         try {
             DB::beginTransaction();
 
+            $user = $subscription->user;
+            $plan = $subscription->plan;
+
             // Obliczanie nowej daty zakończenia
-            $newStartDate = Carbon::now();
-            $newEndDate = $this->calculateEndDate($plan, $newStartDate);
+            $newStartDate = $subscription->end_date ?? Carbon::now(); // Używamy daty zakończenia jako nowej daty startowej
+            $newEndDate = $this->calculateEndDate($newStartDate, $plan->billing_period);
 
-            // Jeśli nie jest to darmowy plan, przetwarzamy płatność
-            $payment = null;
-            if ($plan->price > 0) {
-                // Przetwarzanie płatności odnowienia
-                $paymentResult = $this->paymentGateway->processRenewal(
-                    $user,
-                    $plan->price,
-                    $plan->currency,
-                    $subscription->payment_method,
-                    $subscription->payment_details,
-                    "Odnowienie subskrypcji: {$plan->name}",
-                    $subscription
-                );
-
-                if (!$paymentResult['success']) {
-                    throw new \Exception($paymentResult['message']);
-                }
-
-                // Zapisanie informacji o płatności
-                $payment = new SubscriptionPayment();
-                $payment->user_id = $user->id;
-                $payment->subscription_id = $subscription->id;
-                $payment->transaction_id = $paymentResult['transaction_id'];
-                $payment->amount = $plan->price;
-                $payment->currency = $plan->currency;
-                $payment->payment_method = $subscription->payment_method;
-                $payment->payment_details = $subscription->payment_details;
-                $payment->status = 'completed';
-                $payment->save();
-            }
+            // Tworzymy płatność dla odnowienia
+            $payment = $this->createPaymentForSubscription($subscription, [
+                'transaction_id' => 'renewal-' . time(),
+                'payment_status' => 'completed'
+            ]);
 
             // Aktualizacja dat subskrypcji
             $subscription->start_date = $newStartDate;
             $subscription->end_date = $newEndDate;
             $subscription->status = 'active';
+            $subscription->next_billing_date = $newEndDate; // Ustaw następną datę rozliczenia
+            $subscription->last_invoice_id = null; // Resetujemy ostatnią fakturę, zostanie utworzona nowa
+            $subscription->last_invoice_number = null;
             $subscription->save();
+
+            // Generowanie faktury, jeśli jest włączone
+            if (config('subscription.auto_generate_invoices', true) && $payment) {
+                $this->generateInvoiceForPayment($payment);
+            }
 
             DB::commit();
 
@@ -218,21 +174,21 @@ class SubscriptionService
                 'success' => true,
                 'message' => 'Subskrypcja została odnowiona pomyślnie',
                 'subscription' => $subscription,
-                'payment' => $payment,
+                'payment' => $payment
             ];
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Błąd podczas odnawiania subskrypcji: ' . $e->getMessage(), [
                 'subscription_id' => $subscription->id,
-                'user_id' => $user->id,
-                'plan_id' => $plan->id,
+                'user_id' => $subscription->user_id,
+                'plan_id' => $subscription->subscription_plan_id,
+                'exception' => $e
             ]);
 
             return [
                 'success' => false,
                 'message' => 'Wystąpił błąd podczas odnawiania subskrypcji: ' . $e->getMessage(),
-                'subscription' => $subscription,
-                'payment' => null,
+                'subscription' => $subscription
             ];
         }
     }
@@ -247,45 +203,52 @@ class SubscriptionService
     public function cancelSubscription(UserSubscription $subscription, array $data = [])
     {
         try {
-            // Ustawienie daty anulowania i statusu
-            $subscription->cancelled_at = Carbon::now();
-            $subscription->cancellation_reason = $data['reason'] ?? null;
+            DB::beginTransaction();
             
-            // Sprawdzenie czy anulowanie ma nastąpić natychmiast czy na koniec okresu
-            if ($data['immediate'] ?? false) {
-                $subscription->status = 'cancelled';
+            // Ustaw status anulowania
+            $subscription->status = 'cancelled';
+            $subscription->cancelled_at = Carbon::now();
+            $subscription->renewal_status = UserSubscription::RENEWAL_DISABLED;
+            $subscription->auto_renew = false;
+            
+            // Dodaj powód anulowania jeśli podano
+            if (isset($data['reason']) && !empty($data['reason'])) {
+                $subscription->admin_notes = ($subscription->admin_notes ? $subscription->admin_notes . "\n" : '') . 
+                    "Anulowano: " . $data['reason'] . " (" . now()->format('Y-m-d H:i:s') . ")";
+            }
+            
+            // Jeśli anulowanie jest natychmiastowe, ustaw datę końcową na teraz
+            if (isset($data['immediate']) && $data['immediate']) {
                 $subscription->end_date = Carbon::now();
-            } else {
-                // Subskrypcja pozostanie aktywna do końca opłaconego okresu
-                $subscription->status = 'active';
-                $subscription->auto_renew = false;
             }
             
             $subscription->save();
-
-            // Wysyłanie powiadomienia do użytkownika
-            if ($data['send_notification'] ?? true) {
+            
+            // Wyemituj zdarzenie o anulowaniu subskrypcji
+            event(new SubscriptionCancelled($subscription));
+            
+            // Powiadom użytkownika, jeśli potrzeba
+            if (isset($data['send_notification']) && $data['send_notification']) {
                 $subscription->user->notify(new SubscriptionCancelledNotification($subscription));
             }
-
-            // Wyzwolenie zdarzenia SubscriptionCancelled
-            event(new SubscriptionCancelled($subscription));
-
+            
+            DB::commit();
+            
             return [
                 'success' => true,
                 'message' => 'Subskrypcja została anulowana pomyślnie',
-                'subscription' => $subscription,
+                'subscription' => $subscription
             ];
         } catch (\Exception $e) {
+            DB::rollBack();
             Log::error('Błąd podczas anulowania subskrypcji: ' . $e->getMessage(), [
                 'subscription_id' => $subscription->id,
-                'user_id' => $subscription->user_id,
+                'exception' => $e
             ]);
-
+            
             return [
                 'success' => false,
-                'message' => 'Wystąpił błąd podczas anulowania subskrypcji: ' . $e->getMessage(),
-                'subscription' => $subscription,
+                'message' => 'Wystąpił błąd podczas anulowania subskrypcji: ' . $e->getMessage()
             ];
         }
     }
@@ -301,73 +264,58 @@ class SubscriptionService
     {
         try {
             DB::beginTransaction();
-
-            // Aktualizacja pól subskrypcji
-            if (isset($data['plan_id']) && $data['plan_id'] != $subscription->plan_id) {
-                $newPlan = SubscriptionPlan::findOrFail($data['plan_id']);
-                $subscription->plan_id = $newPlan->id;
-                
-                // Obliczanie nowej daty zakończenia jeśli zmienił się plan
-                if (isset($data['start_date'])) {
-                    $startDate = Carbon::parse($data['start_date']);
-                    $subscription->start_date = $startDate;
-                    $subscription->end_date = $this->calculateEndDate($newPlan, $startDate);
-                } else {
-                    $subscription->end_date = $this->calculateEndDate($newPlan, $subscription->start_date);
-                }
-            } else {
-                // Aktualizacja daty rozpoczęcia/zakończenia
-                if (isset($data['start_date'])) {
-                    $subscription->start_date = $data['start_date'];
-                }
-                
-                if (isset($data['end_date'])) {
-                    $subscription->end_date = $data['end_date'];
-                }
+            
+            // Jeśli zmieniamy plan, sprawdź czy istnieje
+            if (isset($data['plan_id']) && $data['plan_id'] != $subscription->subscription_plan_id) {
+                $plan = SubscriptionPlan::findOrFail($data['plan_id']);
+                $subscription->subscription_plan_id = $plan->id;
+                $subscription->price = $data['price'] ?? $plan->price;
             }
             
-            // Aktualizacja innych pól
-            if (isset($data['status'])) {
-                $subscription->status = $data['status'];
-            }
+            // Aktualizuj dane subskrypcji
+            $subscription->status = $data['status'] ?? $subscription->status;
+            $subscription->start_date = isset($data['start_date']) ? Carbon::parse($data['start_date']) : $subscription->start_date;
+            $subscription->end_date = isset($data['end_date']) ? Carbon::parse($data['end_date']) : $subscription->end_date;
+            $subscription->subscription_type = $data['subscription_type'] ?? $subscription->subscription_type;
             
-            if (isset($data['payment_method'])) {
-                $subscription->payment_method = $data['payment_method'];
-            }
-            
-            if (isset($data['payment_details'])) {
-                $subscription->payment_details = $data['payment_details'];
-            }
-            
-            if (isset($data['notes'])) {
-                $subscription->notes = $data['notes'];
-            }
-            
+            // Ustaw automatyczne odnawianie
             if (isset($data['auto_renew'])) {
+                $subscription->renewal_status = $data['auto_renew'] ? UserSubscription::RENEWAL_ENABLED : UserSubscription::RENEWAL_DISABLED;
                 $subscription->auto_renew = $data['auto_renew'];
             }
             
+            // Aktualizuj datę następnej płatności, jeśli subskrypcja jest automatyczna
+            if ($subscription->isAutomatic() && isset($data['end_date'])) {
+                $subscription->next_billing_date = Carbon::parse($data['end_date']);
+            }
+            
+            $subscription->payment_method = $data['payment_method'] ?? $subscription->payment_method;
+            $subscription->payment_details = $data['payment_details'] ?? $subscription->payment_details;
+            $subscription->admin_notes = $data['notes'] ?? $subscription->admin_notes;
+            
+            // Jeśli subskrypcja jest anulowana, ustaw datę anulowania
+            if ($subscription->status === 'cancelled' && !$subscription->cancelled_at) {
+                $subscription->cancelled_at = now();
+            }
+            
             $subscription->save();
-
+            
             DB::commit();
-
+            
             return [
                 'success' => true,
-                'message' => 'Subskrypcja została zaktualizowana pomyślnie',
-                'subscription' => $subscription,
+                'subscription' => $subscription
             ];
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Błąd podczas aktualizacji subskrypcji: ' . $e->getMessage(), [
                 'subscription_id' => $subscription->id,
-                'user_id' => $subscription->user_id,
-                'data' => $data,
+                'exception' => $e
             ]);
-
+            
             return [
                 'success' => false,
-                'message' => 'Wystąpił błąd podczas aktualizacji subskrypcji: ' . $e->getMessage(),
-                'subscription' => $subscription,
+                'message' => 'Wystąpił błąd podczas aktualizacji subskrypcji: ' . $e->getMessage()
             ];
         }
     }
@@ -435,35 +383,193 @@ class SubscriptionService
     }
 
     /**
-     * Oblicza datę zakończenia subskrypcji na podstawie planu i daty rozpoczęcia
+     * Oblicza datę zakończenia subskrypcji na podstawie daty początkowej i okresu rozliczeniowego
      *
-     * @param SubscriptionPlan $plan
-     * @param Carbon|string $startDate
-     * @return Carbon|null
+     * @param Carbon $startDate
+     * @param string $billingPeriod
+     * @return Carbon
      */
-    protected function calculateEndDate(SubscriptionPlan $plan, $startDate)
+    private function calculateEndDate(Carbon $startDate, string $billingPeriod): Carbon
     {
-        if (!$startDate instanceof Carbon) {
-            $startDate = Carbon::parse($startDate);
+        $endDate = $startDate->copy();
+        
+        switch ($billingPeriod) {
+            case 'monthly':
+                $endDate->addMonth();
+                break;
+            case 'quarterly':
+                $endDate->addMonths(3);
+                break;
+            case 'annually':
+            case 'yearly':
+                $endDate->addYear();
+                break;
+            case 'biannually':
+                $endDate->addMonths(6);
+                break;
+            case 'lifetime':
+                $endDate->addYears(100); // Praktycznie bez daty końcowej
+                break;
+            default:
+                $endDate->addMonth(); // Domyślnie jeden miesiąc
         }
+        
+        return $endDate;
+    }
 
-        // Jeśli plan jest bezterminowy, zwracamy null
-        if ($plan->billing_period === 'lifetime') {
+    /**
+     * Tworzy płatność dla subskrypcji
+     *
+     * @param UserSubscription $subscription
+     * @param array $data
+     * @return SubscriptionPayment|null
+     */
+    private function createPaymentForSubscription(UserSubscription $subscription, array $data)
+    {
+        try {
+            $plan = $subscription->plan;
+            
+            $payment = new SubscriptionPayment();
+            $payment->user_id = $subscription->user_id;
+            $payment->subscription_id = $subscription->id;
+            $payment->transaction_id = $data['transaction_id'] ?? 'manual-' . time();
+            $payment->amount = $subscription->price;
+            $payment->currency = $plan->currency ?? 'PLN';
+            $payment->status = $data['payment_status'] ?? 'completed';
+            $payment->payment_method = $subscription->payment_method;
+            $payment->payment_details = $subscription->payment_details;
+            $payment->save();
+            
+            return $payment;
+        } catch (\Exception $e) {
+            Log::error('Błąd podczas tworzenia płatności dla subskrypcji: ' . $e->getMessage(), [
+                'subscription_id' => $subscription->id,
+                'exception' => $e
+            ]);
+            
             return null;
         }
+    }
 
-        // W przeciwnym wypadku obliczamy datę zakończenia na podstawie okresu rozliczeniowego
-        switch ($plan->billing_period) {
-            case 'monthly':
-                return $startDate->copy()->addMonth();
-            case 'quarterly':
-                return $startDate->copy()->addMonths(3);
-            case 'semi_annually':
-                return $startDate->copy()->addMonths(6);
-            case 'annually':
-                return $startDate->copy()->addYear();
-            default:
-                return $startDate->copy()->addMonth();
+    /**
+     * Generuje fakturę dla płatności za subskrypcję
+     *
+     * @param SubscriptionPayment $payment
+     * @return mixed
+     */
+    private function generateInvoiceForPayment(SubscriptionPayment $payment)
+    {
+        try {
+            $subscription = $payment->subscription;
+            $user = $payment->user;
+            $plan = $subscription->plan;
+            
+            // Sprawdzenie czy użytkownik ma profil firmy
+            $companyProfile = $user->companyProfile;
+            if (!$companyProfile) {
+                Log::warning('Nie można wygenerować faktury - brak profilu firmy', [
+                    'user_id' => $user->id,
+                    'payment_id' => $payment->id
+                ]);
+                return null;
+            }
+            
+            // Pobierz domyślne konto bankowe
+            $bankAccount = $companyProfile->defaultBankAccount ?? null;
+            
+            // Generuj numer faktury
+            $invoiceNumber = $companyProfile->generateNextInvoiceNumber();
+            
+            // Utwórz fakturę
+            $invoice = new \App\Models\Invoice();
+            $invoice->user_id = $user->id;
+            $invoice->subscription_id = $subscription->id;
+            $invoice->number = $invoiceNumber;
+            $invoice->contractor_name = $companyProfile->company_name;
+            $invoice->contractor_nip = $companyProfile->tax_number;
+            $invoice->contractor_address = $this->formatAddress($companyProfile);
+            $invoice->payment_method = $subscription->payment_method;
+            $invoice->issue_date = now();
+            $invoice->sale_date = now();
+            $invoice->due_date = now()->addDays($companyProfile->invoice_payment_days ?? 14);
+            $invoice->net_total = $payment->amount / (1 + ($plan->tax_rate ?? 23) / 100);
+            $invoice->tax_total = $payment->amount - $invoice->net_total;
+            $invoice->gross_total = $payment->amount;
+            $invoice->currency = $payment->currency;
+            $invoice->status = 'issued';
+            $invoice->bank_account_id = $bankAccount ? $bankAccount->id : null;
+            $invoice->notes = "Faktura za subskrypcję: {$plan->name}";
+            $invoice->auto_generated = true;
+            $invoice->approval_status = 'approved';
+            $invoice->approved_at = now();
+            $invoice->approved_by = 1; // ID administratora
+            $invoice->save();
+            
+            // Dodaj pozycję faktury
+            $invoice->items()->create([
+                'name' => "Subskrypcja {$plan->name}",
+                'description' => "Okres rozliczeniowy: {$subscription->start_date->format('d.m.Y')} - {$subscription->end_date->format('d.m.Y')}",
+                'quantity' => 1,
+                'unit' => 'szt.',
+                'unit_price' => $invoice->net_total,
+                'tax_rate' => $plan->tax_rate ?? 23,
+                'net_price' => $invoice->net_total,
+                'tax_amount' => $invoice->tax_total,
+                'gross_price' => $invoice->gross_total
+            ]);
+            
+            // Powiąż fakturę z subskrypcją
+            $subscription->last_invoice_id = $invoice->id;
+            $subscription->last_invoice_number = $invoice->number;
+            $subscription->save();
+            
+            // Dodaj powiadomienie dla administratora
+            if (class_exists('\App\Models\AdminNotification')) {
+                \App\Models\AdminNotification::createInvoiceNotification(
+                    'Wygenerowano automatyczną fakturę',
+                    "Automatycznie wygenerowano fakturę nr {$invoice->number} dla użytkownika {$user->name}",
+                    route('admin.billing.invoices.show', $invoice->id),
+                    [
+                        'invoice_id' => $invoice->id,
+                        'user_id' => $user->id,
+                        'subscription_id' => $subscription->id
+                    ]
+                );
+            }
+            
+            return $invoice;
+        } catch (\Exception $e) {
+            Log::error('Błąd podczas generowania faktury dla płatności: ' . $e->getMessage(), [
+                'payment_id' => $payment->id,
+                'exception' => $e
+            ]);
+            
+            return null;
         }
+    }
+
+    /**
+     * Formatuje adres na podstawie profilu firmy
+     *
+     * @param \App\Models\CompanyProfile $companyProfile
+     * @return string
+     */
+    private function formatAddress($companyProfile)
+    {
+        $address = [];
+        
+        if ($companyProfile->street) {
+            $address[] = $companyProfile->street;
+        }
+        
+        if ($companyProfile->postal_code || $companyProfile->city) {
+            $address[] = trim($companyProfile->postal_code . ' ' . $companyProfile->city);
+        }
+        
+        if ($companyProfile->country) {
+            $address[] = $companyProfile->country;
+        }
+        
+        return implode(', ', $address);
     }
 } 

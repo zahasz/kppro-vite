@@ -75,6 +75,8 @@ Route::middleware('auth')->group(function () {
             Route::get('/', [FinanceController::class, 'invoices'])->name('index');
             Route::get('/sales', [FinanceController::class, 'salesInvoices'])->name('sales');
             Route::get('/purchases', [FinanceController::class, 'purchaseInvoices'])->name('purchases');
+            Route::get('/subscriptions', [FinanceController::class, 'subscriptionInvoices'])->name('subscriptions');
+            Route::post('/subscriptions/generate', [FinanceController::class, 'generateSubscriptionInvoices'])->name('subscriptions.generate');
         });
     });
 
@@ -234,6 +236,36 @@ Route::middleware('auth')->group(function () {
 
         // Dodatkowa definicja dla trasy czyszczenia logów
         Route::post('/system/logs/clear', [AdminPanelController::class, 'clearSystemLogs'])->name('system.logs.clear');
+    });
+
+    // Trasa testowa do dodawania historii logowania
+    Route::get('/test/add-login-history', function() {
+        $user = \App\Models\User::first();
+        
+        if (!$user) {
+            $user = \App\Models\User::create([
+                'name' => 'Test User',
+                'email' => 'test@example.com',
+                'password' => bcrypt('password')
+            ]);
+        }
+        
+        $loginHistory = new \App\Models\LoginHistory();
+        $loginHistory->user_id = $user->id;
+        $loginHistory->ip_address = request()->ip();
+        $loginHistory->user_agent = request()->userAgent();
+        $loginHistory->status = 'success';
+        $loginHistory->details = 'Testowe logowanie przez stronę diagnostyczną';
+        $loginHistory->created_at = now();
+        $loginHistory->updated_at = now();
+        $loginHistory->save();
+        
+        return response()->json([
+            'success' => true,
+            'message' => 'Dodano testowy wpis historii logowania',
+            'record' => $loginHistory,
+            'user' => $user
+        ]);
     });
 });
 
