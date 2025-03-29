@@ -3,7 +3,7 @@
         Panel Administratora - Przegląd
     </x-slot>
 
-    <div class="space-y-6">
+    <div class="space-y-6" data-section="admin.dashboard">
         <!-- Statystyki systemu -->
         <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
             <div class="p-4 border-b border-gray-200">

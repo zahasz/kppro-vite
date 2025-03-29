@@ -27,6 +27,7 @@ class Subscription extends Model
         'next_payment_date',
         'payment_method',
         'last_payment_id',
+        'notes',
     ];
 
     protected $casts = [
@@ -44,16 +45,33 @@ class Subscription extends Model
     const RENEWAL_ENABLED = 'enabled';
     const RENEWAL_DISABLED = 'disabled';
 
+    /**
+     * Get the user that owns the subscription
+     */
     public function user()
     {
         return $this->belongsTo(User::class);
     }
 
+    /**
+     * Get the plan that the subscription belongs to
+     */
     public function plan()
     {
         return $this->belongsTo(Plan::class);
     }
 
+    /**
+     * Scope a query to only include active subscriptions
+     */
+    public function scopeActive($query)
+    {
+        return $query->where('status', 'active');
+    }
+
+    /**
+     * Check if the subscription is active
+     */
     public function isActive()
     {
         return $this->status === 'active' && 
@@ -69,14 +87,20 @@ class Subscription extends Model
         ]);
     }
     
-    public function isAutomatic()
-    {
-        return $this->subscription_type === self::TYPE_AUTOMATIC;
-    }
-    
+    /**
+     * Check if the subscription is manual
+     */
     public function isManual()
     {
         return $this->subscription_type === self::TYPE_MANUAL;
+    }
+    
+    /**
+     * Check if the subscription is automatic
+     */
+    public function isAutomatic()
+    {
+        return $this->subscription_type === self::TYPE_AUTOMATIC;
     }
     
     public function isRenewalEnabled()

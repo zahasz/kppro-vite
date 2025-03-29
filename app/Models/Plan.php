@@ -22,7 +22,7 @@ class Plan extends Model
     ];
 
     protected $casts = [
-        'price' => 'decimal:2',
+        'price' => 'float',
         'features' => 'array',
         'is_active' => 'boolean',
         'trial_period_days' => 'integer',
@@ -33,14 +33,20 @@ class Plan extends Model
     const TYPE_AUTOMATIC = 'automatic';
     const TYPE_BOTH = 'both';
 
+    /**
+     * Get all subscriptions for the plan
+     */
     public function subscriptions()
     {
         return $this->hasMany(Subscription::class);
     }
 
+    /**
+     * Get only active subscriptions for the plan
+     */
     public function activeSubscriptions()
     {
-        return $this->subscriptions()->where('status', 'active');
+        return $this->hasMany(Subscription::class)->where('status', 'active');
     }
 
     /**

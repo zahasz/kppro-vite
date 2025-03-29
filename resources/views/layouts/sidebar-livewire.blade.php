@@ -51,49 +51,113 @@ $menuItems = [
     ]
 ];
 
-// Definicja elementów menu administratora
-$adminItems = [
-    [
-        'route' => 'admin.dashboard',
-        'icon' => 'fas fa-tachometer-alt',
-        'label' => 'Panel administratora',
-        'routeMatch' => 'admin.dashboard'
+// Wyciągnięcie elementu Panel administratora z grupy Użytkownicy
+$adminDashboardItem = [
+    'route' => 'admin.dashboard',
+    'icon' => 'fas fa-tachometer-alt',
+    'label' => 'Panel administratora',
+    'routeMatch' => 'admin.dashboard'
+];
+
+// Aktualizacja grupy Użytkownicy bez elementu Panel administratora
+$adminGroups = [
+    'Użytkownicy' => [
+        [
+            'route' => 'admin.users.index',
+            'icon' => 'fas fa-users-cog',
+            'label' => 'Użytkownicy',
+            'routeMatch' => 'admin.users.*'
+        ],
+        [
+            'route' => 'admin.roles.index',
+            'icon' => 'fas fa-shield-alt',
+            'label' => 'Role',
+            'routeMatch' => 'admin.roles.*'
+        ],
+        [
+            'route' => 'admin.permissions.index',
+            'icon' => 'fas fa-key',
+            'label' => 'Uprawnienia',
+            'routeMatch' => 'admin.permissions.*'
+        ],
+        [
+            'route' => 'admin.system.login-history',
+            'icon' => 'fas fa-history',
+            'label' => 'Historia logowania',
+            'routeMatch' => 'admin.system.login-history'
+        ],
     ],
-    [
-        'route' => 'admin.users.index',
-        'icon' => 'fas fa-users-cog',
-        'label' => 'Użytkownicy',
-        'routeMatch' => 'admin.users.*'
+    'Subskrypcje' => [
+        [
+            'route' => 'admin.subscriptions.index',
+            'icon' => 'fas fa-credit-card',
+            'label' => 'Plany subskrypcji',
+            'routeMatch' => 'admin.subscriptions.index'
+        ],
+        [
+            'route' => 'admin.subscriptions.users',
+            'icon' => 'fas fa-user-tag',
+            'label' => 'Subskrypcje użytkowników',
+            'routeMatch' => 'admin.subscriptions.users'
+        ],
+        [
+            'route' => 'admin.subscriptions.stats',
+            'icon' => 'fas fa-chart-pie',
+            'label' => 'Statystyki subskrypcji',
+            'routeMatch' => 'admin.subscriptions.stats'
+        ],
     ],
-    [
-        'route' => 'admin.subscriptions.index',
-        'icon' => 'fas fa-credit-card',
-        'label' => 'Subskrypcje',
-        'routeMatch' => 'admin.subscriptions.index'
+    'Finanse' => [
+        [
+            'route' => 'admin.subscriptions.payments',
+            'icon' => 'fas fa-dollar-sign',
+            'label' => 'Historia płatności',
+            'routeMatch' => 'admin.subscriptions.payments'
+        ],
+        [
+            'route' => 'admin.revenue.dashboard',
+            'icon' => 'fas fa-chart-line',
+            'label' => 'Statystyki przychodów',
+            'routeMatch' => 'admin.revenue.dashboard'
+        ],
+        [
+            'route' => 'admin.revenue.monthly',
+            'icon' => 'fas fa-calendar-alt',
+            'label' => 'Raporty miesięczne',
+            'routeMatch' => 'admin.revenue.monthly'
+        ],
+        [
+            'route' => 'admin.revenue.annual',
+            'icon' => 'fas fa-chart-bar',
+            'label' => 'Raporty roczne',
+            'routeMatch' => 'admin.revenue.annual'
+        ],
     ],
-    [
-        'route' => 'admin.subscriptions.alpine',
-        'icon' => 'fas fa-file-invoice-dollar',
-        'label' => 'Subskrypcje Alpine',
-        'routeMatch' => 'admin.subscriptions.alpine'
+    'System' => [
+        [
+            'route' => 'admin.system.logs',
+            'icon' => 'fas fa-clipboard-list',
+            'label' => 'Logi systemowe',
+            'routeMatch' => 'admin.system.logs'
+        ],
+        [
+            'route' => 'admin.system.info',
+            'icon' => 'fas fa-info-circle',
+            'label' => 'Informacje o systemie',
+            'routeMatch' => 'admin.system.info'
+        ],
+        [
+            'route' => 'admin.system.backup',
+            'icon' => 'fas fa-database',
+            'label' => 'Kopie zapasowe',
+            'routeMatch' => 'admin.system.backup'
+        ],
     ],
-    [
-        'route' => 'admin.revenue.dashboard',
-        'icon' => 'fas fa-chart-line',
-        'label' => 'Przychody',
-        'routeMatch' => 'admin.revenue.*'
-    ],
-    [
-        'route' => 'admin.system.info',
-        'icon' => 'fas fa-server',
-        'label' => 'System',
-        'routeMatch' => 'admin.system.*'
-    ]
 ];
 @endphp
 
 <!-- Menu Items -->
-<div class="py-5 space-y-1 px-3">
+<div class="py-5 space-y-1 px-3 h-full overflow-y-auto pb-20" style="max-height: calc(100vh - 70px);">
     @foreach($menuItems as $item)
         <x-sidebar-menu-item 
             :route="$item['route']" 
@@ -108,13 +172,38 @@ $adminItems = [
     <div class="pt-4 mt-4 border-t border-[#44546A]/30">
         <h3 class="text-xs uppercase text-white/60 font-semibold px-4 mb-2 tracking-wider" x-show="sidebarOpen">Panel administratora</h3>
         
-        @foreach($adminItems as $item)
-            <x-sidebar-menu-item 
-                :route="$item['route']" 
-                :icon="$item['icon']" 
-                :label="$item['label']" 
-                :route-match="$item['routeMatch']" 
-            />
+        <!-- Panel administratora jako oddzielny element -->
+        <x-sidebar-menu-item 
+            :route="$adminDashboardItem['route']" 
+            :icon="$adminDashboardItem['icon']" 
+            :label="$adminDashboardItem['label']" 
+            :route-match="$adminDashboardItem['routeMatch']" 
+        />
+        
+        @foreach($adminGroups as $groupName => $items)
+            <div x-data="{ open: false }" class="mt-2">
+                <button @click="open = !open" class="flex items-center justify-between w-full px-4 py-2 text-white hover:bg-[#44546A]/40 rounded-md transition-all duration-150" x-show="sidebarOpen">
+                    <span class="text-xs uppercase text-white/70 font-medium tracking-wider">{{ $groupName }}</span>
+                    <i class="fas fa-chevron-down text-white/60 transition-transform duration-200" :class="{'transform rotate-180': open}"></i>
+                </button>
+                
+                <!-- Na wąskim pasku bocznym zawsze pokazuj tytuł grupy -->
+                <h4 class="text-xs uppercase text-white/50 font-medium px-4 py-1 mb-1 tracking-wider" x-show="!sidebarOpen">{{ $groupName }}</h4>
+                
+                <div x-show="open || !sidebarOpen" x-transition:enter="transition ease-out duration-200" 
+                     x-transition:enter-start="opacity-0 transform scale-95" 
+                     x-transition:enter-end="opacity-100 transform scale-100" 
+                     class="pl-2">
+                    @foreach($items as $item)
+                    <x-sidebar-menu-item 
+                        :route="$item['route']" 
+                        :icon="$item['icon']" 
+                        :label="$item['label']" 
+                        :route-match="$item['routeMatch']" 
+                    />
+                    @endforeach
+                </div>
+            </div>
         @endforeach
     </div>
     @endcan

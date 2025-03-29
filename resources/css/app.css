@@ -3,6 +3,9 @@
  * @import 'tailwindcss/utilities';
  */
 
+/* x-cloak do Alpine.js */
+[x-cloak] { display: none !important; }
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;

@@ -1,10 +1,8 @@
-@extends('layouts.admin-livewire')
+<x-admin-layout>
+    <x-slot name="header">
+        Zarządzanie planami subskrypcji (Alpine.js)
+    </x-slot>
 
-@section('header')
-    Zarządzanie planami subskrypcji (Alpine.js)
-@endsection
-
-@section('content')
 <div x-data="subscriptionPlans()" class="space-y-6">
     <div class="bg-white shadow-sm rounded-lg overflow-hidden">
         <div class="p-6 border-b border-gray-200 flex justify-between items-center">
@@ -186,7 +184,6 @@
         </div>
     </div>
 </div>
-@endsection
 
 @push('scripts')
 <script>
@@ -251,7 +248,7 @@
             },
             
             calculateAvgValue() {
-                if (!this.statistics.active_subscriptions || this.statistics.active_subscriptions <= 0) {
+                if (!this.statistics.active_subscriptions || this.statistics.active_subscriptions === 0) {
                     return 0;
                 }
                 
@@ -268,30 +265,35 @@
                     return;
                 }
                 
-                // Tu można dodać logikę usuwania planu przez AJAX
-                // Przykład:
-                // fetch('/admin/subscriptions/' + this.planToDelete.id, {
-                //     method: 'DELETE',
-                //     headers: {
-                //         'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                //         'Accept': 'application/json'
-                //     }
-                // })
-                // .then(response => response.json())
-                // .then(data => {
-                //     if (data.success) {
-                //         this.plans = this.plans.filter(p => p.id !== this.planToDelete.id);
-                //     }
-                // });
-                
-                // Na razie po prostu zamykamy modal
-                this.showDeleteModal = false;
-                this.planToDelete = null;
-                
-                // Przekierujmy do istniejącej trasy usuwania
-                window.location.href = "{{ route('admin.subscriptions.destroy', '') }}/" + this.planToDelete.id;
+                fetch(`/admin/subscriptions/${this.planToDelete.id}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                        'Accept': 'application/json'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Usunięcie planu z listy
+                        this.plans = this.plans.filter(p => p.id !== this.planToDelete.id);
+                        this.showDeleteModal = false;
+                        this.planToDelete = null;
+                        
+                        // Odświeżenie statystyk
+                        this.statistics.active_subscriptions -= 1;
+                    } else {
+                        alert(data.message || 'Wystąpił błąd podczas usuwania planu.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Wystąpił błąd podczas usuwania planu. Sprawdź konsolę, aby uzyskać więcej informacji.');
+                });
             }
-        }
+        };
     }
 </script>
-@endpush 
+@endpush
+
+</x-admin-layout> 

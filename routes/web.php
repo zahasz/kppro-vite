@@ -18,6 +18,7 @@ use App\Http\Controllers\WarehouseGarageController;
 use App\Http\Controllers\BankAccountController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\SettingController;
+use App\Http\Controllers\SubscriptionController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -129,6 +130,9 @@ Route::middleware('auth')->group(function () {
         Route::get('/', [EstimateController::class, 'index'])->name('index');
     });
 
+    // Subskrypcje użytkownika
+    Route::get('/subscription', [SubscriptionController::class, 'index'])->name('subscription');
+
     // Faktury
     Route::get('invoices/{invoice}/pdf', [InvoiceController::class, 'generatePdf'])->name('invoices.pdf');
     Route::resource('invoices', InvoiceController::class);
@@ -142,7 +146,7 @@ Route::middleware('auth')->group(function () {
     // Route::patch('/settings', [SettingController::class, 'update'])->name('settings.update');
 
     // Panel administratora
-    Route::prefix('admin')->name('admin.')->middleware('can:admin')->group(function () {
+    Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(function () {
         // Dashboard
         Route::get('/', [AdminPanelController::class, 'index'])->name('dashboard');
         Route::get('/dashboard/details/{type}', [AdminPanelController::class, 'details'])->name('dashboard.details');
@@ -176,32 +180,27 @@ Route::middleware('auth')->group(function () {
             Route::post('/', [AdminPanelController::class, 'storePermission'])->name('store');
         });
         
-        // Zarządzanie subskrypcjami
+        // Strony subskrypcji 
         Route::prefix('subscriptions')->name('subscriptions.')->group(function () {
-            // Plany subskrypcji
             Route::get('/', [AdminPanelController::class, 'subscriptions'])->name('index');
-            Route::get('/alpine', [AdminPanelController::class, 'subscriptionsAlpine'])->name('alpine');
+            Route::get('/stats', [AdminPanelController::class, 'subscriptionStats'])->name('stats');
             Route::get('/create', [AdminPanelController::class, 'createSubscription'])->name('create');
-            Route::post('/', [AdminPanelController::class, 'storeSubscription'])->name('store');
+            Route::post('/store', [AdminPanelController::class, 'storeSubscription'])->name('store');
             Route::get('/{plan}/edit', [AdminPanelController::class, 'editSubscription'])->name('edit');
             Route::put('/{plan}', [AdminPanelController::class, 'updateSubscription'])->name('update');
-            Route::delete('/{plan}', [AdminPanelController::class, 'deleteSubscription'])->name('destroy');
+            Route::delete('/{plan}', [AdminPanelController::class, 'destroySubscription'])->name('destroy');
             
-            // Zarządzanie subskrypcjami użytkowników
+            // Subskrypcje użytkowników
             Route::get('/users', [AdminPanelController::class, 'userSubscriptions'])->name('users');
             Route::get('/users/create', [AdminPanelController::class, 'createUserSubscription'])->name('create-user-subscription');
-            Route::post('/users', [AdminPanelController::class, 'storeUserSubscription'])->name('store-user-subscription');
+            Route::post('/users/store', [AdminPanelController::class, 'storeUserSubscription'])->name('store-user-subscription');
             Route::get('/users/{subscription}/edit', [AdminPanelController::class, 'editUserSubscription'])->name('edit-user-subscription');
             Route::put('/users/{subscription}', [AdminPanelController::class, 'updateUserSubscription'])->name('update-user-subscription');
             Route::delete('/users/{subscription}', [AdminPanelController::class, 'deleteUserSubscription'])->name('delete-user-subscription');
             
-            // Historia płatności
+            // Płatności subskrypcji
             Route::get('/payments', [AdminPanelController::class, 'subscriptionPayments'])->name('payments');
-            Route::get('/payments/{payment}', [AdminPanelController::class, 'showPaymentDetails'])->name('payment-details');
-            Route::post('/payments/{payment}/refund', [AdminPanelController::class, 'refundPayment'])->name('refund-payment');
-            
-            // Powiadomienia subskrypcji
-            Route::get('/notifications', [AdminPanelController::class, 'subscriptionNotifications'])->name('notifications');
+            Route::get('/payments/{payment}', [AdminPanelController::class, 'subscriptionPaymentDetails'])->name('payment-details');
         });
         
         // Zarządzanie przychodami
@@ -236,7 +235,6 @@ Route::middleware('auth')->group(function () {
         // Dodatkowa definicja dla trasy czyszczenia logów
         Route::post('/system/logs/clear', [AdminPanelController::class, 'clearSystemLogs'])->name('system.logs.clear');
     });
-
 });
 
 require __DIR__.'/auth.php';
