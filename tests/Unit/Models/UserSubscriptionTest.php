@@ -3,6 +3,11 @@
 namespace Tests\Unit\Models;
 
 use PHPUnit\Framework\TestCase;
+<?php
+
+namespace Tests\Unit\Models;
+
+use PHPUnit\Framework\TestCase;
 use App\Models\UserSubscription;
 use App\Models\User;
 use App\Models\SubscriptionPlan;

@@ -364,4 +364,91 @@
             </div>
         </div>
     </div>
+
+    <div class="py-12">
+        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
+                <div class="p-6 text-gray-900">
+                    {{ __("Witaj w panelu administracyjnym!") }}
+                </div>
+            </div>
+            
+            <!-- Dostępne moduły -->
+            <div class="mt-6">
+                <h2 class="text-xl font-semibold text-gray-800 mb-4">Dostępne moduły:</h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    @module('invoices')
+                        <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6">
+                            <h3 class="text-lg font-medium text-indigo-600">Faktury</h3>
+                            <p class="mt-2 text-gray-600">Zarządzaj fakturami, twórz nowe i monitoruj płatności.</p>
+                            <a href="{{ route('invoices.index') }}" class="mt-4 inline-flex items-center px-4 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-700">
+                                Przejdź do faktur
+                            </a>
+                        </div>
+                    @endmodule
+                    
+                    @module('products')
+                        <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6">
+                            <h3 class="text-lg font-medium text-indigo-600">Produkty</h3>
+                            <p class="mt-2 text-gray-600">Zarządzaj produktami, cenami i stanami magazynowymi.</p>
+                            <a href="{{ route('products.index') }}" class="mt-4 inline-flex items-center px-4 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-700">
+                                Przejdź do produktów
+                            </a>
+                        </div>
+                    @endmodule
+                    
+                    @module('warehouse')
+                        <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6">
+                            <h3 class="text-lg font-medium text-indigo-600">Magazyn</h3>
+                            <p class="mt-2 text-gray-600">Zarządzaj magazynem, materiałami i wyposażeniem.</p>
+                            <a href="{{ route('warehouse.index') }}" class="mt-4 inline-flex items-center px-4 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-700">
+                                Przejdź do magazynu
+                            </a>
+                        </div>
+                    @endmodule
+                    
+                    @module('finances')
+                        <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6">
+                            <h3 class="text-lg font-medium text-indigo-600">Finanse</h3>
+                            <p class="mt-2 text-gray-600">Monitoruj finanse, przychody i wydatki.</p>
+                            <a href="{{ route('finances.index') }}" class="mt-4 inline-flex items-center px-4 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-700">
+                                Przejdź do finansów
+                            </a>
+                        </div>
+                    @endmodule
+                    
+                    @module('contractors')
+                        <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6">
+                            <h3 class="text-lg font-medium text-indigo-600">Kontrahenci</h3>
+                            <p class="mt-2 text-gray-600">Zarządzaj bazą kontrahentów.</p>
+                            <a href="{{ route('contractors.index') }}" class="mt-4 inline-flex items-center px-4 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-700">
+                                Przejdź do kontrahentów
+                            </a>
+                        </div>
+                    @endmodule
+                </div>
+                
+                <!-- Informacja o subskrypcji -->
+                @if(auth()->user()->hasActiveSubscription())
+                    <div class="mt-6 bg-white overflow-hidden shadow-sm sm:rounded-lg p-6">
+                        <h3 class="text-lg font-medium text-green-600">Aktywna subskrypcja: {{ auth()->user()->currentSubscription()->plan->name }}</h3>
+                        <p class="mt-2 text-gray-600">
+                            Twoja subskrypcja jest aktywna do: {{ auth()->user()->currentSubscription()->end_date ? auth()->user()->currentSubscription()->end_date->format('d.m.Y') : 'Bezterminowo' }}
+                        </p>
+                    </div>
+                @else
+                    <div class="mt-6 bg-white overflow-hidden shadow-sm sm:rounded-lg p-6">
+                        <h3 class="text-lg font-medium text-red-600">Brak aktywnej subskrypcji</h3>
+                        <p class="mt-2 text-gray-600">
+                            Wykup subskrypcję, aby uzyskać dostęp do wszystkich modułów aplikacji.
+                        </p>
+                        <a href="{{ route('subscription') }}" class="mt-4 inline-flex items-center px-4 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-700">
+                            Sprawdź dostępne plany
+                        </a>
+                    </div>
+                @endif
+            </div>
+        </div>
+    </div>
 </x-app-layout>

@@ -28,17 +28,17 @@
                             </div>
 
                             <div>
-                                <label for="plan_id" class="block text-sm font-medium text-gray-700">Plan subskrypcji</label>
-                                <select name="plan_id" id="plan_id" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-steel-blue-300 focus:ring focus:ring-steel-blue-200 focus:ring-opacity-50" required>
+                                <label for="subscription_plan_id" class="block text-sm font-medium text-gray-700">Plan subskrypcji</label>
+                                <select name="subscription_plan_id" id="subscription_plan_id" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-steel-blue-300 focus:ring focus:ring-steel-blue-200 focus:ring-opacity-50" required>
                                     <option value="">Wybierz plan</option>
                                     @foreach($plans as $plan)
-                                        <option value="{{ $plan->id }}" {{ old('plan_id') == $plan->id ? 'selected' : '' }} 
-                                            data-price="{{ $plan->price }}" data-interval="{{ $plan->interval }}">
+                                        <option value="{{ $plan->id }}" {{ old('subscription_plan_id') == $plan->id ? 'selected' : '' }} 
+                                            data-price="{{ $plan->price }}" data-interval="{{ $plan->billing_period }}">
                                             {{ $plan->name }} ({{ number_format($plan->price, 2) }} zł)
                                         </option>
                                     @endforeach
                                 </select>
-                                @error('plan_id')
+                                @error('subscription_plan_id')
                                     <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                                 @enderror
                             </div>
@@ -126,11 +126,44 @@
 
                         <!-- Notatki -->
                         <div class="mb-6">
-                            <label for="notes" class="block text-sm font-medium text-gray-700">Notatki</label>
-                            <textarea name="notes" id="notes" rows="3" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-steel-blue-300 focus:ring focus:ring-steel-blue-200 focus:ring-opacity-50">{{ old('notes') }}</textarea>
-                            @error('notes')
+                            <label for="admin_notes" class="block text-sm font-medium text-gray-700">Notatki</label>
+                            <textarea name="admin_notes" id="admin_notes" rows="3" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-steel-blue-300 focus:ring focus:ring-steel-blue-200 focus:ring-opacity-50">{{ old('admin_notes') }}</textarea>
+                            @error('admin_notes')
                                 <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                             @enderror
+                        </div>
+
+                        <!-- Opcje dodatkowe -->
+                        <div class="mb-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div class="flex items-start">
+                                <div class="flex items-center h-5">
+                                    <input id="auto_renew" name="auto_renew" type="checkbox" value="1" {{ old('auto_renew') ? 'checked' : '' }} class="h-4 w-4 text-steel-blue-600 border-gray-300 rounded focus:ring-steel-blue-500">
+                                </div>
+                                <div class="ml-3 text-sm">
+                                    <label for="auto_renew" class="font-medium text-gray-700">Automatyczne odnawianie</label>
+                                    <p class="text-gray-500">Subskrypcja będzie odnawiana automatycznie</p>
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-start">
+                                <div class="flex items-center h-5">
+                                    <input id="create_payment" name="create_payment" type="checkbox" value="1" {{ old('create_payment', true) ? 'checked' : '' }} class="h-4 w-4 text-steel-blue-600 border-gray-300 rounded focus:ring-steel-blue-500">
+                                </div>
+                                <div class="ml-3 text-sm">
+                                    <label for="create_payment" class="font-medium text-gray-700">Utwórz fakturę</label>
+                                    <p class="text-gray-500">Wygeneruj fakturę dla tej subskrypcji</p>
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-start">
+                                <div class="flex items-center h-5">
+                                    <input id="send_notification" name="send_notification" type="checkbox" value="1" {{ old('send_notification', true) ? 'checked' : '' }} class="h-4 w-4 text-steel-blue-600 border-gray-300 rounded focus:ring-steel-blue-500">
+                                </div>
+                                <div class="ml-3 text-sm">
+                                    <label for="send_notification" class="font-medium text-gray-700">Powiadom użytkownika</label>
+                                    <p class="text-gray-500">Wyślij e-mail z informacją o subskrypcji</p>
+                                </div>
+                            </div>
                         </div>
 
                         <!-- Przyciski formularza -->
@@ -150,13 +183,22 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            const planSelect = document.getElementById('plan_id');
+            const planSelect = document.getElementById('subscription_plan_id');
             const priceInput = document.getElementById('price');
+            const subscriptionTypeSelect = document.getElementById('subscription_type');
+            const autoRenewCheckbox = document.getElementById('auto_renew');
             
             // Aktualizuj cenę gdy plan się zmienia
             planSelect.addEventListener('change', function() {
                 const selectedOption = this.options[this.selectedIndex];
                 priceInput.value = selectedOption.dataset.price || 0;
+            });
+            
+            // Automatycznie zaznacz auto_renew dla automatycznych subskrypcji
+            subscriptionTypeSelect.addEventListener('change', function() {
+                if (this.value === 'automatic') {
+                    autoRenewCheckbox.checked = true;
+                }
             });
         });
     </script>

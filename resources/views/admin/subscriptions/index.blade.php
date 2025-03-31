@@ -1,148 +1,207 @@
-<x-admin-layout>
-    <x-slot name="header">
-        Zarządzanie planami subskrypcji
-    </x-slot>
+@extends('layouts.admin')
 
+@section('title', 'Plany subskrypcyjne')
+
+@section('content')
+<div class="container px-6 mx-auto">
     <div class="space-y-6">
-        <div class="flex justify-between">
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
-                <h2 class="text-xl font-semibold text-gray-900">Plany subskrypcji</h2>
-                <p class="mt-1 text-sm text-gray-600">Zarządzaj dostępnymi planami subskrypcji w systemie.</p>
+                <h2 class="text-xl font-semibold text-gray-900">Plany subskrypcyjne</h2>
+                <p class="mt-1 text-sm text-gray-600">Zarządzaj dostępnymi planami subskrypcji w aplikacji.</p>
             </div>
-            <div>
-                <a href="{{ route('admin.subscriptions.create') }}" class="inline-flex items-center px-4 py-2 bg-steel-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-steel-blue-700 focus:bg-steel-blue-700 active:bg-steel-blue-800 focus:outline-none focus:ring-2 focus:ring-steel-blue-500 focus:ring-offset-2 transition ease-in-out duration-150">
+            <div class="flex flex-col sm:flex-row gap-3">
+                <a href="{{ route('admin.subscriptions.create') }}" class="inline-flex items-center justify-center px-4 py-2 bg-steel-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-steel-blue-700 focus:bg-steel-blue-700 active:bg-steel-blue-800 focus:outline-none focus:ring-2 focus:ring-steel-blue-500 focus:ring-offset-2 transition ease-in-out duration-150">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
                         <path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd" />
                     </svg>
                     Dodaj nowy plan
                 </a>
+                <a href="{{ route('admin.subscriptions.permissions') }}" class="inline-flex items-center justify-center px-4 py-2 bg-white border border-gray-300 rounded-md font-semibold text-xs text-gray-700 uppercase tracking-widest hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-steel-blue-500 transition ease-in-out duration-150">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M10 2a4 4 0 00-4 4v1H5a1 1 0 00-.994.89l-1 9A1 1 0 004 18h12a1 1 0 00.994-1.11l-1-9A1 1 0 0015 7h-1V6a4 4 0 00-4-4zm2 5V6a2 2 0 10-4 0v1h4zm-6 3a1 1 0 112 0 1 1 0 01-2 0zm7-1a1 1 0 100 2 1 1 0 000-2z" clip-rule="evenodd" />
+                    </svg>
+                    Zarządzaj uprawnieniami
+                </a>
             </div>
         </div>
 
-        <!-- Karty planów subskrypcji -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        @include('admin.partials.success-alert')
+        @include('admin.partials.error-alert')
+        
+        <!-- Pricing Cards -->
+        <div class="grid gap-6 mb-8 md:grid-cols-3">
             @foreach($plans as $plan)
-                <div class="bg-white rounded-lg shadow-md overflow-hidden">
-                    <div class="p-5 border-b border-gray-200">
-                        <div class="flex justify-between items-start">
-                            <h3 class="text-xl font-bold text-gray-900">{{ $plan->name }}</h3>
-                            <div class="flex items-center space-x-2">
-                                @if(isset($plan->is_active) && $plan->is_active)
-                                    <span class="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">Aktywny</span>
-                                @else
-                                    <span class="px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">Nieaktywny</span>
-                                @endif
-                            </div>
-                        </div>
-                        <div class="mt-2">
-                            <span class="text-3xl font-bold text-gray-900">{{ number_format($plan->price ?? 0, 2) }}</span>
-                            <span class="text-gray-500 ml-1">zł</span>
-                            <span class="text-gray-500 ml-1">/ 
-                                @if(isset($plan->interval) && $plan->interval == 'monthly')
-                                    miesiąc
-                                @elseif(isset($plan->interval) && $plan->interval == 'quarterly')
-                                    kwartał
-                                @elseif(isset($plan->interval) && $plan->interval == 'yearly')
-                                    rok
-                                @else
-                                    {{ $plan->interval ?? 'miesiąc' }}
-                                @endif
-                            </span>
-                        </div>
-                    </div>
-
-                    <div class="p-5">
-                        <div class="text-sm text-gray-600 mb-4">
-                            {{ $plan->description ?? 'Brak opisu' }}
-                        </div>
-
-                        <div class="space-y-3">
-                            <h4 class="font-medium text-gray-900">Funkcje:</h4>
-                            <ul class="space-y-2">
-                                @if(isset($plan->features) && is_array($plan->features) && count($plan->features) > 0)
-                                    @foreach($plan->features as $feature)
-                                        <li class="flex items-start">
-                                            <svg class="h-5 w-5 text-green-500 mr-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
-                                            </svg>
-                                            <span>{{ $feature }}</span>
-                                        </li>
-                                    @endforeach
-                                @else
-                                    <li class="text-gray-500">Brak zdefiniowanych funkcji</li>
-                                @endif
-                            </ul>
-                        </div>
-
-                        <div class="mt-4 pt-4 border-t border-gray-200">
-                            <div class="flex items-center justify-between text-sm">
-                                <span class="text-gray-600">Typ subskrypcji:</span>
-                                <span class="font-medium">
-                                    @if(isset($plan->subscription_type) && $plan->subscription_type == 'manual')
-                                        Ręczna
-                                    @elseif(isset($plan->subscription_type) && $plan->subscription_type == 'automatic')
-                                        Automatyczna
-                                    @elseif(isset($plan->subscription_type) && $plan->subscription_type == 'both')
-                                        Ręczna i automatyczna
-                                    @else
-                                        Nieokreślony
-                                    @endif
-                                </span>
-                            </div>
-                            
-                            @if(isset($plan->trial_period_days) && $plan->trial_period_days > 0)
-                                <div class="flex items-center justify-between text-sm mt-2">
-                                    <span class="text-gray-600">Okres próbny:</span>
-                                    <span class="font-medium">{{ $plan->trial_period_days }} dni</span>
-                                </div>
-                            @endif
-                            
-                            <div class="flex items-center justify-between text-sm mt-2">
-                                <span class="text-gray-600">Aktywnych subskrypcji:</span>
-                                <span class="font-medium">{{ $plan->activeSubscriptions()->count() }}</span>
-                            </div>
-                        </div>
-
-                        <div class="mt-6 flex space-x-2">
-                            <a href="{{ route('admin.subscriptions.edit', $plan->id) }}" class="flex-1 inline-flex justify-center items-center px-3 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-steel-blue-500">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
-                                    <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
-                                </svg>
-                                Edytuj
-                            </a>
-                            <form action="{{ route('admin.subscriptions.destroy', $plan->id) }}" method="POST" class="flex-1">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit" onclick="return confirm('Czy na pewno chcesz usunąć ten plan? Spowoduje to również usunięcie wszystkich powiązanych subskrypcji.')" class="w-full inline-flex justify-center items-center px-3 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-red-700 bg-white hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
-                                        <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
-                                    </svg>
-                                    Usuń
-                                </button>
-                            </form>
-                        </div>
-                    </div>
+            <div class="min-w-0 p-4 bg-white rounded-lg shadow-sm border-t-4 {{ $plan->code === 'basic' ? 'border-blue-500' : ($plan->code === 'business' ? 'border-purple-500' : 'border-green-500') }}">
+                <div class="flex items-center justify-between mb-4">
+                    <h4 class="text-lg font-semibold text-gray-600">
+                        {{ $plan->name }}
+                    </h4>
+                    <span class="px-2 py-1 text-xs font-medium leading-tight text-white bg-gray-600 rounded-full">
+                        {{ $plan->billing_period }}
+                    </span>
                 </div>
+                <div class="flex items-baseline mb-4">
+                    <span class="text-3xl font-semibold text-gray-700">
+                        {{ number_format($plan->price, 2) }} zł
+                    </span>
+                    <span class="ml-1 text-sm text-gray-500">/ {{ $plan->billing_period === 'monthly' ? 'miesiąc' : 'rok' }}</span>
+                </div>
+                <p class="mb-4 text-sm text-gray-600">
+                    {{ $plan->description }}
+                </p>
+                
+                <!-- Limity -->
+                <div class="mb-4">
+                    <h5 class="mb-2 text-sm font-semibold text-gray-600">Limity:</h5>
+                    <ul class="space-y-1 text-sm text-gray-600">
+                        <li class="flex items-center">
+                            <svg class="w-4 h-4 mr-2 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                            </svg>
+                            Faktury: {{ $plan->max_invoices }}
+                        </li>
+                        <li class="flex items-center">
+                            <svg class="w-4 h-4 mr-2 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                            </svg>
+                            Produkty: {{ $plan->max_products }}
+                        </li>
+                        <li class="flex items-center">
+                            <svg class="w-4 h-4 mr-2 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                            </svg>
+                            Kontrahenci: {{ $plan->max_clients }}
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Funkcje dostępne w planie -->
+                <div class="mb-4">
+                    <h5 class="mb-2 text-sm font-semibold text-gray-600">Główne funkcje:</h5>
+                    <ul class="space-y-1 text-sm text-gray-600">
+                        @foreach($plan->permissions as $permission)
+                            @if($permission->category !== 'limits' && $loop->index < 5)
+                            <li class="flex items-center">
+                                <svg class="w-4 h-4 mr-2 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                                </svg>
+                                {{ $permission->name }}
+                            </li>
+                            @endif
+                        @endforeach
+                        
+                        @if($plan->permissions->count() > 5)
+                            <li class="text-sm text-gray-500 mt-2">
+                                +{{ $plan->permissions->count() - 5 }} więcej funkcji
+                            </li>
+                        @endif
+                    </ul>
+                </div>
+
+                <div class="flex justify-between mt-4">
+                    <a href="{{ route('admin.subscriptions.edit', $plan->id) }}" 
+                       class="inline-flex items-center px-4 py-2 bg-steel-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-steel-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-steel-blue-500 transition ease-in-out duration-150">
+                        Edytuj
+                    </a>
+                    <form action="{{ route('admin.subscriptions.destroy', $plan->id) }}" method="POST" class="inline-block">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" onclick="return confirm('Czy na pewno chcesz usunąć ten plan?')" 
+                                class="inline-flex items-center px-4 py-2 bg-red-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition ease-in-out duration-150">
+                            Usuń
+                        </button>
+                    </form>
+                </div>
+            </div>
             @endforeach
         </div>
 
-        <!-- Pusta lista -->
-        @if($plans->isEmpty())
-            <div class="bg-white rounded-lg shadow-md p-6 text-center">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
-                </svg>
-                <h3 class="mt-4 text-lg font-medium text-gray-900">Brak planów subskrypcji</h3>
-                <p class="mt-1 text-sm text-gray-500">Nie utworzono jeszcze żadnych planów subskrypcji.</p>
-                <div class="mt-6">
-                    <a href="{{ route('admin.subscriptions.create') }}" class="inline-flex items-center px-4 py-2 bg-steel-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-steel-blue-700 focus:bg-steel-blue-700 active:bg-steel-blue-800 focus:outline-none focus:ring-2 focus:ring-steel-blue-500 focus:ring-offset-2 transition ease-in-out duration-150">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
-                            <path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd" />
-                        </svg>
-                        Utwórz pierwszy plan
-                    </a>
-                </div>
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div>
+                <h2 class="text-xl font-semibold text-gray-900">Subskrypcje użytkowników</h2>
+                <p class="mt-1 text-sm text-gray-600">Najnowsze aktywne subskrypcje użytkowników w systemie.</p>
             </div>
-        @endif
+            <div>
+                <a href="{{ route('admin.subscriptions.users') }}" class="inline-flex items-center justify-center px-4 py-2 bg-white border border-gray-300 rounded-md font-semibold text-xs text-gray-700 uppercase tracking-widest hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-steel-blue-500 transition ease-in-out duration-150">
+                    Zobacz wszystkie subskrypcje
+                </a>
+            </div>
+        </div>
+
+        <!-- Tabela subskrypcji -->
+        <div class="bg-white shadow-sm rounded-lg overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Użytkownik</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Plan</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Metoda płatności</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Data rozpoczęcia</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Data zakończenia</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Akcje</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        @foreach($subscriptions as $subscription)
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="flex items-center">
+                                    <div class="flex-shrink-0 h-10 w-10">
+                                        <img class="h-10 w-10 rounded-full" src="https://ui-avatars.com/api/?name={{ urlencode($subscription->user->name) }}&background=random" alt="{{ $subscription->user->name }}">
+                                    </div>
+                                    <div class="ml-4">
+                                        <div class="text-sm font-medium text-gray-900">{{ $subscription->user->name }}</div>
+                                        <div class="text-sm text-gray-500">{{ $subscription->user->email }}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm text-gray-900">{{ $subscription->plan->name }}</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                @if($subscription->status == 'active')
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                                        Aktywna
+                                    </span>
+                                @elseif($subscription->status == 'trial')
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
+                                        Trial
+                                    </span>
+                                @elseif($subscription->status == 'pending')
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                                        Oczekująca
+                                    </span>
+                                @else
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
+                                        {{ ucfirst($subscription->status) }}
+                                    </span>
+                                @endif
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                {{ $subscription->payment_method ?? '-' }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                {{ $subscription->start_date ? $subscription->start_date->format('d.m.Y') : '-' }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                {{ $subscription->end_date ? $subscription->end_date->format('d.m.Y') : '-' }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                <a href="{{ route('admin.subscriptions.edit-user-subscription', $subscription->id) }}" class="text-steel-blue-600 hover:text-steel-blue-900">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                        <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                                    </svg>
+                                </a>
+                            </td>
+                        </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
-</x-admin-layout> 
+</div>
+@endsection 

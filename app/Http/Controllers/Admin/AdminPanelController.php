@@ -17,6 +17,10 @@ use Illuminate\Support\Facades\Schema;
 use App\Models\Subscription;
 use App\Models\Plan;
 use App\Models\UserSubscription;
+use App\Models\BillingSettings;
+use App\Models\Invoice;
+use App\Models\SubscriptionPlan;
+use App\Services\SubscriptionService;
 
 class AdminPanelController extends Controller
 {
@@ -381,8 +385,10 @@ class AdminPanelController extends Controller
             abort(403, 'Brak dostępu.');
         }
 
-        $permissions = Permission::paginate(10);
-        return view('admin.permissions.index', compact('permissions'));
+        $plans = SubscriptionPlan::orderBy('display_order')->get();
+        $permissions = \Spatie\Permission\Models\Permission::where('guard_name', 'subscription')->get();
+        
+        return view('admin.subscriptions.permissions', compact('plans', 'permissions'));
     }
 
     public function createPermission()
@@ -422,9 +428,16 @@ class AdminPanelController extends Controller
             abort(403, 'Brak dostępu.');
         }
         
-        $plans = Plan::all();
+        // Użyj modelu SubscriptionPlan zamiast Plan
+        $plans = \App\Models\SubscriptionPlan::all();
         
-        return view('admin.subscriptions.index', compact('plans'));
+        // Pobierz najnowsze subskrypcje do pokazania w tabeli
+        $subscriptions = \App\Models\UserSubscription::with(['user', 'plan'])
+            ->latest()
+            ->take(5)
+            ->get();
+        
+        return view('admin.subscriptions.index', compact('plans', 'subscriptions'));
     }
     
     /**
@@ -554,44 +567,41 @@ class AdminPanelController extends Controller
             abort(403, 'Brak dostępu.');
         }
         
-        $query = Subscription::with(['user', 'plan']);
+        $query = UserSubscription::with(['user', 'plan']);
         
-        // Filtrowanie według statusu
-        if ($request->has('status') && $request->status) {
-            $query->where('status', $request->status);
+        // Filtrowanie po statusie
+        if ($request->has('status')) {
+            $query->where('status', $request->input('status'));
         }
         
-        // Filtrowanie według planu
-        if ($request->has('plan') && $request->plan) {
-            $query->where('plan_id', $request->plan);
+        // Filtrowanie po użytkowniku
+        if ($request->has('user_id') && $request->input('user_id')) {
+            $query->where('user_id', $request->input('user_id'));
         }
         
-        // Filtrowanie według typu subskrypcji
-        if ($request->has('subscription_type') && $request->subscription_type) {
-            $query->where('subscription_type', '=', $request->subscription_type);
+        // Filtrowanie po planie
+        if ($request->has('plan_id') && $request->input('plan_id')) {
+            $query->where('subscription_plan_id', $request->input('plan_id'));
         }
         
-        // Wyszukiwanie po nazwie lub emailu użytkownika
-        if ($request->has('search') && $request->search) {
-            $search = '%' . $request->search . '%';
-            $query->whereHas('user', function($q) use ($search) {
-                $q->where('name', 'like', $search)
-                  ->orWhere('email', 'like', $search);
-            });
-        }
+        // Sortowanie
+        $sort = $request->input('sort', 'created_at');
+        $direction = $request->input('direction', 'desc');
+        $query->orderBy($sort, $direction);
         
-        $subscriptions = $query->latest()->paginate(15);
-        $plans = Plan::all();
+        $subscriptions = $query->paginate(15);
+        $users = User::orderBy('name')->get();
+        $plans = SubscriptionPlan::orderBy('display_order')->get();
         
-        // Przygotuj statystyki
+        // Oblicz statystyki dla podsumowania
         $stats = [
-            'active' => Subscription::where('status', 'active')->count(),
-            'pending' => Subscription::where('status', 'pending')->count(),
-            'cancelled' => Subscription::where('status', 'cancelled')->count(),
-            'expired' => Subscription::where('status', 'expired')->count(),
+            'active' => UserSubscription::where('status', 'active')->count(),
+            'pending' => UserSubscription::where('status', 'pending')->count(),
+            'cancelled' => UserSubscription::where('status', 'cancelled')->count(),
+            'expired' => UserSubscription::where('status', 'expired')->count(),
         ];
         
-        return view('admin.subscriptions.users', compact('subscriptions', 'plans', 'stats'));
+        return view('admin.subscriptions.users', compact('subscriptions', 'users', 'plans', 'stats'));
     }
 
     /**
@@ -603,8 +613,8 @@ class AdminPanelController extends Controller
             abort(403, 'Brak dostępu.');
         }
         
-        $users = User::all();
-        $plans = Plan::where('is_active', true)->get();
+        $users = User::orderBy('name')->get();
+        $plans = SubscriptionPlan::where('is_active', true)->orderBy('display_order')->get();
         
         return view('admin.subscriptions.create-user-subscription', compact('users', 'plans'));
     }
@@ -618,46 +628,71 @@ class AdminPanelController extends Controller
             abort(403, 'Brak dostępu.');
         }
         
-        $request->validate([
+        $validated = $request->validate([
             'user_id' => 'required|exists:users,id',
-            'plan_id' => 'required|exists:plans,id',
-            'subscription_type' => 'required|in:manual,automatic',
+            'subscription_plan_id' => 'required|exists:subscription_plans,id',
             'price' => 'required|numeric|min:0',
-            'status' => 'required|in:active,pending,cancelled,expired',
             'start_date' => 'required|date',
             'end_date' => 'nullable|date|after_or_equal:start_date',
-            'next_payment_date' => 'nullable|date|after_or_equal:start_date',
-            'payment_method' => 'nullable|string|max:255',
-            'notes' => 'nullable|string',
+            'status' => 'required|in:active,inactive,cancelled,expired,pending',
+            'subscription_type' => 'required|in:manual,automatic',
+            'renewal_status' => 'nullable|in:enabled,disabled',
+            'payment_method' => 'nullable|string',
+            'admin_notes' => 'nullable|string',
+            'auto_renew' => 'boolean',
+            'create_payment' => 'boolean',
+            'send_notification' => 'boolean',
+            'next_payment_date' => 'nullable|date'
         ]);
         
-        $subscription = new Subscription();
-        $subscription->user_id = $request->user_id;
-        $subscription->plan_id = $request->plan_id;
-        $subscription->subscription_type = $request->subscription_type;
-        $subscription->price = $request->price;
-        $subscription->status = $request->status;
-        $subscription->start_date = $request->start_date;
-        $subscription->end_date = $request->end_date;
-        $subscription->next_payment_date = $request->next_payment_date;
-        $subscription->payment_method = $request->payment_method;
-        $subscription->notes = $request->notes;
-        $subscription->save();
-        
-        return redirect()->route('admin.subscriptions.users')->with('success', 'Subskrypcja została utworzona.');
+        try {
+            $user = User::findOrFail($validated['user_id']);
+            $plan = SubscriptionPlan::findOrFail($validated['subscription_plan_id']);
+            
+            // Przygotowanie danych dla serwisu
+            $subscriptionData = $validated;
+            $subscriptionData['auto_renew'] = $request->has('auto_renew');
+            $subscriptionData['create_payment'] = $request->has('create_payment');
+            $subscriptionData['send_notification'] = $request->has('send_notification');
+            
+            // Korzystanie z serwisu subskrypcji do utworzenia subskrypcji
+            $subscriptionService = app(\App\Services\SubscriptionService::class);
+            $result = $subscriptionService->createSubscription($user, $plan, $subscriptionData);
+            
+            if ($result['success']) {
+                return redirect()->route('admin.subscriptions.users')
+                    ->with('success', 'Subskrypcja została pomyślnie utworzona dla użytkownika. '.
+                        ($subscriptionData['create_payment'] ? 'Wygenerowano również fakturę.' : ''));
+            } else {
+                return redirect()->back()
+                    ->with('error', 'Wystąpił błąd podczas tworzenia subskrypcji: ' . $result['message'])
+                    ->withInput();
+            }
+        } catch (\Exception $e) {
+            Log::error('Błąd podczas tworzenia subskrypcji użytkownika: ' . $e->getMessage(), [
+                'user_id' => $validated['user_id'] ?? null,
+                'plan_id' => $validated['subscription_plan_id'] ?? null,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            return redirect()->back()
+                ->with('error', 'Wystąpił nieoczekiwany błąd podczas tworzenia subskrypcji: ' . $e->getMessage())
+                ->withInput();
+        }
     }
 
     /**
      * Shows form to edit a user subscription
      */
-    public function editUserSubscription(Subscription $subscription)
+    public function editUserSubscription(UserSubscription $subscription)
     {
         if (Gate::denies('access-admin-panel')) {
             abort(403, 'Brak dostępu.');
         }
         
-        $users = User::all();
-        $plans = Plan::all();
+        $users = User::orderBy('name')->get();
+        $plans = SubscriptionPlan::orderBy('display_order')->get();
         
         return view('admin.subscriptions.edit-user-subscription', compact('subscription', 'users', 'plans'));
     }
@@ -665,44 +700,40 @@ class AdminPanelController extends Controller
     /**
      * Updates a user subscription
      */
-    public function updateUserSubscription(Request $request, Subscription $subscription)
+    public function updateUserSubscription(Request $request, UserSubscription $subscription)
     {
         if (Gate::denies('access-admin-panel')) {
             abort(403, 'Brak dostępu.');
         }
         
-        $request->validate([
+        $validated = $request->validate([
             'user_id' => 'required|exists:users,id',
-            'plan_id' => 'required|exists:plans,id',
-            'subscription_type' => 'required|in:manual,automatic',
+            'subscription_plan_id' => 'required|exists:subscription_plans,id',
             'price' => 'required|numeric|min:0',
-            'status' => 'required|in:active,pending,cancelled,expired',
             'start_date' => 'required|date',
-            'end_date' => 'nullable|date|after_or_equal:start_date',
-            'next_payment_date' => 'nullable|date|after_or_equal:start_date',
-            'payment_method' => 'nullable|string|max:255',
-            'notes' => 'nullable|string',
+            'end_date' => 'required|date|after:start_date',
+            'status' => 'required|in:active,inactive,cancelled,expired,pending',
+            'subscription_type' => 'required|in:manual,automatic',
+            'renewal_status' => 'nullable|in:enabled,disabled',
+            'payment_method' => 'nullable|string',
+            'admin_notes' => 'nullable|string',
+            'auto_renew' => 'boolean'
         ]);
         
-        $subscription->user_id = $request->user_id;
-        $subscription->plan_id = $request->plan_id;
-        $subscription->subscription_type = $request->subscription_type;
-        $subscription->price = $request->price;
-        $subscription->status = $request->status;
-        $subscription->start_date = $request->start_date;
-        $subscription->end_date = $request->end_date;
-        $subscription->next_payment_date = $request->next_payment_date;
-        $subscription->payment_method = $request->payment_method;
-        $subscription->notes = $request->notes;
+        $subscription->fill($validated);
+        $subscription->next_billing_date = $request->has('auto_renew') && $request->input('auto_renew') 
+            ? Carbon::parse($request->input('start_date'))->addMonth() 
+            : null;
         $subscription->save();
         
-        return redirect()->route('admin.subscriptions.users')->with('success', 'Subskrypcja została zaktualizowana.');
+        return redirect()->route('admin.subscriptions.users')
+            ->with('success', 'Subskrypcja użytkownika została zaktualizowana pomyślnie.');
     }
 
     /**
      * Removes a user subscription
      */
-    public function deleteUserSubscription(Subscription $subscription)
+    public function deleteUserSubscription(UserSubscription $subscription)
     {
         if (Gate::denies('access-admin-panel')) {
             abort(403, 'Brak dostępu.');
@@ -710,7 +741,8 @@ class AdminPanelController extends Controller
         
         $subscription->delete();
         
-        return redirect()->route('admin.subscriptions.users')->with('success', 'Subskrypcja została usunięta.');
+        return redirect()->route('admin.subscriptions.users')
+            ->with('success', 'Subskrypcja użytkownika została usunięta pomyślnie.');
     }
     
     /**
@@ -725,8 +757,8 @@ class AdminPanelController extends Controller
         // Pobierz statystyki
         $stats = Cache::remember('subscription_stats', 3600, function () {
             // Aktywne subskrypcje
-            $activeSubscriptions = Subscription::where('status', 'active')->count();
-            $totalSubscriptions = Subscription::count();
+            $activeSubscriptions = UserSubscription::where('status', 'active')->count();
+            $totalSubscriptions = UserSubscription::count();
             
             // Statystyki według typu
             $manualSubscriptions = UserSubscription::where('subscription_type', UserSubscription::TYPE_MANUAL)->count();
@@ -737,23 +769,23 @@ class AdminPanelController extends Controller
             $automaticPercentage = $totalSubscriptions > 0 ? round(($automaticSubscriptions / $totalSubscriptions) * 100) : 0;
             
             // Przychód z aktywnych subskrypcji
-            $activeSubscriptionsValue = Subscription::where('status', 'active')->sum('price');
+            $activeSubscriptionsValue = UserSubscription::where('status', 'active')->sum('price');
             
             // Statystyki za bieżący miesiąc
             $currentMonth = Carbon::now();
             $currentMonthStart = $currentMonth->copy()->startOfMonth();
             $currentMonthEnd = $currentMonth->copy()->endOfMonth();
             
-            $subscriptionsThisMonth = Subscription::whereBetween('created_at', [$currentMonthStart, $currentMonthEnd])->count();
-            $revenueThisMonth = Subscription::whereBetween('created_at', [$currentMonthStart, $currentMonthEnd])->sum('price');
+            $subscriptionsThisMonth = UserSubscription::whereBetween('created_at', [$currentMonthStart, $currentMonthEnd])->count();
+            $revenueThisMonth = UserSubscription::whereBetween('created_at', [$currentMonthStart, $currentMonthEnd])->sum('price');
             
             // Statystyki za poprzedni miesiąc
             $lastMonth = $currentMonth->copy()->subMonth();
             $lastMonthStart = $lastMonth->copy()->startOfMonth();
             $lastMonthEnd = $lastMonth->copy()->endOfMonth();
             
-            $subscriptionsLastMonth = Subscription::whereBetween('created_at', [$lastMonthStart, $lastMonthEnd])->count();
-            $revenueLastMonth = Subscription::whereBetween('created_at', [$lastMonthStart, $lastMonthEnd])->sum('price');
+            $subscriptionsLastMonth = UserSubscription::whereBetween('created_at', [$lastMonthStart, $lastMonthEnd])->count();
+            $revenueLastMonth = UserSubscription::whereBetween('created_at', [$lastMonthStart, $lastMonthEnd])->sum('price');
             
             // Oblicz zmiany procentowe
             $subscriptionChange = $subscriptionsLastMonth > 0 
@@ -768,13 +800,13 @@ class AdminPanelController extends Controller
             $avgSubValue = $activeSubscriptions > 0 ? round($activeSubscriptionsValue / $activeSubscriptions, 2) : 0;
             
             // Statystyki według planów
-            $planStats = Plan::withCount(['subscriptions' => function($query) {
+            $planStats = SubscriptionPlan::withCount(['userSubscriptions' => function($query) {
                 $query->where('status', 'active');
             }])->get()->map(function($plan) {
                 return [
                     'name' => $plan->name,
-                    'active_count' => $plan->subscriptions_count,
-                    'revenue' => $plan->subscriptions->where('status', 'active')->sum('price')
+                    'active_count' => $plan->userSubscriptions_count,
+                    'revenue' => $plan->userSubscriptions->where('status', 'active')->sum('price')
                 ];
             });
             
@@ -787,8 +819,8 @@ class AdminPanelController extends Controller
                 
                 $monthlyStats[] = [
                     'month' => $month->format('M Y'),
-                    'subscriptions' => Subscription::whereBetween('created_at', [$monthStart, $monthEnd])->count(),
-                    'revenue' => Subscription::whereBetween('created_at', [$monthStart, $monthEnd])->sum('price')
+                    'subscriptions' => UserSubscription::whereBetween('created_at', [$monthStart, $monthEnd])->count(),
+                    'revenue' => UserSubscription::whereBetween('created_at', [$monthStart, $monthEnd])->sum('price')
                 ];
             }
             
@@ -824,6 +856,7 @@ class AdminPanelController extends Controller
             abort(403, 'Brak dostępu.');
         }
         
+        // Kod obsługi płatności subskrypcji
         // Tymczasowo, zwróć widok z pustymi danymi
         return view('admin.subscriptions.payments', [
             'payments' => [],
@@ -842,7 +875,7 @@ class AdminPanelController extends Controller
     /**
      * Shows detailed information about a subscription payment
      */
-    public function subscriptionPaymentDetails($paymentId)
+    public function subscriptionPaymentDetails($payment)
     {
         if (Gate::denies('access-admin-panel')) {
             abort(403, 'Brak dostępu.');
@@ -850,6 +883,250 @@ class AdminPanelController extends Controller
         
         // Tymczasowo, zwróć widok z pustymi danymi
         return view('admin.subscriptions.payment-details', ['payment' => null]);
+    }
+
+    /**
+     * Wyświetla listę faktur subskrypcyjnych
+     */
+    public function invoicesList()
+    {
+        if (Gate::denies('access-admin-panel')) {
+            abort(403, 'Brak dostępu.');
+        }
+        
+        // Pobierz wszystkie faktury związane z subskrypcjami
+        $invoices = \App\Models\Invoice::whereNotNull('subscription_id')
+            ->orderBy('created_at', 'desc')
+            ->paginate(20);
+        
+        return view('admin.billing.invoices', compact('invoices'));
+    }
+    
+    /**
+     * Wyświetla szczegóły faktury
+     */
+    public function invoiceShow($invoice)
+    {
+        if (Gate::denies('access-admin-panel')) {
+            abort(403, 'Brak dostępu.');
+        }
+        
+        $invoice = \App\Models\Invoice::findOrFail($invoice);
+        $invoice->load(['items', 'user']);
+        
+        return view('admin.billing.invoice-details', compact('invoice'));
+    }
+    
+    /**
+     * Generuje PDF faktury
+     */
+    public function invoicePdf($invoice)
+    {
+        if (Gate::denies('access-admin-panel')) {
+            abort(403, 'Brak dostępu.');
+        }
+        
+        $invoice = \App\Models\Invoice::findOrFail($invoice);
+        
+        // Tutaj kod generowania PDF
+        // ...
+        
+        return redirect()->back()->with('info', 'Funkcja generowania PDF zostanie zaimplementowana wkrótce.');
+    }
+    
+    /**
+     * Ręcznie generuje faktury subskrypcyjne
+     */
+    public function generateInvoices(Request $request)
+    {
+        if (Gate::denies('access-admin-panel')) {
+            abort(403, 'Brak dostępu.');
+        }
+        
+        try {
+            \Artisan::call('invoices:generate-automatic --force');
+            $output = \Artisan::output();
+            
+            \Log::info('Wywołano ręczne generowanie faktur subskrypcyjnych z panelu administracyjnego', [
+                'user_id' => auth()->id(),
+                'output' => $output
+            ]);
+            
+            return redirect()->route('admin.billing.invoices')
+                ->with('success', 'Rozpoczęto generowanie faktur subskrypcyjnych.');
+        } catch (\Exception $e) {
+            \Log::error('Błąd podczas generowania faktur subskrypcyjnych z panelu administracyjnego', [
+                'user_id' => auth()->id(),
+                'error' => $e->getMessage()
+            ]);
+            
+            return redirect()->route('admin.billing.invoices')
+                ->with('error', 'Wystąpił błąd podczas generowania faktur: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Wyświetla statystyki faktur
+     */
+    public function invoiceStatistics(Request $request)
+    {
+        if (Gate::denies('access-admin-panel')) {
+            abort(403, 'Brak dostępu.');
+        }
+        
+        // Obsługa filtrowania
+        $period = $request->input('period', 'month');
+        $settings = BillingSettings::getActive();
+        
+        // Ustalenie zakresu dat na podstawie wybranego okresu
+        $endDate = now();
+        
+        switch ($period) {
+            case 'month':
+                $startDate = now()->subMonth();
+                $prevStartDate = now()->subMonths(2);
+                $prevEndDate = now()->subMonth()->subDay();
+                break;
+            case 'quarter':
+                $startDate = now()->subMonths(3);
+                $prevStartDate = now()->subMonths(6);
+                $prevEndDate = now()->subMonths(3)->subDay();
+                break;
+            case 'year':
+                $startDate = now()->subYear();
+                $prevStartDate = now()->subYears(2);
+                $prevEndDate = now()->subYear()->subDay();
+                break;
+            case 'all':
+            default:
+                $startDate = now()->subYears(5); // maksymalnie 5 lat wstecz
+                $prevStartDate = null;
+                $prevEndDate = null;
+                break;
+        }
+        
+        // Pobierz dane faktur dla bieżącego okresu
+        $invoices = Invoice::whereBetween('issue_date', [$startDate, $endDate])
+            ->with('items')
+            ->get();
+            
+        // Jeśli jest okres porównawczy
+        $prevInvoices = null;
+        if ($prevStartDate && $prevEndDate) {
+            $prevInvoices = Invoice::whereBetween('issue_date', [$prevStartDate, $prevEndDate])
+                ->with('items')
+                ->get();
+        }
+        
+        // Przygotuj statystyki
+        $stats = $this->calculateInvoiceStats($invoices, $prevInvoices);
+        
+        // Przygotuj dane dla wykresów
+        $charts = $this->prepareInvoiceCharts($invoices, $period);
+        
+        // Pobierz ostatnie faktury
+        $latestInvoices = Invoice::orderBy('issue_date', 'desc')
+            ->limit(10)
+            ->get();
+        
+        return view('admin.billing.statistics', compact('stats', 'charts', 'latestInvoices', 'settings', 'period'));
+    }
+    
+    /**
+     * Wyświetla stronę ustawień faktur
+     */
+    public function invoiceSettings()
+    {
+        if (Gate::denies('access-admin-panel')) {
+            abort(403, 'Brak dostępu.');
+        }
+        
+        $settings = BillingSettings::getActive();
+        
+        return view('admin.billing.settings', compact('settings'));
+    }
+    
+    /**
+     * Wyświetla stronę do ręcznego generowania faktur
+     */
+    public function invoiceGeneratePage()
+    {
+        if (Gate::denies('access-admin-panel')) {
+            abort(403, 'Brak dostępu.');
+        }
+        
+        $settings = BillingSettings::getActive();
+        $lastInvoice = Invoice::where('auto_generated', true)
+            ->orderBy('created_at', 'desc')
+            ->first();
+            
+        $activeSubscriptions = \DB::table('user_subscriptions')
+            ->join('users', 'user_subscriptions.user_id', '=', 'users.id')
+            ->join('subscription_plans', 'user_subscriptions.plan_id', '=', 'subscription_plans.id')
+            ->where('user_subscriptions.status', 'active')
+            ->select(
+                'user_subscriptions.id', 
+                'users.name as user_name', 
+                'users.email as user_email',
+                'subscription_plans.name as plan_name',
+                'user_subscriptions.next_billing_date'
+            )
+            ->orderBy('user_subscriptions.next_billing_date')
+            ->get();
+            
+        $pendingCount = $activeSubscriptions->where('next_billing_date', '<=', now())->count();
+        
+        return view('admin.billing.generate', compact('settings', 'lastInvoice', 'activeSubscriptions', 'pendingCount'));
+    }
+    
+    /**
+     * Aktualizuje ustawienia faktur
+     */
+    public function updateInvoiceSettings(Request $request)
+    {
+        if (Gate::denies('access-admin-panel')) {
+            abort(403, 'Brak dostępu.');
+        }
+        
+        // Walidacja danych
+        $validated = $request->validate([
+            'auto_generate' => 'sometimes|boolean',
+            'generation_day' => 'required|integer|min:1|max:28',
+            'invoice_prefix' => 'nullable|string|max:20',
+            'invoice_suffix' => 'nullable|string|max:20',
+            'reset_numbering' => 'sometimes|boolean',
+            'payment_days' => 'required|integer|min:0|max:60',
+            'default_currency' => 'required|string|size:3',
+            'default_tax_rate' => 'required|numeric|min:0|max:100',
+            'vat_number' => 'nullable|string|max:20',
+            'invoice_notes' => 'nullable|string|max:1000',
+            'email_notifications' => 'sometimes|boolean',
+        ]);
+        
+        // Pobierz lub utwórz ustawienia
+        $settings = \App\Models\BillingSettings::first();
+        if (!$settings) {
+            $settings = new \App\Models\BillingSettings();
+        }
+        
+        // Aktualizuj pola ustawień
+        $settings->auto_generate = $request->has('auto_generate');
+        $settings->generation_day = $validated['generation_day'];
+        $settings->invoice_prefix = $validated['invoice_prefix'];
+        $settings->invoice_suffix = $validated['invoice_suffix'];
+        $settings->reset_numbering = $request->has('reset_numbering');
+        $settings->payment_days = $validated['payment_days'];
+        $settings->default_currency = $validated['default_currency'];
+        $settings->default_tax_rate = $validated['default_tax_rate'];
+        $settings->vat_number = $validated['vat_number'];
+        $settings->invoice_notes = $validated['invoice_notes'];
+        $settings->email_notifications = $request->has('email_notifications');
+        
+        // Zapisz ustawienia
+        $settings->save();
+        
+        return redirect()->route('admin.billing.settings')
+            ->with('success', 'Ustawienia faktur zostały zaktualizowane.');
     }
 
     /**
@@ -1288,5 +1565,152 @@ class AdminPanelController extends Controller
             'plansJson' => json_encode($plans),
             'statsJson' => json_encode($stats)
         ]);
+    }
+
+    /**
+     * Oblicza statystyki dla faktur
+     */
+    private function calculateInvoiceStats($invoices, $prevInvoices)
+    {
+        $stats = [
+            'total_value' => $invoices->sum('gross_total'),
+            'invoices_count' => $invoices->count(),
+            'paid_count' => $invoices->where('status', 'paid')->count(),
+            'paid_percentage' => $invoices->count() > 0 
+                ? round(($invoices->where('status', 'paid')->count() / $invoices->count()) * 100) 
+                : 0,
+            'overdue_count' => $invoices->where('status', 'overdue')->count(),
+            'overdue_percentage' => $invoices->count() > 0 
+                ? round(($invoices->where('status', 'overdue')->count() / $invoices->count()) * 100) 
+                : 0,
+            
+            // Domyślne wartości dla wzrostu/spadku
+            'total_growth' => 0,
+            'count_growth' => 0,
+        ];
+        
+        // Oblicz wzrost/spadek w porównaniu do poprzedniego okresu
+        if ($prevInvoices && $prevInvoices->count() > 0) {
+            $prevTotal = $prevInvoices->sum('gross_total');
+            $prevCount = $prevInvoices->count();
+            
+            if ($prevTotal > 0) {
+                $stats['total_growth'] = round((($stats['total_value'] - $prevTotal) / $prevTotal) * 100);
+            }
+            
+            if ($prevCount > 0) {
+                $stats['count_growth'] = round((($stats['invoices_count'] - $prevCount) / $prevCount) * 100);
+            }
+        }
+        
+        return $stats;
+    }
+
+    /**
+     * Przygotowuje dane dla wykresów faktur
+     */
+    private function prepareInvoiceCharts($invoices, $period)
+    {
+        $charts = [
+            'monthly_revenue' => $this->prepareMonthlyRevenueChart($invoices, $period),
+            'invoice_status' => $this->prepareInvoiceStatusChart($invoices),
+        ];
+        
+        return $charts;
+    }
+    
+    /**
+     * Przygotowuje dane dla wykresu przychodów miesięcznych
+     */
+    private function prepareMonthlyRevenueChart($invoices, $period)
+    {
+        $result = [
+            'labels' => [],
+            'values' => []
+        ];
+        
+        // Określ format grupowania i liczbę okresów w zależności od wybranego przedziału
+        switch ($period) {
+            case 'month':
+                $format = 'd M';
+                $groupBy = 'date';
+                $periods = 30;
+                break;
+            case 'quarter':
+                $format = 'W, M';
+                $groupBy = 'week';
+                $periods = 13;
+                break;
+            case 'year':
+                $format = 'M Y';
+                $groupBy = 'month';
+                $periods = 12;
+                break;
+            case 'all':
+            default:
+                $format = 'M Y';
+                $groupBy = 'month';
+                $periods = 24; // Ostatnie 24 miesiące dla opcji "wszystkie"
+                break;
+        }
+        
+        // Grupuj dane według określonego formatu
+        $groupedData = $invoices->groupBy(function ($invoice) use ($groupBy) {
+            switch ($groupBy) {
+                case 'date':
+                    return $invoice->issue_date->format('Y-m-d');
+                case 'week':
+                    return $invoice->issue_date->format('Y-W');
+                case 'month':
+                default:
+                    return $invoice->issue_date->format('Y-m');
+            }
+        });
+        
+        // Przygotuj dane dla wykresu, uwzględniając tylko określoną liczbę okresów
+        $limitedData = $groupedData->take(-$periods);
+        
+        foreach ($limitedData as $key => $group) {
+            // Ustal etykietę na osi X
+            switch ($groupBy) {
+                case 'date':
+                    $date = \Carbon\Carbon::createFromFormat('Y-m-d', $key);
+                    $label = $date->format($format);
+                    break;
+                case 'week':
+                    [$year, $week] = explode('-', $key);
+                    $date = \Carbon\Carbon::now()->setISODate($year, $week);
+                    $label = 'Tydzień ' . $week . ', ' . $date->format('M');
+                    break;
+                case 'month':
+                default:
+                    $date = \Carbon\Carbon::createFromFormat('Y-m', $key);
+                    $label = $date->translatedFormat($format);
+                    break;
+            }
+            
+            $result['labels'][] = $label;
+            $result['values'][] = $group->sum('gross_total');
+        }
+        
+        return $result;
+    }
+    
+    /**
+     * Przygotowuje dane dla wykresu statusów faktur
+     */
+    private function prepareInvoiceStatusChart($invoices)
+    {
+        $result = [
+            'labels' => ['Opłacone', 'Wystawione', 'Zaległe', 'Inne'],
+            'values' => [
+                $invoices->where('status', 'paid')->count(),
+                $invoices->where('status', 'issued')->count(),
+                $invoices->where('status', 'overdue')->count(),
+                $invoices->whereNotIn('status', ['paid', 'issued', 'overdue'])->count(),
+            ]
+        ];
+        
+        return $result;
     }
 } 

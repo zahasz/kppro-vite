@@ -18,9 +18,18 @@ class DatabaseSeeder extends Seeder
         // Wywołanie seederów
         $this->call([
             SetupSystemSeeder::class,        // Główny seeder konfigurujący system
-            AdminPlanSeeder::class,          // Konfiguracja planów dla administratora
+            RoleAndPermissionSeeder::class,  // Role i uprawnienia
+            AdminSeeder::class,              // Konfiguracja administratora
             ContractorSeeder::class,         // Przykładowi kontrahenci
             InvoiceSeeder::class,            // Przykładowe faktury
+            
+            // Moduł subskrypcji
+            SubscriptionPermissionSeeder::class, // Uprawnienia dla subskrypcji
+            SubscriptionSeeder::class,       // Plany i przypisanie subskrypcji
+            
+            // Moduł uprawnień do modułów
+            ModuleSeeder::class,             // Moduły aplikacji
+            SubscriptionPlanModuleSeeder::class, // Przypisanie modułów do planów
         ]);
     }
 }

@@ -19,8 +19,8 @@
                     
                     <!-- User dropdown -->
                     <div class="relative" x-data="{ open: false }">
-                        <button @click="open = !open" class="flex items-center text-gray-700 dark:text-gray-300 focus:outline-none">
-                            <div class="w-9 h-9 bg-indigo-700 dark:bg-gray-600 rounded-full flex items-center justify-center text-white font-semibold mr-2 shadow-sm">
+                        <button @click="open = !open" class="flex items-center text-gray-700 hover:text-gray-900 focus:outline-none">
+                            <div class="w-9 h-9 bg-steel-blue-700 rounded-full flex items-center justify-center text-white font-semibold mr-2 shadow-sm">
                                 {{ substr(auth()->user()->name, 0, 1) }}
                             </div>
                             <span>{{ auth()->user()->name }}</span>

@@ -51,5 +51,15 @@ class AppServiceProvider extends ServiceProvider
         Blade::if('hasallroles', function ($roles) {
             return Auth::check() && Auth::user()->hasAllRoles($roles);
         });
+
+        // Dyrektywa Blade dla sprawdzania dostępu do modułu
+        Blade::if('module', function ($moduleCode) {
+            if (!auth()->check()) {
+                return false;
+            }
+            
+            $user = auth()->user();
+            return $user->canAccessModule($moduleCode);
+        });
     }
 }

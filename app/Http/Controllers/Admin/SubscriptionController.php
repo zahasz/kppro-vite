@@ -12,6 +12,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
+use App\Models\SubscriptionPermission;
 
 class SubscriptionController extends Controller
 {
@@ -48,8 +49,14 @@ class SubscriptionController extends Controller
         $avgSubscriptionValue = SubscriptionPayment::where('status', 'completed')
             ->whereMonth('created_at', Carbon::now()->month)
             ->avg('amount');
+        
+        // Pobierz subskrypcje użytkowników
+        $subscriptions = UserSubscription::with(['user', 'plan'])
+            ->latest()
+            ->take(5)
+            ->get();
             
-        return view('admin.subscriptions.index', compact('plans', 'activeSubscriptionsCount', 'monthlyRevenue', 'avgSubscriptionValue'));
+        return view('admin.subscriptions.index', compact('plans', 'activeSubscriptionsCount', 'monthlyRevenue', 'avgSubscriptionValue', 'subscriptions'));
     }
 
     /**
@@ -111,7 +118,12 @@ class SubscriptionController extends Controller
      */
     public function edit(SubscriptionPlan $plan)
     {
-        return view('admin.subscriptions.create', compact('plan'));
+        $planPermissions = $plan->permissions->pluck('id')->toArray();
+        
+        // Grupowanie uprawnień według kategorii
+        $permissionsByCategory = SubscriptionPermission::orderBy('category')->get()->groupBy('category');
+        
+        return view('admin.subscriptions.edit', compact('plan', 'planPermissions', 'permissionsByCategory'));
     }
 
     /**
@@ -125,34 +137,44 @@ class SubscriptionController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'code' => 'required|string|max:50|unique:subscription_plans,code,' . $plan->id,
+            'code' => 'required|string|max:100|unique:subscription_plans,code,' . $plan->id,
             'description' => 'nullable|string',
             'price' => 'required|numeric|min:0',
-            'currency' => 'required|string|size:3',
-            'billing_period' => 'required|string|in:monthly,quarterly,annually,lifetime',
-            'features' => 'array',
-            'max_users' => 'nullable|integer|min:1',
-            'max_invoices' => 'nullable|integer|min:1',
-            'max_products' => 'nullable|integer|min:1',
-            'max_clients' => 'nullable|integer|min:1',
-            'is_active' => 'boolean',
-            'display_order' => 'integer|min:0',
+            'billing_period' => 'required|string|in:monthly,yearly',
+            'max_invoices' => 'nullable|integer|min:0',
+            'max_products' => 'nullable|integer|min:0',
+            'max_clients' => 'nullable|integer|min:0',
+            'trial_days' => 'nullable|integer|min:0',
+            'is_active' => 'sometimes|boolean',
+            'is_public' => 'sometimes|boolean',
+            'permissions' => 'sometimes|array',
+            'permissions.*' => 'exists:subscription_permissions,id',
         ]);
-
-        $plan->fill($validated);
         
-        // Upewniamy się, że features jest zawsze tablicą
-        if (!$request->has('features') || !is_array($request->input('features'))) {
-            $plan->features = [];
+        // Aktualizacja podstawowych danych planu
+        $plan->name = $validated['name'];
+        $plan->code = $validated['code'];
+        $plan->description = $validated['description'] ?? '';
+        $plan->price = $validated['price'];
+        $plan->billing_period = $validated['billing_period'];
+        $plan->max_invoices = $validated['max_invoices'] ?? 0;
+        $plan->max_products = $validated['max_products'] ?? 0;
+        $plan->max_clients = $validated['max_clients'] ?? 0;
+        $plan->trial_days = $validated['trial_days'] ?? 0;
+        $plan->is_active = $request->has('is_active');
+        $plan->is_public = $request->has('is_public');
+        
+        $plan->save();
+        
+        // Aktualizacja uprawnień planu
+        if ($request->has('permissions')) {
+            $plan->permissions()->sync($request->permissions);
         } else {
-            $plan->features = $request->input('features');
+            $plan->permissions()->detach();
         }
         
-        $plan->is_active = $request->input('is_active', false);
-        $plan->save();
-
         return redirect()->route('admin.subscriptions.index')
-            ->with('success', 'Plan subskrypcji został zaktualizowany pomyślnie.');
+            ->with('success', 'Plan subskrypcyjny został zaktualizowany.');
     }
 
     /**
@@ -175,7 +197,7 @@ class SubscriptionController extends Controller
     }
 
     /**
-     * Wyświetla subskrypcje użytkowników
+     * Wyświetla listę subskrypcji użytkowników
      *
      * @param Request $request
      * @return \Illuminate\View\View
@@ -203,11 +225,35 @@ class SubscriptionController extends Controller
             }
 
             $subscriptions = $query->latest()->paginate(15);
+            
+            // Pobierz plany subskrypcji do filtrowania
+            $plans = SubscriptionPlan::orderBy('display_order')->get();
+            
+            // Pobierz użytkowników do filtrowania
+            $users = User::orderBy('name')->get();
+            
+            // Statystyki dla podsumowania
+            $stats = [
+                'active' => UserSubscription::where('status', 'active')->count(),
+                'pending' => UserSubscription::where('status', 'pending')->count(),
+                'cancelled' => UserSubscription::where('status', 'cancelled')->count(),
+                'expired' => UserSubscription::where('status', 'expired')->count()
+            ];
 
-            return view('admin.subscriptions.users', compact('subscriptions'));
+            return view('admin.subscriptions.users', compact('subscriptions', 'plans', 'users', 'stats'));
         } catch (\Exception $e) {
             \Log::error('Błąd przy wyświetlaniu subskrypcji: ' . $e->getMessage());
-            return view('admin.subscriptions.users', ['subscriptions' => collect([])])->withErrors(['error' => 'Wystąpił błąd podczas pobierania subskrypcji: ' . $e->getMessage()]);
+            return view('admin.subscriptions.users', [
+                'subscriptions' => collect([]),
+                'plans' => collect([]),
+                'users' => collect([]),
+                'stats' => [
+                    'active' => 0,
+                    'pending' => 0,
+                    'cancelled' => 0,
+                    'expired' => 0
+                ]
+            ])->withErrors(['error' => 'Wystąpił błąd podczas pobierania subskrypcji: ' . $e->getMessage()]);
         }
     }
 
@@ -285,7 +331,7 @@ class SubscriptionController extends Controller
     public function updateUserSubscription(Request $request, UserSubscription $subscription)
     {
         $validated = $request->validate([
-            'plan_id' => 'required|exists:subscription_plans,id',
+            'subscription_plan_id' => 'required|exists:subscription_plans,id',
             'status' => 'required|string|in:active,pending_payment,trial,cancelled',
             'start_date' => 'required|date',
             'end_date' => 'nullable|date|after_or_equal:start_date',
@@ -297,7 +343,7 @@ class SubscriptionController extends Controller
         ]);
 
         // Upewnij się, że nowy plan istnieje
-        $plan = SubscriptionPlan::findOrFail($validated['plan_id']);
+        $plan = SubscriptionPlan::findOrFail($validated['subscription_plan_id']);
         
         // Dodaj subscription_type do validated data
         $validated['subscription_type'] = $validated['subscription_type'] ?? $subscription->subscription_type;
@@ -650,5 +696,260 @@ class SubscriptionController extends Controller
             return redirect()->back()
                 ->with('error', 'Wystąpił błąd podczas zwracania płatności: ' . $e->getMessage());
         }
+    }
+
+    /**
+     * Wyświetla listę wszystkich uprawnień dostępnych w systemie
+     */
+    public function permissions()
+    {
+        // Pobierz wszystkie uprawnienia i pogrupuj je według kategorii
+        $permissions = SubscriptionPermission::all()->groupBy('category');
+        
+        // Pobierz wszystkie plany subskrypcyjne
+        $plans = SubscriptionPlan::orderBy('display_order')->get();
+        
+        return view('admin.subscriptions.permissions', compact('permissions', 'plans'));
+    }
+    
+    /**
+     * Wyświetla szczegóły konkretnego planu subskrypcyjnego
+     */
+    public function show(SubscriptionPlan $plan)
+    {
+        // Pobierz plan z relacją uprawnień
+        $plan->load('permissions');
+        
+        return view('admin.subscriptions.show', compact('plan'));
+    }
+    
+    /**
+     * Wyświetla formularz do przypisywania uprawnień do planu
+     */
+    public function assignPermissions(SubscriptionPlan $plan)
+    {
+        // Pobierz plan z relacją uprawnień
+        $plan->load('permissions');
+        
+        // Pogrupuj uprawnienia według kategorii
+        $permissions = SubscriptionPermission::all()->groupBy('category');
+        
+        // Przygotuj tablicę z ID uprawnień przypisanych do planu
+        $assignedPermissions = $plan->permissions->pluck('id')->toArray();
+        
+        return view('admin.subscriptions.assign_permissions', compact('plan', 'permissions', 'assignedPermissions'));
+    }
+    
+    /**
+     * Zapisuje przypisane uprawnienia do planu
+     */
+    public function storePermissions(Request $request, SubscriptionPlan $plan)
+    {
+        $validated = $request->validate([
+            'permissions' => 'array',
+            'permissions.*' => 'exists:subscription_permissions,id',
+            'permission_values' => 'array',
+            'permission_values.*' => 'nullable|string'
+        ]);
+        
+        // Przygotuj dane do synchronizacji
+        $permissionsWithValues = [];
+        if (isset($validated['permissions'])) {
+            foreach ($validated['permissions'] as $permissionId) {
+                $permissionsWithValues[$permissionId] = [
+                    'value' => $validated['permission_values'][$permissionId] ?? null
+                ];
+            }
+        }
+        
+        // Synchronizuj uprawnienia z planem
+        $plan->permissions()->sync($permissionsWithValues);
+        
+        return redirect()
+            ->route('admin.subscriptions.edit', $plan)
+            ->with('success', 'Uprawnienia zostały pomyślnie zaktualizowane');
+    }
+
+    /**
+     * Obsługuje ręczną sprzedaż subskrypcji (dla gotówki/przelewu)
+     *
+     * @return \Illuminate\View\View|\Illuminate\Http\RedirectResponse
+     */
+    public function manualSale()
+    {
+        try {
+            // Pobierz wszystkich użytkowników i plany subskrypcji
+            $users = \App\Models\User::orderBy('name')->get();
+            $plans = \App\Models\SubscriptionPlan::where('is_active', true)->orderBy('display_order')->get();
+
+            // Możliwe metody płatności dla ręcznej sprzedaży
+            $paymentMethods = [
+                'cash' => 'Gotówka',
+                'bank_transfer' => 'Przelew bankowy',
+                'card' => 'Karta płatnicza (terminal)',
+                'other' => 'Inna metoda'
+            ];
+
+            // Jeśli to jest żądanie POST, obsłuż sprzedaż
+            if (request()->isMethod('post')) {
+                // Walidacja danych
+                $validated = request()->validate([
+                    'user_id' => 'required|exists:users,id',
+                    'subscription_plan_id' => 'required|exists:subscription_plans,id',
+                    'payment_method' => 'required|string|in:cash,bank_transfer,card,other',
+                    'payment_details' => 'nullable|string',
+                    'admin_notes' => 'nullable|string',
+                ]);
+
+                // Pobierz użytkownika i plan
+                $user = \App\Models\User::findOrFail($validated['user_id']);
+                $plan = \App\Models\SubscriptionPlan::findOrFail($validated['subscription_plan_id']);
+
+                // Sprawdź czy profil firmy istnieje, jeśli nie - utwórz
+                if (!$user->companyProfile) {
+                    $companyProfile = new \App\Models\CompanyProfile();
+                    $companyProfile->user_id = $user->id;
+                    $companyProfile->company_name = 'Firma ' . $user->name;
+                    $companyProfile->tax_number = 'Brak'; // Domyślna wartość
+                    $companyProfile->save();
+                    
+                    // Utwórz domyślne konto bankowe
+                    $bankAccount = new \App\Models\BankAccount();
+                    $bankAccount->company_profile_id = $companyProfile->id;
+                    $bankAccount->account_name = 'Główne konto firmowe';
+                    $bankAccount->account_number = 'PL00 0000 0000 0000 0000 0000 0000';
+                    $bankAccount->bank_name = 'Bank';
+                    $bankAccount->is_default = true;
+                    $bankAccount->save();
+                    
+                    $companyProfile->default_bank_account_id = $bankAccount->id;
+                    $companyProfile->save();
+                    
+                    // Odśwież użytkownika
+                    $user->refresh();
+                }
+
+                // Przygotuj dane dla serwisu subskrypcji
+                $today = now();
+                $subscriptionData = [
+                    'status' => 'active',
+                    'price' => $plan->price,
+                    'start_date' => $today,
+                    'end_date' => $this->calculateEndDate($today, $plan->billing_period),
+                    'subscription_type' => 'manual',
+                    'payment_method' => $validated['payment_method'],
+                    'payment_details' => $validated['payment_details'] ?? 'Płatność przyjęta przez administratora',
+                    'admin_notes' => $validated['admin_notes'] ?? 'Ręczna sprzedaż subskrypcji przez administratora',
+                    'create_payment' => true, // Automatycznie utwórz płatność
+                    'send_notification' => true, // Wyślij powiadomienie do użytkownika
+                ];
+
+                // Rozpocznij transakcję
+                \Illuminate\Support\Facades\DB::beginTransaction();
+
+                // Utwórz subskrypcję
+                $subscriptionService = app(\App\Services\SubscriptionService::class);
+                $result = $subscriptionService->createSubscription($user, $plan, $subscriptionData);
+
+                if (!$result['success']) {
+                    \Illuminate\Support\Facades\DB::rollBack();
+                    return redirect()->back()
+                        ->with('error', 'Wystąpił błąd podczas tworzenia subskrypcji: ' . ($result['message'] ?? 'Nieznany błąd'))
+                        ->withInput();
+                }
+
+                // Pobierz utworzoną subskrypcję
+                $subscription = $result['subscription'];
+
+                // Wygeneruj płatność
+                $payment = null;
+                foreach ($subscription->payments as $p) {
+                    if (!$payment || $p->created_at > $payment->created_at) {
+                        $payment = $p;
+                    }
+                }
+
+                // Wygeneruj fakturę dla płatności
+                $invoice = null;
+                if ($payment) {
+                    // Pobierz metodę generowania faktury przez refleksję (bo jest prywatna)
+                    $reflection = new \ReflectionClass($subscriptionService);
+                    $method = $reflection->getMethod('generateInvoiceForPayment');
+                    $method->setAccessible(true);
+                    $invoice = $method->invoke($subscriptionService, $payment);
+
+                    if ($invoice) {
+                        // Zaktualizuj subskrypcję o identyfikator faktury
+                        $subscription->last_invoice_id = $invoice->id;
+                        $subscription->last_invoice_number = $invoice->number;
+                        $subscription->save();
+                    }
+                }
+
+                // Zatwierdź transakcję
+                \Illuminate\Support\Facades\DB::commit();
+
+                // Przekieruj do strony z subskrypcjami z komunikatem sukcesu
+                return redirect()->route('admin.subscriptions.users')
+                    ->with('success', 'Subskrypcja została sprzedana pomyślnie!' . 
+                           ($invoice ? ' Faktura nr: ' . $invoice->number : ' Nie utworzono faktury.'));
+            }
+
+            // Wyświetl formularz ręcznej sprzedaży
+            return view('admin.subscriptions.manual-sale', compact('users', 'plans', 'paymentMethods'));
+        } catch (\Exception $e) {
+            // W przypadku błędu, cofnij transakcję
+            if (\Illuminate\Support\Facades\DB::transactionLevel() > 0) {
+                \Illuminate\Support\Facades\DB::rollBack();
+            }
+            
+            // Zapisz szczegóły błędu do logów
+            \Illuminate\Support\Facades\Log::error('Błąd podczas ręcznej sprzedaży subskrypcji: ' . $e->getMessage(), [
+                'exception' => $e,
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            // Przekieruj z informacją o błędzie
+            return redirect()->back()
+                ->with('error', 'Wystąpił błąd podczas przetwarzania sprzedaży: ' . $e->getMessage())
+                ->withInput();
+        }
+    }
+
+    /**
+     * Oblicza datę zakończenia subskrypcji na podstawie daty początkowej i okresu rozliczeniowego
+     *
+     * @param \Carbon\Carbon $startDate
+     * @param string $billingPeriod
+     * @return \Carbon\Carbon
+     */
+    private function calculateEndDate(\Carbon\Carbon $startDate, string $billingPeriod): \Carbon\Carbon
+    {
+        $endDate = $startDate->copy();
+        
+        switch ($billingPeriod) {
+            case 'monthly':
+                $endDate->addMonth();
+                break;
+            case 'quarterly':
+                $endDate->addMonths(3);
+                break;
+            case 'annually':
+            case 'yearly':
+                $endDate->addYear();
+                break;
+            case 'biannually':
+                $endDate->addMonths(6);
+                break;
+            case 'lifetime':
+                $endDate->addYears(100); // Praktycznie bez daty końcowej
+                break;
+            default:
+                $endDate->addMonth(); // Domyślnie jeden miesiąc
+        }
+        
+        return $endDate;
     }
 } 

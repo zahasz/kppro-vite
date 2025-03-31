@@ -17,8 +17,9 @@ use App\Http\Controllers\WarehouseToolsController;
 use App\Http\Controllers\WarehouseGarageController;
 use App\Http\Controllers\BankAccountController;
 use App\Http\Controllers\ProductController;
-use App\Http\Controllers\SettingController;
 use App\Http\Controllers\SubscriptionController;
+use App\Http\Controllers\Admin\ModulePermissionController;
+use App\Http\Controllers\CheckoutController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -81,7 +82,7 @@ Route::middleware('auth')->group(function () {
     });
 
     // Routing dla magazynu
-    Route::prefix('warehouse')->name('warehouse.')->group(function () {
+    Route::prefix('warehouse')->name('warehouse.')->middleware('module:warehouse')->group(function () {
         Route::get('/', [WarehouseController::class, 'index'])->name('index');
         
         // Magazyn materiałów
@@ -137,10 +138,10 @@ Route::middleware('auth')->group(function () {
 
     // Faktury
     Route::get('invoices/{invoice}/pdf', [InvoiceController::class, 'generatePdf'])->name('invoices.pdf');
-    Route::resource('invoices', InvoiceController::class);
+    Route::resource('invoices', InvoiceController::class)->middleware('module:invoices');
 
     // Produkty
-    Route::resource('products', ProductController::class);
+    Route::resource('products', ProductController::class)->middleware('module:products');
 
     // Te ustawienia zostały usunięte, ponieważ dotyczą one danych prowadzonej działalności
     // i są już dostępne w profilu użytkownika
@@ -200,9 +201,25 @@ Route::middleware('auth')->group(function () {
             Route::put('/users/{subscription}', [AdminPanelController::class, 'updateUserSubscription'])->name('update-user-subscription');
             Route::delete('/users/{subscription}', [AdminPanelController::class, 'deleteUserSubscription'])->name('delete-user-subscription');
             
+            // Ręczna sprzedaż subskrypcji
+            Route::match(['get', 'post'], '/manual-sale', [\App\Http\Controllers\Admin\SubscriptionController::class, 'manualSale'])->name('manual-sale');
+            
             // Płatności subskrypcji
             Route::get('/payments', [AdminPanelController::class, 'subscriptionPayments'])->name('payments');
             Route::get('/payments/{payment}', [AdminPanelController::class, 'subscriptionPaymentDetails'])->name('payment-details');
+        });
+        
+        // Faktury subskrypcji
+        Route::prefix('billing')->name('billing.')->group(function () {
+            Route::get('/invoices', [AdminPanelController::class, 'invoicesList'])->name('invoices');
+            Route::get('/invoices/{invoice}', [AdminPanelController::class, 'invoiceShow'])->name('invoices.show');
+            Route::get('/invoices/{invoice}/pdf', [AdminPanelController::class, 'invoicePdf'])->name('invoices.pdf');
+            Route::post('/invoices/generate', [AdminPanelController::class, 'generateInvoices'])->name('invoices.generate');
+            Route::get('/statistics', [AdminPanelController::class, 'invoiceStatistics'])->name('statistics');
+            Route::get('/settings', [AdminPanelController::class, 'invoiceSettings'])->name('settings');
+            Route::put('/settings', [AdminPanelController::class, 'updateInvoiceSettings'])->name('settings.update');
+            Route::get('/generate', [AdminPanelController::class, 'invoiceGeneratePage'])->name('generate');
+            Route::post('/generate/run', [AdminPanelController::class, 'generateInvoices'])->name('generate.run');
         });
         
         // Zarządzanie przychodami
@@ -232,6 +249,15 @@ Route::middleware('auth')->group(function () {
             
             // Historia logowania
             Route::get('/login-history', [AdminPanelController::class, 'loginHistory'])->name('login-history');
+        });
+        
+        // Zarządzanie uprawnieniami modułów
+        Route::prefix('modules')->name('modules.')->group(function () {
+            Route::get('/', [ModulePermissionController::class, 'index'])->name('index');
+            Route::get('/user/{user}', [ModulePermissionController::class, 'userModules'])->name('user');
+            Route::post('/user/{user}/grant', [ModulePermissionController::class, 'grantAccess'])->name('grant');
+            Route::post('/user/{user}/deny', [ModulePermissionController::class, 'denyAccess'])->name('deny');
+            Route::delete('/user/{user}/module/{module}', [ModulePermissionController::class, 'removeAccess'])->name('remove');
         });
 
         // Dodatkowa definicja dla trasy czyszczenia logów
@@ -267,6 +293,188 @@ Route::middleware('auth')->group(function () {
             'user' => $user
         ]);
     });
+
+    // Trasy dla zarządzania planami subskrypcyjnymi
+    Route::get('/admin/subscriptions', [AdminPanelController::class, 'subscriptions'])->name('admin.subscriptions.index');
+    Route::get('/admin/subscriptions/create', [AdminPanelController::class, 'createSubscription'])->name('admin.subscriptions.create');
+    Route::post('/admin/subscriptions/store', [AdminPanelController::class, 'storeSubscription'])->name('admin.subscriptions.store');
+    Route::get('/admin/subscriptions/{plan}/edit', [AdminPanelController::class, 'editSubscription'])->name('admin.subscriptions.edit');
+    Route::put('/admin/subscriptions/{plan}', [AdminPanelController::class, 'updateSubscription'])->name('admin.subscriptions.update');
+    Route::delete('/admin/subscriptions/{plan}', [AdminPanelController::class, 'destroySubscription'])->name('admin.subscriptions.destroy');
+    Route::get('/admin/subscriptions/stats', [AdminPanelController::class, 'subscriptionStats'])->name('admin.subscriptions.stats');
+    Route::get('/admin/subscriptions/users', [AdminPanelController::class, 'userSubscriptions'])->name('admin.subscriptions.users');
+    Route::get('/admin/subscriptions/payments', [AdminPanelController::class, 'subscriptionPayments'])->name('admin.subscriptions.payments');
+    Route::get('/admin/subscriptions/payments/{payment}', [AdminPanelController::class, 'subscriptionPaymentDetails'])->name('admin.subscriptions.payment-details');
+    Route::get('/admin/subscriptions/permissions', [AdminPanelController::class, 'permissions'])->name('admin.subscriptions.permissions');
+
+    // Trasy dla stron z dolnego menu
+    Route::get('/help', function () {
+        return view('routes.help');
+    })->name('help');
+    
+    Route::get('/reports', function () {
+        return view('routes.reports');
+    })->name('reports');
+    
+    Route::get('/settings', function () {
+        return view('routes.settings');
+    })->name('settings');
+});
+
+// Tymczasowa trasa do ręcznej sprzedaży subskrypcji
+Route::get('/manual-subscription-sale', function () {
+    try {
+        // Znajdź administratora
+        $user = \App\Models\User::where('role', 'admin')
+            ->orWhere('is_admin', true)
+            ->orWhere('email', 'admin@example.com')
+            ->first();
+
+        if (!$user) {
+            $user = \App\Models\User::first();
+            
+            if (!$user) {
+                return 'Brak użytkowników w systemie. Nie można kontynuować.';
+            }
+        }
+
+        // Sprawdź, czy profil firmy istnieje, jeśli nie - utwórz
+        if (!$user->companyProfile) {
+            // Jeśli nie istnieje, utwórz domyślny profil
+            $companyProfile = new \App\Models\CompanyProfile();
+            $companyProfile->user_id = $user->id;
+            $companyProfile->company_name = 'Firma ' . $user->name;
+            $companyProfile->tax_number = '1234567890';
+            $companyProfile->save();
+            
+            // Utwórz domyślne konto bankowe
+            $bankAccount = new \App\Models\BankAccount();
+            $bankAccount->company_profile_id = $companyProfile->id;
+            $bankAccount->account_name = 'Główne konto firmowe';
+            $bankAccount->account_number = 'PL12 1234 5678 9012 3456 7890 1234';
+            $bankAccount->bank_name = 'Polski Bank S.A.';
+            $bankAccount->swift = 'POLBPLPW';
+            $bankAccount->is_default = true;
+            $bankAccount->save();
+            
+            // Ustaw domyślne konto bankowe
+            $companyProfile->default_bank_account_id = $bankAccount->id;
+            $companyProfile->save();
+            
+            // Odśwież użytkownika
+            $user->refresh();
+        }
+
+        // Znajdź plan subskrypcji
+        $plan = \App\Models\SubscriptionPlan::where('code', 'business')->first();
+        
+        if (!$plan) {
+            $plan = \App\Models\SubscriptionPlan::where('is_active', true)->first();
+        }
+
+        if (!$plan) {
+            return 'Brak aktywnych planów subskrypcji. Nie można kontynuować.';
+        }
+
+        // Rozpocznij transakcję
+        \Illuminate\Support\Facades\DB::beginTransaction();
+
+        // Utwórz subskrypcję ręcznie
+        $subscription = new \App\Models\UserSubscription();
+        $subscription->user_id = $user->id;
+        $subscription->subscription_plan_id = $plan->id;
+        $subscription->status = 'active';
+        $subscription->price = $plan->price;
+        $subscription->start_date = \Carbon\Carbon::now();
+        $subscription->end_date = \Carbon\Carbon::now()->addMonth(); // Miesięczna subskrypcja
+        $subscription->subscription_type = 'manual';
+        $subscription->renewal_status = null;
+        $subscription->payment_method = 'cash';
+        $subscription->payment_details = 'Płatność gotówką przyjęta przez administratora';
+        $subscription->admin_notes = 'Ręczna sprzedaż subskrypcji przez administratora';
+        $subscription->save();
+
+        // Utwórz płatność
+        $payment = new \App\Models\SubscriptionPayment();
+        $payment->user_id = $user->id;
+        $payment->subscription_id = $subscription->id;
+        $payment->transaction_id = 'manual-cash-' . time();
+        $payment->amount = $plan->price;
+        $payment->currency = $plan->currency ?? 'PLN';
+        $payment->status = 'completed';
+        $payment->payment_method = 'cash';
+        $payment->payment_details = 'Płatność gotówką';
+        $payment->save();
+
+        // Pobierz serwis subskrypcji
+        $subscriptionService = app(\App\Services\SubscriptionService::class);
+        
+        // Spróbuj wywołać metodę
+        $invoice = null;
+        $reflection = new \ReflectionClass($subscriptionService);
+        
+        try {
+            $method = $reflection->getMethod('generateInvoiceForPayment');
+            $method->setAccessible(true);
+            $invoice = $method->invoke($subscriptionService, $payment);
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Błąd przy generowaniu faktury: ' . $e->getMessage());
+        }
+
+        if ($invoice) {
+            // Aktualizuj subskrypcję o identyfikator faktury
+            $subscription->last_invoice_id = $invoice->id;
+            $subscription->last_invoice_number = $invoice->number;
+            $subscription->save();
+        }
+
+        // Zatwierdź transakcję
+        \Illuminate\Support\Facades\DB::commit();
+
+        // Przygotuj podsumowanie
+        $html = '<h1>Proces sprzedaży subskrypcji zakończony pomyślnie!</h1>';
+        $html .= '<h2>Podsumowanie:</h2>';
+        $html .= '<ul>';
+        $html .= '<li>Użytkownik: ' . $user->name . ' (ID: ' . $user->id . ')</li>';
+        $html .= '<li>Plan subskrypcji: ' . $plan->name . ' (ID: ' . $plan->id . ')</li>';
+        $html .= '<li>Status subskrypcji: ' . $subscription->status . '</li>';
+        $html .= '<li>Data rozpoczęcia: ' . $subscription->start_date->format('Y-m-d') . '</li>';
+        $html .= '<li>Data zakończenia: ' . $subscription->end_date->format('Y-m-d') . '</li>';
+        $html .= '<li>Metoda płatności: ' . $subscription->payment_method . '</li>';
+        $html .= '<li>Kwota: ' . $payment->amount . ' ' . $payment->currency . '</li>';
+        
+        if ($invoice) {
+            $html .= '<li>Numer faktury: ' . $invoice->number . '</li>';
+            $html .= '<li><a href="' . url("/admin/billing/invoices/{$invoice->id}") . '">Link do faktury</a></li>';
+        } else {
+            $html .= '<li>Nie udało się wygenerować faktury.</li>';
+        }
+        
+        $html .= '</ul>';
+        
+        // Linki do panelu administracyjnego
+        $html .= '<p><a href="' . url('/admin/subscriptions/users') . '">Przejdź do listy subskrypcji</a></p>';
+        
+        return $html;
+    } catch (\Exception $e) {
+        // W przypadku błędu, cofnij transakcję
+        \Illuminate\Support\Facades\DB::rollBack();
+        
+        return 'BŁĄD: ' . $e->getMessage() . "<br>Lokalizacja: " . $e->getFile() . ':' . $e->getLine();
+    }
+});
+
+// Trasy dla procesu płatności
+Route::middleware(['auth'])->prefix('checkout')->name('checkout.')->group(function () {
+    Route::get('/payment/{subscription}', [\App\Http\Controllers\CheckoutController::class, 'selectPaymentMethod'])->name('payment');
+    Route::post('/process/{subscription}', [\App\Http\Controllers\CheckoutController::class, 'initiatePayment'])->name('process');
+    Route::get('/confirmation/{transactionId}', [\App\Http\Controllers\CheckoutController::class, 'showConfirmation'])->name('confirmation');
+    Route::get('/return', [\App\Http\Controllers\CheckoutController::class, 'handleReturn'])->name('return');
+});
+
+// Webhooki bramek płatności (bez middleware auth)
+Route::prefix('payment-webhooks')->name('payment.webhooks.')->group(function () {
+    Route::post('/{gateway}', [\App\Http\Controllers\CheckoutController::class, 'webhook'])->name('process');
 });
 
 require __DIR__.'/auth.php';

@@ -1,6 +1,5 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" 
-      x-data x-bind:class="{ 'dark': $store.theme.isDark }" data-debug="true">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" data-debug="true">
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -85,7 +84,116 @@
         @stack('styles')
     </head>
     <body class="font-sans antialiased bg-gray-50">
-        <div class="min-h-screen" x-data="{ sidebarOpen: $persist(true).as('sidebar_state') }">
+        <!-- Zapewnienie globalnej dostępności magazynu theme -->
+        <script>
+            // Najpierw sprawdź i utwórz kluczowe zmienne
+            if (typeof window.themeInitialized === 'undefined') {
+                window.themeInitialized = false;
+                console.log('Inicjalizacja zmiennych globalnych dla motywu');
+            }
+            
+            // Funkcja inicjalizująca magazyn theme
+            function initThemeStore() {
+                if (window.themeInitialized) return;
+                
+                // Tymczasowy magazyn theme
+                window._themeIsDark = localStorage.getItem('dark_mode') === 'true';
+                window._themeUserChosen = localStorage.getItem('user_chosen_theme') === 'true';
+                
+                // Zastosuj motyw od razu
+                if (window._themeIsDark) {
+                    document.documentElement.classList.add('dark');
+                } else {
+                    document.documentElement.classList.remove('dark');
+                }
+                
+                window.themeInitialized = true;
+                console.log('Globalne zmienne motywu zainicjalizowane');
+            }
+            
+            // Inicjalizuj od razu
+            initThemeStore();
+            
+            // Utwórz globalną imitację magazynu (fallback)
+            window.ThemeStore = {
+                isDark: window._themeIsDark,
+                userChosen: window._themeUserChosen,
+                toggle() {
+                    this.isDark = !this.isDark;
+                    this.userChosen = true;
+                    localStorage.setItem('dark_mode', this.isDark);
+                    localStorage.setItem('user_chosen_theme', 'true');
+                    this.updateTheme();
+                },
+                updateTheme() {
+                    if (this.isDark) {
+                        document.documentElement.classList.add('dark');
+                    } else {
+                        document.documentElement.classList.remove('dark');
+                    }
+                },
+                resetToSystemPreference() {
+                    this.userChosen = false;
+                    localStorage.removeItem('user_chosen_theme');
+                    this.isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                    localStorage.setItem('dark_mode', this.isDark);
+                    this.updateTheme();
+                },
+                init() {
+                    this.updateTheme();
+                }
+            };
+            
+            // Sprawdzenie czy Alpine.js jest gotowy i dodanie magazynu theme
+            document.addEventListener('alpine:init', () => {
+                if (window.Alpine) {
+                    Alpine.store('theme', {
+                        isDark: localStorage.getItem('dark_mode') === 'true',
+                        userChosen: localStorage.getItem('user_chosen_theme') === 'true',
+                        toggle() {
+                            this.isDark = !this.isDark;
+                            this.userChosen = true;
+                            localStorage.setItem('dark_mode', this.isDark);
+                            localStorage.setItem('user_chosen_theme', 'true');
+                            this.updateTheme();
+                        },
+                        updateTheme() {
+                            if (this.isDark) {
+                                document.documentElement.classList.add('dark');
+                            } else {
+                                document.documentElement.classList.remove('dark');
+                            }
+                        },
+                        resetToSystemPreference() {
+                            this.userChosen = false;
+                            localStorage.removeItem('user_chosen_theme');
+                            this.isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                            localStorage.setItem('dark_mode', this.isDark);
+                            this.updateTheme();
+                        },
+                        init() {
+                            this.updateTheme();
+                        }
+                    });
+                    console.log('Magazyn theme zainicjalizowany przez alpine:init');
+                }
+            });
+        </script>
+        
+        <div class="min-h-screen" 
+            x-data="{ 
+                sidebarOpen: $persist(true).as('sidebar_state'),
+                get themeIsDark() { 
+                    return typeof $store !== 'undefined' && typeof $store.theme !== 'undefined' 
+                        ? $store.theme.isDark 
+                        : (typeof window.ThemeStore !== 'undefined' ? window.ThemeStore.isDark : false);
+                }
+            }" 
+            x-init="$nextTick(() => {
+                // Aktualizacja klasy dark dla elementu HTML
+                document.documentElement.classList.toggle('dark', themeIsDark);
+            })">
+            
             @if(auth()->check())
                 <!-- Sidebar -->
                 <aside class="fixed left-0 top-0 h-full bg-[#44546A]/90 shadow-xl z-30 transition-all duration-300 border-r border-[#44546A]/30" 
@@ -102,7 +210,7 @@
                     </div>
                 
                     <!-- Menu Items -->
-                    <div class="py-5 space-y-1 px-3 h-full overflow-y-auto pb-20" style="max-height: calc(100vh - 70px);">
+                    <div class="py-5 space-y-1 px-3 h-full overflow-y-auto" style="max-height: calc(100vh - 70px);">
                         <!-- Menu użytkownika -->
                         <x-menu.user-menu />
                     </div>

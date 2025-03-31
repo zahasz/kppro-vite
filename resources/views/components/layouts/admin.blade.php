@@ -12,19 +12,18 @@
         <title>{{ config('app.name', 'Laravel') }} - {{ $header }}</title>
 
         <!-- Fonts -->
-        <link rel="preconnect" href="https://fonts.bunny.net">
-        <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
-        
-        <!-- Font Awesome -->
-        <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Figtree:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400;1,500;1,600;1,700&display=swap" rel="stylesheet">
 
         <!-- Scripts -->
         @vite(['resources/css/app.css', 'resources/js/app.js'])
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
         
-        <!-- Livewire -->
+        <!-- Styles -->
         @livewireStyles
+        @stack('styles')
         
-        <!-- Custom styles -->
         <style>
             [x-cloak] { display: none !important; }
             
@@ -88,22 +87,59 @@
         </script>
     </head>
     <body class="font-sans antialiased bg-gray-50">
+        <!-- Inicjalizacja motywu ciemnego po załadowaniu Alpine -->
+        <script>
+            document.addEventListener('alpine:init', () => {
+                if (window.Alpine && !Alpine.store('theme')) {
+                    // Tymczasowe zabezpieczenie w przypadku braku magazynu theme
+                    Alpine.store('theme', {
+                        isDark: localStorage.getItem('dark_mode') === 'true',
+                        userChosen: localStorage.getItem('user_chosen_theme') === 'true',
+                        toggle() {
+                            this.isDark = !this.isDark;
+                            this.userChosen = true;
+                            localStorage.setItem('dark_mode', this.isDark);
+                            localStorage.setItem('user_chosen_theme', 'true');
+                            this.updateTheme();
+                        },
+                        updateTheme() {
+                            if (this.isDark) {
+                                document.documentElement.classList.add('dark');
+                            } else {
+                                document.documentElement.classList.remove('dark');
+                            }
+                        },
+                        resetToSystemPreference() {
+                            this.userChosen = false;
+                            localStorage.removeItem('user_chosen_theme');
+                            this.isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                            localStorage.setItem('dark_mode', this.isDark);
+                            this.updateTheme();
+                        },
+                        init() {
+                            this.updateTheme();
+                        }
+                    });
+                    console.log('Dodano awaryjny magazyn theme w alpine:init (admin component)');
+                }
+            });
+        </script>
+        
         <!-- Debugowanie -->
         <div class="fixed bottom-2 right-2 bg-blue-300 text-blue-900 text-sm p-2 z-50 border border-blue-500 rounded shadow-lg">
             Debug v1.2 - Admin Component
         </div>
         
-        <div class="min-h-screen" 
-             x-data="{ 
-                sidebarOpen: $persist(true).as('admin_sidebar_state'),
+        <div x-data="{ 
+                sidebarOpen: $persist(true).as('sidebar_state'),
                 init() {
-                    // Nasłuchiwanie na zdarzenie odświeżenia sidebar
-                    this.$el.closest('[data-section=admin]').addEventListener('refresh-sidebar', () => {
-                        // Pobierz zapisany stan
-                        const savedState = localStorage.getItem('admin_sidebar_state');
-                        console.log('Otrzymano zdarzenie refresh-sidebar, zapisany stan:', savedState);
-                        
-                        // Aktualizuj stan tylko jeśli się różni
+                    this.$watch('sidebarOpen', (value) => {
+                        localStorage.setItem('sidebar_state', value.toString());
+                    });
+                    
+                    // Obsługa przywracania stanu menu po odświeżeniu strony
+                    this.$nextTick(() => {
+                        const savedState = localStorage.getItem('sidebar_state');
                         if (savedState === 'true' && !this.sidebarOpen) {
                             this.sidebarOpen = true;
                             console.log('Przywrócono stan menu: otwarty');
@@ -116,39 +152,10 @@
              }" 
              data-section="admin">
             <!-- Sidebar -->
-            <aside class="fixed left-0 top-0 h-full bg-[#44546A]/90 shadow-xl z-30 transition-all duration-300 border-r border-[#44546A]/30" 
-                   :class="{'w-64': sidebarOpen, 'w-16': !sidebarOpen}">
-                
-                <!-- Logo i nazwa firmy -->
-                <div class="flex flex-col items-center p-4 border-b border-[#44546A]/40">
-                    <div class="w-12 h-12 rounded-full overflow-hidden mb-2 bg-white/10 shadow-lg flex items-center justify-center">
-                        <img class="w-8 h-8 object-contain" src="{{ auth()->user()->company?->logo_url ?? asset('images/logo.svg') }}" alt="Logo firmy">
-                    </div>
-                    <span class="text-sm font-semibold text-white text-center w-full px-2 truncate" x-show="sidebarOpen">
-                        Panel administratora
-                    </span>
-                </div>
-                
-                <!-- Menu Items -->
-                <div class="overflow-y-auto py-4 px-2 pb-28" style="max-height: calc(100vh - 70px);">
-                    <x-menu.admin-menu />
-                </div>
-            </aside>
+            <x-layouts.sidebar menuType="admin" />
             
             <!-- Main Content -->
             <div class="transition-all duration-300" :class="{'pl-64': sidebarOpen, 'pl-16': !sidebarOpen}">
-                <!-- Toggle Button -->
-                <button @click="sidebarOpen = !sidebarOpen" 
-                        class="fixed top-5 z-40 shadow-md transition-all duration-200 bg-[#44546A] text-white p-2 rounded-full hover:bg-[#44546A]/80 hover:text-white"
-                        :class="{'left-[246px]': sidebarOpen, 'left-[50px]': !sidebarOpen}">
-                    <svg x-show="sidebarOpen" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                        <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
-                    </svg>
-                    <svg x-show="!sidebarOpen" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                        <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
-                    </svg>
-                </button>
-                
                 <!-- Page Heading -->
                 <header class="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-20">
                     <div class="max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-8 flex justify-between items-center">
@@ -159,7 +166,7 @@
                         <!-- User dropdown -->
                         <div class="relative" x-data="{ open: false }">
                             <button @click="open = !open" class="flex items-center text-gray-700 hover:text-gray-900 focus:outline-none">
-                                <div class="w-9 h-9 bg-[#44546A] rounded-full flex items-center justify-center text-white font-semibold mr-2 shadow-sm">
+                                <div class="w-9 h-9 bg-steel-blue-700 rounded-full flex items-center justify-center text-white font-semibold mr-2 shadow-sm">
                                     {{ substr(auth()->user()->name, 0, 1) }}
                                 </div>
                                 <span>{{ auth()->user()->name }}</span>

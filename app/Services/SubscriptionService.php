@@ -81,7 +81,7 @@ class SubscriptionService
             $subscription->next_billing_date = $nextBillingDate;
             $subscription->payment_method = $data['payment_method'] ?? 'manual';
             $subscription->payment_details = $data['payment_details'] ?? null;
-            $subscription->admin_notes = $data['notes'] ?? null;
+            $subscription->admin_notes = $data['admin_notes'] ?? null;
             $subscription->save();
             
             // Jeśli subskrypcja wymaga płatności, utwórz rekord płatności
@@ -291,7 +291,7 @@ class SubscriptionService
             
             $subscription->payment_method = $data['payment_method'] ?? $subscription->payment_method;
             $subscription->payment_details = $data['payment_details'] ?? $subscription->payment_details;
-            $subscription->admin_notes = $data['notes'] ?? $subscription->admin_notes;
+            $subscription->admin_notes = $data['admin_notes'] ?? $subscription->admin_notes;
             
             // Jeśli subskrypcja jest anulowana, ustaw datę anulowania
             if ($subscription->status === 'cancelled' && !$subscription->cancelled_at) {

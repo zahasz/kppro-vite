@@ -17,8 +17,8 @@ class SubscriptionController extends Controller
     {
         $user = Auth::user();
         $subscription = UserSubscription::where('user_id', $user->id)
-            ->where('is_active', true)
-            ->with('subscriptionPlan')
+            ->where('status', 'active')
+            ->with('plan')
             ->first();
 
         return view('user.subscription', [

@@ -110,7 +110,7 @@ class User extends Authenticatable
     /**
      * Get the attributes that should be cast.
      *
-     * @return array<string, string>
+     * @var array<string, string>
      */
     protected $casts = [
         'email_verified_at' => 'datetime',
@@ -291,5 +291,217 @@ class User extends Authenticatable
         ]);
 
         return $result;
+    }
+
+    /**
+     * Relacja z subskrypcjami użytkownika
+     */
+    public function userSubscriptions()
+    {
+        return $this->hasMany(UserSubscription::class);
+    }
+    
+    /**
+     * Pobiera aktywne subskrypcje użytkownika
+     */
+    public function activeSubscriptions()
+    {
+        return $this->userSubscriptions()->where('status', 'active');
+    }
+    
+    /**
+     * Sprawdza czy użytkownik ma aktywną subskrypcję
+     */
+    public function hasActiveSubscription()
+    {
+        return $this->activeSubscriptions()->count() > 0;
+    }
+    
+    /**
+     * Pobiera aktualną aktywną subskrypcję użytkownika
+     */
+    public function currentSubscription()
+    {
+        return $this->activeSubscriptions()->latest('start_date')->first();
+    }
+
+    /**
+     * Relacja z modułami, do których użytkownik ma bezpośredni dostęp
+     */
+    public function modules()
+    {
+        return $this->belongsToMany(Module::class, 'user_module_permissions')
+            ->withPivot(['access_granted', 'restrictions', 'valid_until', 'granted_by'])
+            ->withTimestamps();
+    }
+
+    /**
+     * Sprawdza, czy użytkownik ma dostęp do określonego modułu
+     * Kolejność sprawdzania:
+     * 1. Czy użytkownik ma jawny zakaz dostępu do modułu (User->Module->access_granted = false)
+     * 2. Czy użytkownik ma jawne przyznany dostęp do modułu (User->Module->access_granted = true)
+     * 3. Czy użytkownik ma aktywną subskrypcję z dostępem do modułu
+     * 
+     * @param string $moduleCode
+     * @return bool
+     */
+    public function canAccessModule(string $moduleCode): bool
+    {
+        // 1. Sprawdzamy, czy istnieje jawny zakaz dostępu
+        $directPermission = $this->modules()
+            ->where('code', $moduleCode)
+            ->first();
+            
+        if ($directPermission && !$directPermission->pivot->access_granted) {
+            return false;
+        }
+        
+        // 2. Sprawdzamy, czy istnieje jawne przyznanie dostępu
+        if ($directPermission && $directPermission->pivot->access_granted) {
+            // Sprawdzamy, czy uprawnienie nie wygasło
+            if ($directPermission->pivot->valid_until && $directPermission->pivot->valid_until->isPast()) {
+                return false;
+            }
+            return true;
+        }
+        
+        // 3. Sprawdzamy, czy którakolwiek z aktywnych subskrypcji użytkownika daje dostęp do modułu
+        $activeSubscriptionsWithModule = $this->activeSubscriptions()
+            ->with(['plan.modules' => function($query) use ($moduleCode) {
+                $query->where('code', $moduleCode);
+            }])
+            ->get()
+            ->filter(function($subscription) {
+                return $subscription->plan->modules->isNotEmpty();
+            });
+            
+        if ($activeSubscriptionsWithModule->isNotEmpty()) {
+            return true;
+        }
+        
+        return false;
+    }
+
+    /**
+     * Bezpośrednio przyznaj dostęp użytkownikowi do modułu
+     * 
+     * @param string $moduleCode Kod modułu
+     * @param array $options Opcje dodatkowe: restrictions, valid_until, granted_by
+     * @return bool
+     */
+    public function grantModuleAccess(string $moduleCode, array $options = []): bool
+    {
+        $module = Module::where('code', $moduleCode)->first();
+        
+        if (!$module) {
+            return false;
+        }
+        
+        // Sprawdź, czy istnieje już rekord powiązania
+        $existingPermission = UserModulePermission::where([
+            'user_id' => $this->id,
+            'module_id' => $module->id
+        ])->first();
+        
+        if ($existingPermission) {
+            // Aktualizuj istniejące uprawnienie
+            $existingPermission->update([
+                'access_granted' => true,
+                'restrictions' => $options['restrictions'] ?? null,
+                'valid_until' => $options['valid_until'] ?? null,
+                'granted_by' => $options['granted_by'] ?? null
+            ]);
+            return true;
+        }
+        
+        // Utwórz nowe uprawnienie
+        UserModulePermission::create([
+            'user_id' => $this->id,
+            'module_id' => $module->id,
+            'access_granted' => true,
+            'restrictions' => $options['restrictions'] ?? null,
+            'valid_until' => $options['valid_until'] ?? null,
+            'granted_by' => $options['granted_by'] ?? null
+        ]);
+        
+        return true;
+    }
+
+    /**
+     * Bezpośrednio zablokuj dostęp użytkownikowi do modułu
+     * 
+     * @param string $moduleCode
+     * @param string|null $grantedBy
+     * @return bool
+     */
+    public function denyModuleAccess(string $moduleCode, string $grantedBy = null): bool
+    {
+        $module = Module::where('code', $moduleCode)->first();
+        
+        if (!$module) {
+            return false;
+        }
+        
+        // Sprawdź, czy istnieje już rekord powiązania
+        $existingPermission = UserModulePermission::where([
+            'user_id' => $this->id,
+            'module_id' => $module->id
+        ])->first();
+        
+        if ($existingPermission) {
+            // Aktualizuj istniejące uprawnienie
+            $existingPermission->update([
+                'access_granted' => false,
+                'granted_by' => $grantedBy
+            ]);
+            return true;
+        }
+        
+        // Utwórz nowe uprawnienie z odmową
+        UserModulePermission::create([
+            'user_id' => $this->id,
+            'module_id' => $module->id,
+            'access_granted' => false,
+            'granted_by' => $grantedBy
+        ]);
+        
+        return true;
+    }
+    
+    /**
+     * Pobiera aktywne ograniczenia dla modułu, uwzględniając subskrypcję i bezpośrednie uprawnienia
+     * 
+     * @param string $moduleCode
+     * @return array|null
+     */
+    public function getModuleRestrictions(string $moduleCode)
+    {
+        // Sprawdź bezpośrednie ograniczenia użytkownika
+        $directPermission = $this->modules()
+            ->where('code', $moduleCode)
+            ->first();
+            
+        if ($directPermission && $directPermission->pivot->restrictions) {
+            return $directPermission->pivot->restrictions;
+        }
+        
+        // Sprawdź ograniczenia z aktywnych subskrypcji
+        $activeSubscriptionsWithModule = $this->activeSubscriptions()
+            ->with(['plan.modules' => function($query) use ($moduleCode) {
+                $query->where('code', $moduleCode);
+            }])
+            ->get()
+            ->filter(function($subscription) {
+                return $subscription->plan->modules->isNotEmpty();
+            });
+            
+        if ($activeSubscriptionsWithModule->isNotEmpty()) {
+            // Użyj pierwszej subskrypcji z modułem, jeśli jest wiele
+            $subscription = $activeSubscriptionsWithModule->first();
+            $module = $subscription->plan->modules->first();
+            return $module->pivot->limitations;
+        }
+        
+        return null;
     }
 }

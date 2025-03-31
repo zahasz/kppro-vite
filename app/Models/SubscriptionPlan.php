@@ -52,4 +52,53 @@ class SubscriptionPlan extends Model
     {
         return $this->hasMany(UserSubscription::class, 'subscription_plan_id');
     }
+
+    /**
+     * Alias dla metody subscriptions - dla zachowania zgodności z kodem w kontrolerze
+     */
+    public function userSubscriptions()
+    {
+        return $this->subscriptions();
+    }
+
+    /**
+     * Relacja z uprawnieniami
+     */
+    public function permissions()
+    {
+        return $this->belongsToMany(SubscriptionPermission::class, 'subscription_permission_plan');
+    }
+
+    /**
+     * Relacja z modułami
+     */
+    public function modules()
+    {
+        return $this->belongsToMany(Module::class, 'subscription_plan_modules', 'subscription_plan_id', 'module_id')
+            ->withPivot('limitations')
+            ->withTimestamps();
+    }
+
+    /**
+     * Sprawdza, czy plan ma dostęp do określonego modułu
+     * 
+     * @param string $moduleCode
+     * @return bool
+     */
+    public function hasModuleAccess(string $moduleCode): bool
+    {
+        return $this->modules()->where('code', $moduleCode)->exists();
+    }
+
+    /**
+     * Pobiera limity dla modułu w tym planie
+     * 
+     * @param string $moduleCode
+     * @return array|null
+     */
+    public function getModuleLimitations(string $moduleCode)
+    {
+        $module = $this->modules()->where('code', $moduleCode)->first();
+        return $module ? $module->pivot->limitations : null;
+    }
 }

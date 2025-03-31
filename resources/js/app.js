@@ -22,12 +22,18 @@ if (!window.Alpine) {
     window._alpineInitialized = true;
 
     // Inicjalizuję magazyn theme przed uruchomieniem Alpine
+    setupThemeStore();
+    
     document.addEventListener('DOMContentLoaded', () => {
-        setupThemeStore();
         Alpine.start();
         console.log('Alpine uruchomiony - pierwsza instancja');
     });
 } else {
+    // Upewnij się, że magazyn theme został zainicjalizowany
+    if (!Alpine.store('theme')) {
+        setupThemeStore();
+        console.log('Magazyn theme zainicjalizowany dla istniejącej instancji Alpine');
+    }
     console.log('Alpine już istnieje - unikam wielokrotnych instancji');
 }
 
@@ -101,6 +107,12 @@ document.addEventListener('DOMContentLoaded', () => {
 document.addEventListener('turbo:load', () => {
     // Sprawdź, czy Alpine jest gotowy
     if (window.Alpine) {
+        // Sprawdź, czy magazyn theme istnieje i zainicjalizuj go, jeśli nie
+        if (!Alpine.store('theme')) {
+            setupThemeStore();
+            console.log('Magazyn theme zainicjalizowany podczas turbo:load');
+        }
+        
         // Odśwież komponenty Alpine
         document.querySelectorAll('[x-data]').forEach(el => {
             if (el.__x) {

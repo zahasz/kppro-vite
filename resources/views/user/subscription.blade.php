@@ -1,8 +1,10 @@
-<x-app-layout>
-    <x-slot name="header">
-        Twoja subskrypcja
-    </x-slot>
+@extends('layouts.app')
 
+@section('title', 'Twoja subskrypcja')
+
+@section('header', 'Twoja subskrypcja')
+
+@section('content')
     <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
         <div class="p-6">
             <h2 class="text-xl font-semibold mb-4">Informacje o subskrypcji</h2>
@@ -15,10 +17,10 @@
                             <i class="fas fa-tag mr-2"></i>Plan subskrypcji
                         </h3>
                         <div class="text-xl font-bold text-indigo-600 dark:text-indigo-400 mb-4">
-                            {{ $subscription->subscriptionPlan->name }}
+                            {{ $subscription->plan->name }}
                         </div>
                         <div class="mt-2 text-sm text-gray-500 dark:text-gray-400">
-                            {{ $subscription->subscriptionPlan->description }}
+                            {{ $subscription->plan->description }}
                         </div>
                     </div>
 
@@ -30,8 +32,8 @@
                         <div class="grid grid-cols-1 gap-3">
                             <div>
                                 <span class="text-sm text-gray-500 dark:text-gray-400">Status:</span>
-                                <span class="ml-2 px-2 py-1 text-xs rounded-full {{ $subscription->is_active ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300' : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300' }}">
-                                    {{ $subscription->is_active ? 'Aktywna' : 'Nieaktywna' }}
+                                <span class="ml-2 px-2 py-1 text-xs rounded-full {{ $subscription->status == 'active' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300' : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300' }}">
+                                    {{ $subscription->status == 'active' ? 'Aktywna' : 'Nieaktywna' }}
                                 </span>
                             </div>
                             <div>
@@ -57,8 +59,8 @@
                         <div class="grid grid-cols-1 gap-3">
                             <div>
                                 <span class="text-sm text-gray-500 dark:text-gray-400">Cena:</span>
-                                <span class="ml-2 text-gray-900 dark:text-gray-100">{{ number_format($subscription->subscriptionPlan->price, 2, ',', ' ') }} zł</span>
-                                <span class="text-xs text-gray-500 dark:text-gray-400">/ {{ $subscription->subscriptionPlan->billing_cycle == 'monthly' ? 'miesiąc' : 'rok' }}</span>
+                                <span class="ml-2 text-gray-900 dark:text-gray-100">{{ number_format($subscription->plan->price, 2, ',', ' ') }} zł</span>
+                                <span class="text-xs text-gray-500 dark:text-gray-400">/ {{ $subscription->plan->billing_period == 'monthly' ? 'miesiąc' : 'rok' }}</span>
                             </div>
                             <div>
                                 <span class="text-sm text-gray-500 dark:text-gray-400">Metoda płatności:</span>
@@ -79,28 +81,24 @@
                     </h3>
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                         @php
-                            $features = json_decode($subscription->subscriptionPlan->features, true) ?? [];
+                            $features = $subscription->plan->features ?? [];
                         @endphp
 
-                        @foreach($features as $feature => $enabled)
+                        @foreach($features as $feature)
                             <div class="flex items-center p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                                @if($enabled)
-                                    <i class="fas fa-check-circle text-green-500 mr-2"></i>
-                                @else
-                                    <i class="fas fa-times-circle text-red-500 mr-2"></i>
-                                @endif
+                                <i class="fas fa-check-circle text-green-500 mr-2"></i>
                                 <span class="text-gray-700 dark:text-gray-300">
                                     @switch($feature)
-                                        @case('finance')
+                                        @case('finance_module')
                                             Finanse i księgowość
                                             @break
-                                        @case('warehouse')
+                                        @case('warehouse_module')
                                             Magazyn
                                             @break
-                                        @case('contractors')
+                                        @case('contractors_module')
                                             Zarządzanie kontrahentami
                                             @break
-                                        @case('invoices')
+                                        @case('invoice_generation')
                                             Faktury
                                             @break
                                         @case('estimates')
@@ -109,7 +107,7 @@
                                         @case('tasks')
                                             Zadania
                                             @break
-                                        @case('contracts')
+                                        @case('contracts_module')
                                             Umowy
                                             @break
                                         @default
@@ -140,4 +138,4 @@
             @endif
         </div>
     </div>
-</x-app-layout> 
+@endsection 

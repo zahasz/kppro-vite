@@ -1,12 +1,20 @@
 <x-admin-layout>
     <x-slot name="header">
-        Edycja subskrypcji użytkownika
+        Edycja subskrypcji użytkownika #{{ $subscription->id }}
     </x-slot>
 
     <div class="py-6">
         <div class="max-w-3xl mx-auto sm:px-6 lg:px-8">
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6 bg-white border-b border-gray-200">
+                    <!-- Informacja o ID subskrypcji -->
+                    <div class="mb-4 p-3 bg-gray-50 rounded-md">
+                        <div class="flex items-center">
+                            <span class="text-gray-500 font-medium mr-2">ID subskrypcji:</span>
+                            <span class="text-gray-800 font-bold">{{ $subscription->id }}</span>
+                        </div>
+                    </div>
+                    
                     <form method="POST" action="{{ route('admin.subscriptions.update-user-subscription', $subscription->id) }}">
                         @csrf
                         @method('PUT')
@@ -28,16 +36,16 @@
                             </div>
 
                             <div>
-                                <label for="plan_id" class="block text-sm font-medium text-gray-700">Plan subskrypcji</label>
-                                <select name="plan_id" id="plan_id" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-steel-blue-300 focus:ring focus:ring-steel-blue-200 focus:ring-opacity-50" required>
+                                <label for="subscription_plan_id" class="block text-sm font-medium text-gray-700">Plan subskrypcji</label>
+                                <select name="subscription_plan_id" id="subscription_plan_id" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-steel-blue-300 focus:ring focus:ring-steel-blue-200 focus:ring-opacity-50" required>
                                     @foreach($plans as $plan)
-                                        <option value="{{ $plan->id }}" {{ old('plan_id', $subscription->plan_id) == $plan->id ? 'selected' : '' }} 
+                                        <option value="{{ $plan->id }}" {{ old('subscription_plan_id', $subscription->subscription_plan_id) == $plan->id ? 'selected' : '' }} 
                                             data-price="{{ $plan->price }}" data-interval="{{ $plan->interval }}">
                                             {{ $plan->name }} ({{ number_format($plan->price, 2) }} zł)
                                         </option>
                                     @endforeach
                                 </select>
-                                @error('plan_id')
+                                @error('subscription_plan_id')
                                     <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                                 @enderror
                             </div>
@@ -149,7 +157,7 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            const planSelect = document.getElementById('plan_id');
+            const planSelect = document.getElementById('subscription_plan_id');
             const priceInput = document.getElementById('price');
             
             // Aktualizuj cenę gdy plan się zmienia

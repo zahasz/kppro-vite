@@ -17,7 +17,7 @@ class SubscriptionPayment extends Model
      */
     protected $fillable = [
         'user_id',
-        'subscription_id',
+        'user_subscription_id',
         'transaction_id',
         'amount',
         'currency',
@@ -63,7 +63,7 @@ class SubscriptionPayment extends Model
      */
     public function subscription()
     {
-        return $this->belongsTo(UserSubscription::class, 'subscription_id');
+        return $this->belongsTo(UserSubscription::class, 'user_subscription_id');
     }
     
     /**
