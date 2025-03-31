@@ -20,6 +20,9 @@ use App\Http\Controllers\ProductController;
 use App\Http\Controllers\SubscriptionController;
 use App\Http\Controllers\Admin\ModulePermissionController;
 use App\Http\Controllers\CheckoutController;
+use App\Http\Controllers\Admin\PaymentController;
+use App\Http\Controllers\Admin\BillingSettingsController;
+use App\Http\Controllers\Admin\PaymentSettingsController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -475,6 +478,31 @@ Route::middleware(['auth'])->prefix('checkout')->name('checkout.')->group(functi
 // Webhooki bramek płatności (bez middleware auth)
 Route::prefix('payment-webhooks')->name('payment.webhooks.')->group(function () {
     Route::post('/{gateway}', [\App\Http\Controllers\CheckoutController::class, 'webhook'])->name('process');
+});
+
+// Trasy dla modułu płatności i ustawień
+Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
+    // Usunięcie zduplikowanych tras płatności
+    // Route::resource('payments', PaymentController::class);
+    Route::get('payments', [PaymentController::class, 'index'])->name('payments.index');
+    Route::get('payments/create', [PaymentController::class, 'create'])->name('payments.create');
+    Route::post('payments', [PaymentController::class, 'store'])->name('payments.store');
+    Route::get('payments/{payment}/edit', [PaymentController::class, 'edit'])->name('payments.edit');
+    Route::put('payments/{payment}', [PaymentController::class, 'update'])->name('payments.update');
+    Route::delete('payments/{payment}', [PaymentController::class, 'destroy'])->name('payments.destroy');
+    
+    Route::put('payments/{payment}/toggle-status', [PaymentController::class, 'toggleStatus'])->name('payments.toggle-status');
+    Route::get('payments/transactions', [PaymentController::class, 'transactions'])->name('payments.transactions');
+    Route::get('payments/transactions/{transaction}', [PaymentController::class, 'transactionDetails'])->name('payments.transaction-details');
+    Route::put('payments/transactions/{transaction}/status', [PaymentController::class, 'updateStatus'])->name('payments.update-status');
+    Route::post('payments/transactions/{transaction}/refund', [PaymentController::class, 'refund'])->name('payments.refund');
+    
+    // Ustawienia fakturowania
+    Route::get('/billing/settings', [BillingSettingsController::class, 'index'])->name('billing.settings');
+    Route::put('/billing/settings', [BillingSettingsController::class, 'update'])->name('billing.settings.update');
+    
+    // Ustawienia płatności
+    Route::put('/payment/settings', [PaymentSettingsController::class, 'update'])->name('payment.settings.update');
 });
 
 require __DIR__.'/auth.php';

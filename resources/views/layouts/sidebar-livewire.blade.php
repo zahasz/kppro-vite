@@ -109,6 +109,12 @@ $adminGroups = [
     ],
     'Finanse' => [
         [
+            'route' => 'admin.payments.index',
+            'icon' => 'fas fa-credit-card',
+            'label' => 'Bramki płatności',
+            'routeMatch' => 'admin.payments.*'
+        ],
+        [
             'route' => 'admin.subscriptions.payments',
             'icon' => 'fas fa-dollar-sign',
             'label' => 'Historia płatności',

@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class PaymentTransaction extends Model
 {
@@ -24,21 +25,18 @@ class PaymentTransaction extends Model
      * @var array
      */
     protected $fillable = [
-        'transaction_id',
-        'reference_id',
         'user_id',
         'subscription_id',
-        'invoice_id',
+        'gateway_code',
+        'transaction_id',
         'amount',
         'currency',
         'status',
-        'gateway_code',
         'payment_method',
-        'payment_details',
-        'description',
         'error_message',
         'gateway_response',
         'metadata',
+        'notes'
     ];
 
     /**
@@ -47,15 +45,15 @@ class PaymentTransaction extends Model
      * @var array
      */
     protected $casts = [
-        'amount' => 'float',
+        'amount' => 'decimal:2',
         'gateway_response' => 'array',
-        'metadata' => 'array',
+        'metadata' => 'array'
     ];
 
     /**
      * Relacja do użytkownika
      */
-    public function user()
+    public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
@@ -63,23 +61,15 @@ class PaymentTransaction extends Model
     /**
      * Relacja do subskrypcji
      */
-    public function subscription()
+    public function subscription(): BelongsTo
     {
         return $this->belongsTo(UserSubscription::class, 'subscription_id');
     }
 
     /**
-     * Relacja do faktury
-     */
-    public function invoice()
-    {
-        return $this->belongsTo(Invoice::class);
-    }
-
-    /**
      * Relacja do bramki płatności
      */
-    public function paymentGateway()
+    public function gateway(): BelongsTo
     {
         return $this->belongsTo(PaymentGateway::class, 'gateway_code', 'code');
     }

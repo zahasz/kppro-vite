@@ -245,17 +245,6 @@ class User extends Authenticatable
      */
     public function isOnline(): bool
     {
-        \Log::info('User::isOnline - Sprawdzanie statusu online', [
-            'user_id' => $this->id,
-            'last_seen_at' => $this->last_seen_at?->toDateTimeString(),
-            'current_time' => now()->toDateTimeString(),
-            'timezone' => config('app.timezone'),
-            'threshold' => now()->subMinutes(5)->toDateTimeString(),
-            'is_online' => $this->last_seen_at && $this->last_seen_at->gt(now()->subMinutes(5)),
-            'cache_key' => "user.{$this->id}",
-            'cache_exists' => Cache::has("user.{$this->id}"),
-        ]);
-
         if (!$this->last_seen_at) {
             return false;
         }

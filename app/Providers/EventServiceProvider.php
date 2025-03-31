@@ -21,6 +21,11 @@ class EventServiceProvider extends ServiceProvider
         Registered::class => [
             SendEmailVerificationNotification::class,
         ],
+        
+        // Zdarzenia związane z subskrypcjami
+        \App\Events\SubscriptionCancelled::class => [
+            \App\Listeners\LogSubscriptionCancellation::class,
+        ],
     ];
 
     /**

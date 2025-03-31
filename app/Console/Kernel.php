@@ -44,6 +44,24 @@ class Kernel extends ConsoleKernel
         $schedule->command('report:subscriptions --email=admin@example.com')
             ->weeklyOn(1, '08:00') // Każdy poniedziałek o 8:00
             ->appendOutputTo(storage_path('logs/subscriptions-report.log'));
+        
+        // Obsługa odnowień subskrypcji
+        $schedule->command('subscriptions:renewal')
+                 ->dailyAt('03:30')
+                 ->withoutOverlapping()
+                 ->appendOutputTo(storage_path('logs/subscription-renewals.log'));
+                 
+        // Wysyłanie powiadomień o zbliżających się odnowieniach subskrypcji
+        $schedule->command('subscriptions:notify-renewals')
+                 ->dailyAt('08:00')
+                 ->withoutOverlapping()
+                 ->appendOutputTo(storage_path('logs/subscription-notifications.log'));
+        
+        // Ponowne próby nieudanych płatności
+        $schedule->command('subscriptions:retry-payments')
+                 ->dailyAt('05:00')
+                 ->withoutOverlapping()
+                 ->appendOutputTo(storage_path('logs/payment-retries.log'));
     }
 
     /**

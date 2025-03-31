@@ -30,6 +30,33 @@ document.addEventListener('DOMContentLoaded', () => {
             // Ładowanie modułu dashboardu administratora
             if (sections.dashboard) {
                 adminStats.initDashboardStats();
+                
+                // Dodanie obsługi klikania w kafelki na dashboardzie
+                const dashboardTiles = document.querySelectorAll('.cursor-pointer');
+                dashboardTiles.forEach(tile => {
+                    tile.addEventListener('click', function(e) {
+                        // Zabezpieczenie przed niepotrzebnym zatrzymaniem nawigacji
+                        // jeśli kliknięcie jest na link lub przycisk wewnątrz kafelka
+                        if (e.target.tagName === 'A' || e.target.tagName === 'BUTTON') {
+                            return;
+                        }
+                        
+                        // Nawigacja poprzez zdarzenie onClick już dodane w szablonie HTML
+                    });
+                    
+                    // Dodaj efekt kliknięcia
+                    tile.addEventListener('mousedown', function() {
+                        this.classList.add('bg-gray-100');
+                    });
+                    
+                    tile.addEventListener('mouseup', function() {
+                        this.classList.remove('bg-gray-100');
+                    });
+                    
+                    tile.addEventListener('mouseleave', function() {
+                        this.classList.remove('bg-gray-100');
+                    });
+                });
             }
             
             // Ładowanie dynamiczne pozostałych modułów

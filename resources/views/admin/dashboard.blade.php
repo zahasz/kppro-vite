@@ -11,7 +11,7 @@
             </div>
             <div class="grid grid-cols-1 md:grid-cols-4 divide-y md:divide-y-0 md:divide-x divide-gray-200">
                 <div class="p-4">
-                    <div class="flex items-center">
+                    <div class="flex items-center cursor-pointer hover:bg-gray-50 p-2 rounded transition-colors" onclick="window.location.href='{{ route('admin.users.index') }}'">
                         <div class="p-2 rounded-full bg-steel-blue-100 text-steel-blue-600">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
@@ -25,7 +25,7 @@
                     </div>
                 </div>
                 <div class="p-4">
-                    <div class="flex items-center">
+                    <div class="flex items-center cursor-pointer hover:bg-gray-50 p-2 rounded transition-colors" onclick="window.location.href='{{ route('admin.subscriptions.index') }}'">
                         <div class="p-2 rounded-full bg-steel-blue-100 text-steel-blue-600">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -39,7 +39,7 @@
                     </div>
                 </div>
                 <div class="p-4">
-                    <div class="flex items-center">
+                    <div class="flex items-center cursor-pointer hover:bg-gray-50 p-2 rounded transition-colors" onclick="window.location.href='{{ route('admin.revenue.dashboard') }}'">
                         <div class="p-2 rounded-full bg-steel-blue-100 text-steel-blue-600">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
@@ -53,7 +53,7 @@
                     </div>
                 </div>
                 <div class="p-4">
-                    <div class="flex items-center">
+                    <div class="flex items-center cursor-pointer hover:bg-gray-50 p-2 rounded transition-colors" onclick="window.location.href='{{ route('admin.users.online') }}'">
                         <div class="p-2 rounded-full bg-steel-blue-100 text-steel-blue-600">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
@@ -61,7 +61,7 @@
                         </div>
                         <div class="ml-3">
                             <p class="text-sm font-medium text-gray-500">Aktywność</p>
-                            <p class="text-xl font-semibold text-gray-900">{{ \App\Models\User::where('last_seen_at', '>=', now()->subMinutes(5))->count() }}</p>
+                            <p class="text-xl font-semibold text-gray-900" id="online-users-count">{{ \App\Models\User::where('last_seen_at', '>=', now()->subMinutes(5))->count() }}</p>
                             <p class="text-xs text-gray-500">Użytkowników online</p>
                         </div>
                     </div>

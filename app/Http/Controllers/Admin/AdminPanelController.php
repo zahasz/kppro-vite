@@ -1401,20 +1401,30 @@ class AdminPanelController extends Controller
                     ];
                 });
 
-            return response()->json([
-                'success' => true,
-                'data' => $users
-            ]);
+            // Sprawdź czy to jest żądanie AJAX czy standardowe
+            if (request()->ajax() || request()->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'data' => $users
+                ]);
+            }
+            
+            // Jeśli to nie jest AJAX, wyświetl widok
+            return view('admin.users.online');
         } catch (\Exception $e) {
             \Log::error('Błąd podczas pobierania aktywnych użytkowników', [
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ]);
 
-            return response()->json([
-                'success' => false,
-                'message' => 'Wystąpił błąd podczas pobierania danych'
-            ], 500);
+            if (request()->ajax() || request()->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Wystąpił błąd podczas pobierania danych'
+                ], 500);
+            }
+            
+            return view('admin.users.online')->with('error', 'Wystąpił błąd podczas pobierania danych');
         }
     }
 

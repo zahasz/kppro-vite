@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class PaymentGateway extends Model
 {
@@ -17,13 +18,13 @@ class PaymentGateway extends Model
     protected $fillable = [
         'name',
         'code',
-        'description',
         'class_name',
-        'config',
-        'logo_path',
+        'description',
         'is_active',
         'test_mode',
         'display_order',
+        'logo',
+        'config'
     ];
 
     /**
@@ -32,16 +33,16 @@ class PaymentGateway extends Model
      * @var array
      */
     protected $casts = [
-        'config' => 'array',
         'is_active' => 'boolean',
         'test_mode' => 'boolean',
         'display_order' => 'integer',
+        'config' => 'array'
     ];
 
     /**
      * Relacja do transakcji
      */
-    public function transactions()
+    public function transactions(): HasMany
     {
         return $this->hasMany(PaymentTransaction::class, 'gateway_code', 'code');
     }

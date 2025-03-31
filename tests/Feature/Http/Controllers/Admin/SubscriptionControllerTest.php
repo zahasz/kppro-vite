@@ -28,10 +28,8 @@ class SubscriptionControllerTest extends TestCase
         Role::create(['name' => 'admin']);
         
         // Tworzenie użytkowników
-        $this->adminUser = User::factory()->create();
-        $this->adminUser->assignRole('admin');
-        
-        $this->regularUser = User::factory()->create();
+        $this->adminUser = User::factory()->create(['role' => 'admin']);
+        $this->regularUser = User::factory()->create(['role' => 'user']);
         
         // Tworzenie planu subskrypcji
         $this->plan = SubscriptionPlan::create([
@@ -192,11 +190,12 @@ class SubscriptionControllerTest extends TestCase
     /**
      * Test sprawdzający wyświetlanie listy subskrypcji użytkowników
      */
-    public function test_users_displays_user_subscriptions(): void
+    public function test_index_displays_user_subscriptions(): void
     {
         // Tworzenie subskrypcji dla testów
-        UserSubscription::create([
+        $subscription = UserSubscription::create([
             'user_id' => $this->regularUser->id,
+            'name' => $this->plan->name,
             'plan_id' => $this->plan->id,
             'status' => 'active',
             'start_date' => Carbon::now(),
@@ -217,9 +216,37 @@ class SubscriptionControllerTest extends TestCase
     }
 
     /**
-     * Test sprawdzający formularz tworzenia subskrypcji dla użytkownika
+     * Test sprawdzający wyświetlanie szczegółów subskrypcji użytkownika
      */
-    public function test_create_user_subscription_displays_form(): void
+    public function test_show_displays_subscription_details(): void
+    {
+        // Tworzenie subskrypcji dla testów
+        $subscription = UserSubscription::create([
+            'user_id' => $this->regularUser->id,
+            'name' => $this->plan->name,
+            'plan_id' => $this->plan->id,
+            'status' => 'active',
+            'start_date' => Carbon::now(),
+            'end_date' => Carbon::now()->addMonth(),
+            'payment_method' => 'credit_card',
+            'payment_details' => 'Visa **** 4242',
+            'auto_renew' => true
+        ]);
+        
+        $response = $this->actingAs($this->adminUser)
+                        ->get('/admin/subscriptions/users/' . $subscription->id);
+        
+        $response->assertStatus(200);
+        $response->assertViewIs('admin.subscriptions.show');
+        $response->assertViewHas('subscription');
+        $response->assertSee($this->regularUser->name);
+        $response->assertSee('Plan testowy');
+    }
+
+    /**
+     * Test sprawdzający formularz tworzenia nowej subskrypcji
+     */
+    public function test_create_displays_form(): void
     {
         $response = $this->actingAs($this->adminUser)
                         ->get('/admin/subscriptions/users/create');
@@ -236,6 +263,7 @@ class SubscriptionControllerTest extends TestCase
         $subscriptionData = [
             'user_id' => $this->regularUser->id,
             'plan_id' => $this->plan->id,
+            'name' => $this->plan->name,
             'status' => 'active',
             'start_date' => Carbon::now()->format('Y-m-d'),
             'end_date' => Carbon::now()->addMonth()->format('Y-m-d'),
@@ -255,6 +283,7 @@ class SubscriptionControllerTest extends TestCase
         $this->assertDatabaseHas('user_subscriptions', [
             'user_id' => $this->regularUser->id,
             'plan_id' => $this->plan->id,
+            'name' => $this->plan->name,
             'status' => 'active',
             'payment_method' => 'credit_card'
         ]);
@@ -268,6 +297,7 @@ class SubscriptionControllerTest extends TestCase
         // Tworzenie subskrypcji dla testów
         $subscription = UserSubscription::create([
             'user_id' => $this->regularUser->id,
+            'name' => $this->plan->name,
             'plan_id' => $this->plan->id,
             'status' => 'active',
             'start_date' => Carbon::now(),
@@ -295,6 +325,7 @@ class SubscriptionControllerTest extends TestCase
         // Tworzenie subskrypcji dla testów
         $subscription = UserSubscription::create([
             'user_id' => $this->regularUser->id,
+            'name' => $this->plan->name,
             'plan_id' => $this->plan->id,
             'status' => 'active',
             'start_date' => Carbon::now(),
@@ -306,6 +337,7 @@ class SubscriptionControllerTest extends TestCase
         
         $updatedData = [
             'plan_id' => $this->plan->id,
+            'name' => 'Zaktualizowany plan',
             'status' => 'trial',
             'start_date' => Carbon::now()->format('Y-m-d'),
             'end_date' => Carbon::now()->addMonths(3)->format('Y-m-d'),
@@ -323,6 +355,7 @@ class SubscriptionControllerTest extends TestCase
         
         $this->assertDatabaseHas('user_subscriptions', [
             'id' => $subscription->id,
+            'name' => 'Zaktualizowany plan',
             'status' => 'trial',
             'payment_method' => 'paypal',
             'auto_renew' => false
@@ -337,6 +370,7 @@ class SubscriptionControllerTest extends TestCase
         // Tworzenie subskrypcji dla testów
         $subscription = UserSubscription::create([
             'user_id' => $this->regularUser->id,
+            'name' => $this->plan->name,
             'plan_id' => $this->plan->id,
             'status' => 'active',
             'start_date' => Carbon::now(),
@@ -367,6 +401,7 @@ class SubscriptionControllerTest extends TestCase
         // Tworzenie subskrypcji dla testów
         $subscription = UserSubscription::create([
             'user_id' => $this->regularUser->id,
+            'name' => $this->plan->name,
             'plan_id' => $this->plan->id,
             'status' => 'active',
             'start_date' => Carbon::now(),
@@ -407,6 +442,7 @@ class SubscriptionControllerTest extends TestCase
         // Tworzenie subskrypcji dla testów
         $subscription = UserSubscription::create([
             'user_id' => $this->regularUser->id,
+            'name' => $this->plan->name,
             'plan_id' => $this->plan->id,
             'status' => 'active',
             'start_date' => Carbon::now(),

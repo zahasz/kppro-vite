@@ -572,4 +572,165 @@ class SubscriptionService
         
         return implode(', ', $address);
     }
+
+    /**
+     * Aktywuje subskrypcję użytkownika
+     *
+     * @param UserSubscription $subscription
+     * @return array
+     */
+    public function activateSubscription(UserSubscription $subscription)
+    {
+        try {
+            DB::beginTransaction();
+            
+            // Zaktualizuj status subskrypcji na aktywny
+            $subscription->status = 'active';
+            
+            // Oblicz datę zakończenia jeśli nie jest ustawiona
+            if (!$subscription->end_date) {
+                $subscription->end_date = $this->calculateEndDate(
+                    Carbon::parse($subscription->start_date ?: now()),
+                    $subscription->plan->billing_period
+                );
+            }
+            
+            $subscription->save();
+            
+            // Powiadom użytkownika o aktywacji subskrypcji
+            $subscription->user->notify(new SubscriptionActivated($subscription));
+            
+            // Wyemituj zdarzenie o aktywacji subskrypcji
+            event(new SubscriptionCreated($subscription));
+            
+            DB::commit();
+            
+            return [
+                'success' => true,
+                'message' => 'Subskrypcja została aktywowana pomyślnie',
+                'subscription' => $subscription
+            ];
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Błąd podczas aktywacji subskrypcji: ' . $e->getMessage(), [
+                'subscription_id' => $subscription->id,
+                'exception' => $e
+            ]);
+            
+            return [
+                'success' => false,
+                'message' => 'Wystąpił błąd podczas aktywacji subskrypcji: ' . $e->getMessage(),
+                'subscription' => $subscription
+            ];
+        }
+    }
+
+    /**
+     * Obsługuje nieudaną płatność za subskrypcję
+     *
+     * @param UserSubscription $subscription
+     * @param string $reason
+     * @return array
+     */
+    public function handleFailedPayment(UserSubscription $subscription, $reason = '')
+    {
+        try {
+            DB::beginTransaction();
+            
+            // Pobierz ustawienia płatności
+            $paymentSettings = \App\Models\PaymentSettings::getActive();
+            
+            // Zwiększ licznik nieudanych płatności
+            $subscription->failed_payment_count = ($subscription->failed_payment_count ?? 0) + 1;
+            $subscription->last_failed_payment_date = Carbon::now();
+            $subscription->last_failed_payment_reason = $reason;
+            
+            // Sprawdź, czy przekroczono maksymalną liczbę prób
+            $maxRetries = $paymentSettings->payment_retry_attempts ?? 3;
+            
+            if ($subscription->failed_payment_count >= $maxRetries) {
+                // Jeśli automatyczne anulowanie jest włączone
+                if ($paymentSettings->auto_cancel_after_failed_payments) {
+                    // Anuluj subskrypcję
+                    $subscription->status = 'cancelled';
+                    $subscription->cancelled_at = Carbon::now();
+                    $subscription->auto_renew = false;
+                    $subscription->renewal_status = UserSubscription::RENEWAL_DISABLED;
+                    $subscription->save();
+                    
+                    // Powiadom użytkownika
+                    $subscription->user->notify(new \App\Notifications\SubscriptionCancelled($subscription));
+                    
+                    // Wyemituj zdarzenie
+                    event(new \App\Events\SubscriptionCancelled($subscription));
+                    
+                    DB::commit();
+                    
+                    return [
+                        'success' => false,
+                        'message' => 'Subskrypcja została anulowana z powodu wielokrotnych nieudanych płatności',
+                        'subscription' => $subscription
+                    ];
+                } else {
+                    // Oznacz jako wymagającą ręcznej interwencji
+                    $subscription->status = 'payment_failed';
+                    $subscription->save();
+                    
+                    DB::commit();
+                    
+                    return [
+                        'success' => false,
+                        'message' => 'Przekroczono maksymalną liczbę prób płatności, wymagana interwencja',
+                        'subscription' => $subscription
+                    ];
+                }
+            } else {
+                // Ustaw następną datę próby płatności
+                $retryInterval = $paymentSettings->payment_retry_interval ?? 3; // dni
+                $subscription->next_payment_retry = Carbon::now()->addDays($retryInterval);
+                
+                // Ustaw okres karencji
+                $gracePeriod = $paymentSettings->grace_period_days ?? 3; // dni
+                
+                // Jeśli subskrypcja ma jeszcze okres karencji
+                if ($gracePeriod > 0) {
+                    // Data końca okresu karencji
+                    $subscription->grace_period_ends_at = Carbon::now()->addDays($gracePeriod);
+                    
+                    // Zostawiamy status jako aktywny przez okres karencji
+                    $subscription->status = 'active';
+                } else {
+                    // Brak okresu karencji - od razu oznaczamy jako problem z płatnością
+                    $subscription->status = 'payment_retry';
+                }
+                
+                $subscription->save();
+                
+                // Powiadom użytkownika o nieudanej płatności
+                $subscription->user->notify(new \App\Notifications\PaymentFailed($subscription, $reason));
+                
+                DB::commit();
+                
+                return [
+                    'success' => false,
+                    'message' => 'Płatność nie powiodła się, zaplanowano ponowną próbę za ' . $retryInterval . ' dni',
+                    'subscription' => $subscription,
+                    'next_retry' => $subscription->next_payment_retry
+                ];
+            }
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Błąd podczas obsługi nieudanej płatności: ' . $e->getMessage(), [
+                'subscription_id' => $subscription->id,
+                'reason' => $reason,
+                'exception' => $e
+            ]);
+            
+            return [
+                'success' => false,
+                'message' => 'Wystąpił błąd podczas obsługi nieudanej płatności: ' . $e->getMessage(),
+                'subscription' => $subscription
+            ];
+        }
+    }
 } 

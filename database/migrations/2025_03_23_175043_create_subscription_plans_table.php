@@ -18,6 +18,7 @@ return new class extends Migration
             $table->text('description')->nullable();
             $table->decimal('price', 10, 2);
             $table->string('currency', 3)->default('PLN');
+            $table->decimal('tax_rate', 5, 2)->default(23.00);
             $table->enum('billing_period', ['monthly', 'quarterly', 'annually', 'lifetime'])->default('monthly');
             $table->integer('max_users')->nullable();
             $table->integer('max_invoices')->nullable();

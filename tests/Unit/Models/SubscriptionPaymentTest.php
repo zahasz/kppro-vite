@@ -50,6 +50,7 @@ class SubscriptionPaymentTest extends TestCase
         $this->subscription = UserSubscription::create([
             'user_id' => $this->user->id,
             'plan_id' => $this->plan->id,
+            'name' => $this->plan->name,
             'status' => 'active',
             'start_date' => Carbon::now(),
             'end_date' => Carbon::now()->addMonth(),

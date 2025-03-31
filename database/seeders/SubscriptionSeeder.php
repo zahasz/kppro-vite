@@ -201,8 +201,11 @@ class SubscriptionSeeder extends Seeder
             $subscription = new UserSubscription();
             $subscription->user_id = $user->id;
             $subscription->subscription_plan_id = $plan->id;
+            $subscription->name = $plan->name;
             $subscription->status = 'active';
             $subscription->price = $plan->price;
+            $subscription->currency = $plan->currency;
+            $subscription->billing_period = $plan->billing_period;
             $subscription->start_date = $now;
             $subscription->end_date = $now->copy()->addMonth();
             $subscription->subscription_type = 'automatic';
@@ -219,7 +222,7 @@ class SubscriptionSeeder extends Seeder
             $payment->transaction_id = 'sample-' . uniqid();
             $payment->amount = $plan->price;
             $payment->currency = $plan->currency;
-            $payment->status = 'completed';
+            $payment->status = 'paid';
             $payment->payment_method = 'card';
             $payment->payment_details = 'Testowa płatność kartą';
             $payment->save();
@@ -272,8 +275,11 @@ class SubscriptionSeeder extends Seeder
         $subscription = new UserSubscription();
         $subscription->user_id = $admin->id;
         $subscription->subscription_plan_id = $plan->id;
+        $subscription->name = $plan->name;
         $subscription->status = 'active';
         $subscription->price = 0; // Bezpłatna subskrypcja dla administratora
+        $subscription->currency = $plan->currency;
+        $subscription->billing_period = $plan->billing_period;
         $subscription->start_date = $now;
         $subscription->end_date = $now->copy()->addYears(10); // Długi okres ważności
         $subscription->subscription_type = 'manual';

@@ -17,6 +17,7 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->foreignId('user_subscription_id')->constrained()->onDelete('cascade');
             $table->decimal('amount', 10, 2);
+            $table->string('currency', 3)->default('PLN');
             $table->enum('status', ['paid', 'pending', 'failed', 'refunded'])->default('pending');
             $table->enum('payment_method', ['card', 'paypal', 'bank_transfer'])->nullable();
             $table->string('payment_details')->nullable();

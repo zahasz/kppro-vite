@@ -14,6 +14,12 @@ class SubscriptionPlansSeeder extends Seeder
      */
     public function run(): void
     {
+        // Sprawdź, czy plany już istnieją
+        if (SubscriptionPlan::count() > 0) {
+            $this->command->info('Plany subskrypcji już istnieją - pomijam tworzenie');
+            return;
+        }
+        
         // Ustaw datę dla tworzenia planów, aby były spójne
         $now = Carbon::now();
         
@@ -23,11 +29,12 @@ class SubscriptionPlansSeeder extends Seeder
             'code' => 'free',
             'description' => 'Podstawowa funkcjonalność dla małych firm. Idealne rozwiązanie do rozpoczęcia pracy z systemem.',
             'price' => 0,
-            'billing_period' => 'lifetime',
+            'currency' => 'PLN',
+            'billing_period' => 'monthly',
             'is_active' => true,
             'max_invoices' => 10,
             'max_products' => 20,
-            'max_contractors' => 15,
+            'max_clients' => 15,
             'features' => [
                 'invoices_basic',
                 'contractors_basic',
@@ -44,11 +51,12 @@ class SubscriptionPlansSeeder extends Seeder
             'code' => 'standard',
             'description' => 'Rozbudowane funkcje dla rozwijających się firm. Zawiera moduł fakturowania i magazynowy.',
             'price' => 49.00,
+            'currency' => 'PLN',
             'billing_period' => 'monthly',
             'is_active' => true,
             'max_invoices' => 100,
             'max_products' => 200,
-            'max_contractors' => 100,
+            'max_clients' => 100,
             'features' => [
                 'invoices_advanced',
                 'contractors_advanced',
@@ -67,11 +75,12 @@ class SubscriptionPlansSeeder extends Seeder
             'code' => 'premium',
             'description' => 'Pełny dostęp do wszystkich funkcji dla średnich i dużych firm. Idealny dla firm z zaawansowanymi potrzebami.',
             'price' => 99.00,
+            'currency' => 'PLN',
             'billing_period' => 'monthly',
             'is_active' => true,
             'max_invoices' => 1000,
             'max_products' => 2000,
-            'max_contractors' => 1000,
+            'max_clients' => 1000,
             'features' => [
                 'invoices_advanced',
                 'contractors_advanced',
@@ -94,11 +103,12 @@ class SubscriptionPlansSeeder extends Seeder
             'code' => 'premium_yearly',
             'description' => 'Plan Premium z rabatem rocznym. Oszczędź 20% w porównaniu do rozliczenia miesięcznego.',
             'price' => 948.00, // 99 * 12 * 0.8 = 948 (20% zniżki w opłacie rocznej)
-            'billing_period' => 'yearly',
+            'currency' => 'PLN',
+            'billing_period' => 'annually',
             'is_active' => true,
             'max_invoices' => 1000,
             'max_products' => 2000,
-            'max_contractors' => 1000,
+            'max_clients' => 1000,
             'features' => [
                 'invoices_advanced',
                 'contractors_advanced',
@@ -114,5 +124,7 @@ class SubscriptionPlansSeeder extends Seeder
             'created_at' => $now,
             'updated_at' => $now,
         ]);
+        
+        $this->command->info('Utworzono ' . SubscriptionPlan::count() . ' planów subskrypcji');
     }
 }

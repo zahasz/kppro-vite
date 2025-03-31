@@ -3,6 +3,8 @@
 namespace App\Notifications;
 
 use App\Models\UserSubscription;
+use App\Models\PaymentSettings;
+use Carbon\Carbon;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
@@ -14,62 +16,35 @@ class PaymentFailed extends Notification implements ShouldQueue
 
     /**
      * Subskrypcja, której dotyczy powiadomienie
-     * 
+     *
      * @var UserSubscription
      */
     protected $subscription;
 
     /**
-     * Kwota płatności
-     * 
-     * @var float
-     */
-    protected $amount;
-
-    /**
-     * Waluta płatności
-     * 
-     * @var string
-     */
-    protected $currency;
-
-    /**
-     * Przyczyna niepowodzenia
-     * 
+     * Powód niepowodzenia płatności
+     *
      * @var string
      */
     protected $reason;
 
     /**
-     * Liczba prób płatności
-     * 
-     * @var int
-     */
-    protected $attemptCount;
-
-    /**
-     * Utwórz nową instancję powiadomienia.
+     * Tworzenie nowej instancji powiadomienia.
      *
      * @param UserSubscription $subscription
-     * @param float $amount
-     * @param string $currency
      * @param string $reason
-     * @param int $attemptCount
      * @return void
      */
-    public function __construct(UserSubscription $subscription, float $amount, string $currency = 'PLN', string $reason = null, int $attemptCount = 1)
+    public function __construct(UserSubscription $subscription, $reason = '')
     {
         $this->subscription = $subscription;
-        $this->amount = $amount;
-        $this->currency = $currency;
-        $this->reason = $reason ?? 'Wystąpił problem z płatnością.';
-        $this->attemptCount = $attemptCount;
+        $this->reason = $reason;
     }
 
     /**
      * Pobierz kanały dostarczania powiadomienia.
      *
-     * @param  mixed  $notifiable
+     * @param mixed $notifiable
      * @return array
      */
     public function via($notifiable)
@@ -78,66 +53,64 @@ class PaymentFailed extends Notification implements ShouldQueue
     }
 
     /**
-     * Pobierz wiadomość mailową powiadomienia.
+     * Pobierz wiadomość e-mail dla powiadomienia.
      *
-     * @param  mixed  $notifiable
+     * @param mixed $notifiable
      * @return \Illuminate\Notifications\Messages\MailMessage
      */
     public function toMail($notifiable)
     {
-        $user = $notifiable;
         $plan = $this->subscription->plan;
-        $amount = number_format($this->amount, 2, ',', ' ') . ' ' . $this->currency;
-        $paymentDate = now()->format('d.m.Y H:i');
+        $settings = PaymentSettings::getActive();
+        $gracePeriod = $settings->grace_period_days ?? 3;
+        $retryInterval = $settings->payment_retry_interval ?? 3;
+        $retryDate = Carbon::now()->addDays($retryInterval)->format('d.m.Y');
         
-        $message = (new MailMessage)
-            ->subject('Problem z płatnością za subskrypcję')
-            ->greeting('Witaj ' . $user->name . '!');
+        $mail = (new MailMessage)
+            ->subject('Płatność za subskrypcję nie powiodła się')
+            ->greeting('Witaj ' . $notifiable->name . '!')
+            ->line('Niestety, nie udało nam się pobrać płatności za Twoją subskrypcję **' . $plan->name . '**.');
             
-        if ($this->attemptCount == 1) {
-            $message->line('Podczas próby pobrania płatności za subskrypcję planu ' . $plan->name . ' wystąpił problem.');
-        } else {
-            $message->line('Kolejna próba pobrania płatności za subskrypcję planu ' . $plan->name . ' nie powiodła się.');
+        if ($this->reason) {
+            $mail->line('Powód niepowodzenia: **' . $this->reason . '**');
         }
         
-        $message->line('Szczegóły:')
-            ->line('- Kwota: ' . $amount)
-            ->line('- Data próby: ' . $paymentDate)
-            ->line('- Przyczyna: ' . $this->reason);
-        
-        if ($this->subscription->grace_period_ends_at) {
-            $graceEndDate = $this->subscription->grace_period_ends_at->format('d.m.Y');
-            $message->line('Twoja subskrypcja pozostanie aktywna w okresie karencji do ' . $graceEndDate . '.');
+        if ($gracePeriod > 0) {
+            $graceEndDate = Carbon::now()->addDays($gracePeriod)->format('d.m.Y');
+            $mail->line('Twoja subskrypcja pozostanie aktywna do **' . $graceEndDate . '** (okres karencji).');
         }
         
-        $message->line('Aby uniknąć zawieszenia subskrypcji, prosimy o aktualizację metody płatności lub dokonanie ręcznej płatności.')
-            ->action('Aktualizuj metodę płatności', url('/subscription/payment-methods'))
-            ->line('Jeśli potrzebujesz pomocy, skontaktuj się z naszym zespołem obsługi klienta.')
-            ->salutation('Z poważaniem, zespół ' . config('app.name'));
-            
-        return $message;
+        if ($settings->auto_retry_failed_payments) {
+            $mail->line('Automatycznie ponowimy próbę płatności dnia **' . $retryDate . '**.');
+        }
+        
+        $mail->line('Aby uniknąć przerwania usługi, prosimy o sprawdzenie i aktualizację informacji o płatności.')
+             ->action('Zarządzaj subskrypcją', url('/account/subscriptions'))
+             ->line('Dziękujemy za korzystanie z naszych usług!');
+        
+        return $mail;
     }
 
     /**
-     * Pobierz tablicę danych dla powiadomienia typu database.
+     * Pobierz tablicę powiadomienia dla bazy danych.
      *
-     * @param  mixed  $notifiable
+     * @param mixed $notifiable
      * @return array
      */
-    public function toArray($notifiable)
+    public function toDatabase($notifiable)
     {
         $plan = $this->subscription->plan;
+        $settings = PaymentSettings::getActive();
+        $retryInterval = $settings->payment_retry_interval ?? 3;
+        $nextRetry = Carbon::now()->addDays($retryInterval);
         
         return [
-            'title' => 'Nieudana płatność za subskrypcję',
+            'title' => 'Płatność nie powiodła się',
+            'message' => 'Nie udało się pobrać płatności za subskrypcję ' . $plan->name,
             'subscription_id' => $this->subscription->id,
-            'plan_name' => $plan->name,
-            'amount' => $this->amount,
-            'currency' => $this->currency,
             'reason' => $this->reason,
-            'attempt_count' => $this->attemptCount,
-            'payment_date' => now()->toDateTimeString(),
-            'grace_period_ends_at' => $this->subscription->grace_period_ends_at?->toDateTimeString(),
+            'next_retry' => $nextRetry->format('Y-m-d'),
+            'action_url' => '/account/subscriptions',
         ];
     }
 } 

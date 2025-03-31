@@ -3,11 +3,6 @@
 namespace Tests\Unit\Models;
 
 use PHPUnit\Framework\TestCase;
-<?php
-
-namespace Tests\Unit\Models;
-
-use PHPUnit\Framework\TestCase;
 use App\Models\UserSubscription;
 use App\Models\User;
 use App\Models\SubscriptionPlan;
@@ -34,10 +29,10 @@ class UserSubscriptionTest extends TestCase
         // Tworzenie użytkownika
         $this->user = User::factory()->create();
         
-        // Tworzenie planu subskrypcji
+        // Tworzenie planu subskrypcji z unikalnym kodem
         $this->plan = SubscriptionPlan::create([
             'name' => 'Plan testowy',
-            'code' => 'test-plan',
+            'code' => 'test-plan-' . uniqid(),
             'description' => 'Opis planu testowego',
             'price' => 49.99,
             'currency' => 'PLN',
@@ -54,14 +49,18 @@ class UserSubscriptionTest extends TestCase
         // Tworzenie subskrypcji
         $this->subscription = UserSubscription::create([
             'user_id' => $this->user->id,
-            'plan_id' => $this->plan->id,
+            'name' => $this->plan->name,
+            'description' => $this->plan->description,
+            'price' => $this->plan->price,
+            'currency' => $this->plan->currency,
             'status' => 'active',
-            'start_date' => Carbon::now(),
-            'end_date' => Carbon::now()->addMonth(),
+            'billing_period' => $this->plan->billing_period,
             'payment_method' => 'credit_card',
             'payment_details' => 'Visa **** 4242',
             'auto_renew' => true,
-            'notes' => 'Notatka testowa'
+            'notes' => 'Notatka testowa',
+            'trial_ends_at' => null,
+            'ends_at' => Carbon::now()->addMonth()
         ]);
     }
 

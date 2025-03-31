@@ -58,21 +58,29 @@ class SubscriptionRenewalCommand extends Command
     public function handle()
     {
         $dryRun = $this->option('dry-run');
-        $daysBefore = (int) $this->option('days-before');
+        
+        // Pobierz ustawienia systemowe jeśli nie są podane przez argumenty
+        $paymentSettings = \App\Models\PaymentSettings::getActive();
+        
+        // Użyj parametru z linii komend lub wartości z ustawień
+        $daysBefore = (int) $this->option('days-before') ?: $paymentSettings->renewal_charge_days_before ?? 3;
         $limit = (int) $this->option('limit');
         
         if ($dryRun) {
             $this->info("Uruchomiono w trybie testowym (dry-run) - płatności NIE będą wykonywane.");
         }
         
-        $this->info("Rozpoczynam proces automatycznego odnawiania subskrypcji...");
+        $this->info("Rozpoczynam proces automatycznego odnawiania subskrypcji (na {$daysBefore} dni przed wygaśnięciem)...");
         
         // Data, według której sprawdzamy subskrypcje do odnowienia
         $renewDate = Carbon::now()->addDays($daysBefore);
         
         // Pobierz subskrypcje do odnowienia
         $subscriptionsToRenew = UserSubscription::where('status', 'active')
-            ->where('auto_renew', true)
+            ->where(function ($query) {
+                $query->where('auto_renew', true)
+                      ->orWhere('renewal_status', UserSubscription::RENEWAL_ENABLED);
+            })
             ->whereDate('end_date', '=', $renewDate->toDateString())
             ->whereNotNull('end_date')
             ->whereNotIn('payment_method', ['free', 'manual'])

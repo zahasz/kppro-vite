@@ -7,6 +7,7 @@ use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
+use Carbon\Carbon;
 
 class SubscriptionCancelled extends Notification implements ShouldQueue
 {
@@ -14,44 +15,35 @@ class SubscriptionCancelled extends Notification implements ShouldQueue
 
     /**
      * Subskrypcja, której dotyczy powiadomienie
-     * 
+     *
      * @var UserSubscription
      */
     protected $subscription;
 
     /**
-     * Czy subskrypcja została anulowana przez administratora
-     * 
-     * @var bool
-     */
-    protected $byAdmin;
-
-    /**
-     * Powód anulowania (opcjonalny)
-     * 
+     * Przyczyna anulowania
+     *
      * @var string|null
      */
     protected $reason;
 
     /**
-     * Utwórz nową instancję powiadomienia.
+     * Tworzenie nowej instancji powiadomienia.
      *
      * @param UserSubscription $subscription
-     * @param bool $byAdmin
      * @param string|null $reason
      * @return void
      */
-    public function __construct(UserSubscription $subscription, bool $byAdmin = false, string $reason = null)
+    public function __construct(UserSubscription $subscription, $reason = null)
     {
         $this->subscription = $subscription;
-        $this->byAdmin = $byAdmin;
         $this->reason = $reason;
     }
 
     /**
      * Pobierz kanały dostarczania powiadomienia.
      *
-     * @param  mixed  $notifiable
+     * @param mixed $notifiable
      * @return array
      */
     public function via($notifiable)
@@ -60,61 +52,60 @@ class SubscriptionCancelled extends Notification implements ShouldQueue
     }
 
     /**
-     * Pobierz wiadomość mailową powiadomienia.
+     * Pobierz wiadomość e-mail dla powiadomienia.
      *
-     * @param  mixed  $notifiable
+     * @param mixed $notifiable
      * @return \Illuminate\Notifications\Messages\MailMessage
      */
     public function toMail($notifiable)
     {
-        $user = $notifiable;
         $plan = $this->subscription->plan;
-        $endDate = $this->subscription->ends_at ? $this->subscription->ends_at->format('d.m.Y') : 'natychmiast';
+        $endDate = $this->subscription->end_date
+            ? Carbon::parse($this->subscription->end_date)->format('d.m.Y')
+            : Carbon::now()->format('d.m.Y');
         
-        $message = (new MailMessage)
-            ->subject('Anulowanie subskrypcji')
-            ->greeting('Witaj ' . $user->name . '!');
+        $mail = (new MailMessage)
+            ->subject('Subskrypcja została anulowana')
+            ->greeting('Witaj ' . $notifiable->name . '!')
+            ->line('Twoja subskrypcja **' . $plan->name . '** została anulowana.');
             
-        if ($this->byAdmin) {
-            $message->line('Twoja subskrypcja planu ' . $plan->name . ' została anulowana przez administratora systemu.');
-            
-            if ($this->reason) {
-                $message->line('Powód: ' . $this->reason);
-            }
+        if ($this->reason) {
+            $mail->line('Przyczyna anulowania: **' . $this->reason . '**');
+        }
+        
+        if ($this->subscription->end_date && $this->subscription->end_date->isFuture()) {
+            $mail->line('Twoja subskrypcja będzie aktywna do **' . $endDate . '**.');
+            $mail->line('Po tym czasie dostęp do usług związanych z tą subskrypcją zostanie ograniczony.');
         } else {
-            $message->line('Potwierdzamy anulowanie Twojej subskrypcji planu ' . $plan->name . '.');
+            $mail->line('Twój dostęp do usług związanych z tą subskrypcją został ograniczony.');
         }
         
-        $message->line('Dostęp do funkcji związanych z tym planem zakończy się ' . $endDate . '.');
+        $mail->line('Jeśli to anulowanie nastąpiło przez pomyłkę lub chcesz odnowić subskrypcję, możesz to zrobić w każdej chwili.')
+             ->action('Zarządzaj subskrypcjami', url('/account/subscriptions'))
+             ->line('Dziękujemy za korzystanie z naszych usług!');
         
-        if (!$this->byAdmin) {
-            $message->line('Jeśli anulowanie było pomyłką lub zmieniłeś zdanie, możesz ponownie aktywować swoją subskrypcję przed upływem terminu ważności.')
-                ->action('Zarządzaj subskrypcjami', url('/subscriptions'));
-        }
-        
-        $message->line('Jeśli masz jakiekolwiek pytania, skontaktuj się z naszym zespołem obsługi klienta.')
-            ->salutation('Z poważaniem, zespół ' . config('app.name'));
-            
-        return $message;
+        return $mail;
     }
 
     /**
-     * Pobierz tablicę danych dla powiadomienia typu database.
+     * Pobierz tablicę powiadomienia dla bazy danych.
      *
-     * @param  mixed  $notifiable
+     * @param mixed $notifiable
      * @return array
      */
-    public function toArray($notifiable)
+    public function toDatabase($notifiable)
     {
         $plan = $this->subscription->plan;
         
         return [
-            'title' => 'Anulowanie subskrypcji',
+            'title' => 'Subskrypcja anulowana',
+            'message' => 'Twoja subskrypcja ' . $plan->name . ' została anulowana.',
             'subscription_id' => $this->subscription->id,
-            'plan_name' => $plan->name,
-            'by_admin' => $this->byAdmin,
+            'plan_id' => $plan->id,
             'reason' => $this->reason,
-            'ends_at' => $this->subscription->ends_at?->toDateTimeString(),
+            'cancelled_at' => Carbon::now()->format('Y-m-d H:i:s'),
+            'end_date' => $this->subscription->end_date ? $this->subscription->end_date->format('Y-m-d') : null,
+            'action_url' => '/account/subscriptions',
         ];
     }
 } 

@@ -31,5 +31,11 @@ class DatabaseSeeder extends Seeder
             ModuleSeeder::class,             // Moduły aplikacji
             SubscriptionPlanModuleSeeder::class, // Przypisanie modułów do planów
         ]);
+
+        // Ustawienia płatności
+        $this->call(PaymentSettingsSeeder::class);
+        
+        // Ustawienia fakturowania
+        $this->call(BillingSettingsSeeder::class);
     }
 }
